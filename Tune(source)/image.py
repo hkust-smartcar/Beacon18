@@ -8,6 +8,8 @@ import tkinter as tk
 from PIL import Image, ImageTk
 import time
 import os
+import struct
+from ctypes import c_uint8
 
 def open_port(Port_no,self,com_status):
     global ser
@@ -54,12 +56,18 @@ def start(mode,self):
     elif mode == "PID":
         global kp,kd,ki
         ser.write(b'g')
-        num = ser.readline().decode("ascii")
-        kp = int(num[0:-1])
-        in_data = ser.readline().decode("ascii")
-        ki = int(num[0:-1])
-        in_data = ser.readline().decode("ascii")
-        kd = int(num[0:-1])
+        in_data = ser.readline()
+        kp = float(in_data.decode("ascii").strip('\n'))
+        self.kp_entry.delete(0,tk.END)
+        self.kp_entry.insert(0,kp)
+        in_data = ser.readline()
+        ki = float(in_data.decode("ascii").strip('\n'))
+        self.ki_entry.delete(0,tk.END)
+        self.ki_entry.insert(0,ki)
+        in_data = ser.readline()
+        kd = float(in_data.decode("ascii").strip('\n'))
+        self.kd_entry.delete(0,tk.END)
+        self.kd_entry.insert(0,kd)
 
 def stop():
     global status
@@ -68,12 +76,26 @@ def stop():
 
 def sendPID(m_kp,m_kd,m_ki):
     global kp,kd,ki
-    kp = int(m_kp)
-    ser.write(b'p' + c_uint8(kp))
-    kd = int(m_kd)
-    ser.write(b'd' + c_uint8(kd))
-    ki = int(m_ki)
-    ser.write(b'i' + c_uint8(ki))
+    kp = float(m_kp)
+    data = bytearray(struct.pack(">f", kp))
+    ser.write(b'p')
+    for b in data:
+        if(ser.read() == b'\n'):
+            ser.write(c_uint8(b))
+
+    ki = float(m_ki)
+    data = bytearray(struct.pack(">f", ki))
+    ser.write(b'i')
+    for b in data:
+        if(ser.read() == b'\n'):
+            ser.write(c_uint8(b))
+
+    kd = float(m_kd)
+    data = bytearray(struct.pack(">f", kd))
+    ser.write(b'd')
+    for b in data:
+        if(ser.read() == b'\n'):
+            ser.write(c_uint8(b))
 
 def save_status(save_mode):
     global save
@@ -146,10 +168,10 @@ def change_target(input_value):
 
 def reset():
     global x_value,value1,x,target_line
-    x_value = 0
-    value1 = []
-    x =[]
-    target_line =[]
+    x_value = 1
+    value1 = [0]
+    x =[1]
+    target_line =[target]
     ser.reset_input_buffer()
     ax.clear()
 
@@ -248,7 +270,7 @@ class PID_page(tk.Frame):
         canvas_frame = tk.Frame(parent)
         canvas = FigureCanvasTkAgg(graph_fig,canvas_frame)
         canvas.show()
-        ani = animation.FuncAnimation(graph_fig, PID_animate, interval=60)
+        ani = animation.FuncAnimation(graph_fig, PID_animate, interval=40)
 
         action_frame = tk.Frame(parent)
         start_button = tk.Button(action_frame,text = "Start", command = lambda : start("PID",self),width = 10)
@@ -260,14 +282,14 @@ class PID_page(tk.Frame):
         target_display.insert(0,target)
         value_frame = tk.Frame(parent)
         kp_label = tk.Label(value_frame,text = "Kp")
-        kp_entry = tk.Entry(value_frame,width = 10)
-        kp_entry.insert(0,kp)
+        self.kp_entry = tk.Entry(value_frame,width = 10)
+        self.kp_entry.insert(0,kp)
         kd_label = tk.Label(value_frame,text = "Kd")
-        kd_entry = tk.Entry(value_frame,width = 10)
-        kd_entry.insert(0,kd)
+        self.kd_entry = tk.Entry(value_frame,width = 10)
+        self.kd_entry.insert(0,kd)
         ki_label = tk.Label(value_frame,text = "Ki")
-        ki_entry = tk.Entry(value_frame,width = 10)
-        ki_entry.insert(0,ki)
+        self.ki_entry = tk.Entry(value_frame,width = 10)
+        self.ki_entry.insert(0,ki)
         ok = tk.Button(value_frame,text="Set",width = 15,command = lambda: sendPID(kp_entry.get(),kd_entry.get(),ki_entry.get()))
 
         canvas_frame.pack(fill= tk.X)
@@ -277,15 +299,15 @@ class PID_page(tk.Frame):
         start_button.pack(padx= 10,side = tk.LEFT)
         stop_button.pack(padx= 5,side = tk.LEFT)
         reset_button.pack(padx = [6,0],side = tk.LEFT)
-        set_target.pack(padx = [100,0],side = tk.LEFT)
+        set_target.pack(padx = [75,0],side = tk.LEFT)
         target_display.pack(side = tk.LEFT,padx = 5)
         target_button.pack(side = tk.LEFT)
         kp_label.pack(padx = 5,side =tk.LEFT)
-        kp_entry.pack(padx = 5,side =tk.LEFT)
+        self.kp_entry.pack(padx = 5,side =tk.LEFT)
         kd_label.pack(padx = 5,side =tk.LEFT)
-        kd_entry.pack(padx = 5,side =tk.LEFT)
+        self.kd_entry.pack(padx = 5,side =tk.LEFT)
         ki_label.pack(padx = 5,side =tk.LEFT)
-        ki_entry.pack(padx = 5,side =tk.LEFT)
+        self.ki_entry.pack(padx = 5,side =tk.LEFT)
         ok.pack(pady = 10)
 
 #start of the program
@@ -298,14 +320,14 @@ imageSize = width*height /8
 contrast = 0
 brightness = 0
 frameNo = 0
-value1 =[]
-x = []
-x_value = 0
-kp = 0
-kd = 0
-ki = 0
+value1 =[0]
+x = [1]
+x_value = 1
+kp = 0.0
+kd = 0.0
+ki = 0.0
 target = 0
-target_line = []
+target_line = [target]
 
 image_path = r'.\image\sample'
 folder_no = 1

@@ -4,9 +4,9 @@ block_cipher = None
 
 
 a = Analysis(['image.py'],
-             pathex=['C:\\Users\\Sheldon\\Desktop\\pid'],
+             pathex=['C:\\Users\\Sheldon\\Documents\\GitHub\\Beacon18\\Tune(source)'],
              binaries=[],
-             datas=[('C:\\Users\\Sheldon\\Desktop\\pid\\image','image')],
+             datas=[('C:\\Users\\Sheldon\\Documents\\GitHub\\Beacon18\\Tune(source)\\image','image')],
              hiddenimports=[],
              hookspath=[],
              runtime_hooks=[],
