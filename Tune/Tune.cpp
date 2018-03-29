@@ -1,8 +1,8 @@
 /*
  * main.cpp
  *
- * Author: 
- * Copyright (c) 2014-2015 HKUST SmartCar Team
+ * Author:Sheldon
+ * Copyright (c) 2017-2018 HKUST SmartCar Team
  * Refer to LICENSE for details
  */
 
@@ -42,27 +42,10 @@ using namespace libbase::k60;
 float kp = 0.1;
 float kd = 0.9;
 float ki = 0.005;
-const uint16_t width = 240;
-const uint16_t height = 180;
-
-//uint8_t process(const Byte* buf, uint16_t temp[]) {
-//	uint16_t pos = 0;
-//	int bit_pos = 8;
-//	uint8_t position = 0;
-//	for (uint16_t y = 0; y < height; y++) {
-//		for (uint16_t x = 0; x < width; ++x) {
-//			if (--bit_pos < 0) {
-//				bit_pos = 7;
-//				++pos;
-//			}
-//			if (!GET_BIT(buf[pos], bit_pos)){
-//				temp[position++] = x;
-//				temp[position++] = y;
-//			}
-//		}
-//	}
-//	return position;
-//}
+uint32_t target = 0;
+uint16_t speed = 0;
+const uint16_t width = 80;
+const uint16_t height = 60;
 
 int main() {
 
@@ -91,7 +74,7 @@ int main() {
 	uint32_t tick = System::Time();
 	bool c_start = false;
 	bool g_start = false;
-	bool receiving[] = { false, false, false };
+	bool receiving[] = { false, false, false, false };
 	int8_t factor = 0;
 	int contrast = 0x40;
 	int brightness = 0x00;
@@ -115,10 +98,10 @@ int main() {
 	JyMcuBt106::Config config;
 	config.baud_rate = libbase::k60::Uart::Config::BaudRate::k115200;
 	config.id = 0;
-	config.tx_buf_size = 2; //change this to 1 if working with large image size
+	config.tx_buf_size = 14; //change this to 1 if working with large image size
 	JyMcuBt106 bt(config);
 	bt.SetRxIsr(
-			[&lcd,&led0,&g_start,&c_start,&receiving,&led1,&brightness,&cam,&bt,&contrast,&motor1,&motor2,&factor,&temp_data,&writer](const Byte *data, const size_t size) {
+			[&lcd,&writer,&led0,&g_start,&c_start,&receiving,&led1,&brightness,&cam,&bt,&contrast,&motor1,&motor2,&factor,&temp_data](const Byte *data, const size_t size) {
 				if(data[0] =='c') {
 					led0.Switch();
 					c_start = !c_start;
@@ -137,8 +120,7 @@ int main() {
 					g_start = !g_start;
 					sprintf(temp,"%f\n%f\n%f\n",kp,ki,kd);
 					bt.SendStr(temp);
-					motor1.SetPower(200);
-					motor2.SetPower(200);
+					motor1.SetPower(target);
 				}
 				if(data[0]=='s') {
 					c_start = false;
@@ -191,7 +173,7 @@ int main() {
 						memcpy(&ki,&temp_data,sizeof(ki));
 						char out[20]= {};
 						sprintf(out,"ki: %f",ki);
-						lcd.SetRegion(Lcd::Rect(0,16,100,15));
+						lcd.SetRegion(Lcd::Rect(0,32,128,15));
 						writer.WriteBuffer(out,10);
 					}
 				}
@@ -204,8 +186,21 @@ int main() {
 						memcpy(&kd,&temp_data,sizeof(kd));
 						char out[20]= {};
 						sprintf(out,"kd: %f",kd);
-						lcd.SetRegion(Lcd::Rect(0,32,100,15));
+						lcd.SetRegion(Lcd::Rect(0,16,128,15));
 						writer.WriteBuffer(out,10);
+					}
+				}if(receiving[3] == true) {
+					bt.SendStr("\n");
+					temp_data |= data[0] << factor;
+					factor -= 8;
+					if(factor < 0 ) {
+						receiving[3] = false;
+						memcpy(&target,&temp_data,sizeof(target));
+						char out[20]= {};
+						sprintf(out,"target: %d",target);
+						motor1.SetPower(target);
+						lcd.SetRegion(Lcd::Rect(0,48,128,15));
+						writer.WriteBuffer(out,20);
 					}
 				}
 
@@ -227,6 +222,12 @@ int main() {
 					factor = 24;
 					bt.SendStr("\n");
 				}
+				if(data[0] == 't') {
+					temp_data = 0;
+					receiving[3] = true;
+					factor = 24;
+					bt.SendStr("\n");
+				}
 				return true;
 			});
 
@@ -240,21 +241,12 @@ int main() {
 	lcd.Clear(Lcd::kWhite);
 	int count1 = 0;
 	int count2 = 0;
-
-//	int start_time = 0;
-//	int end = 0;
-//	bool img[height][width];
-//	uint16_t temp[100];
+	bt.SendStrLiteral("s");
 
 	while (1) {
-//		char data[5] = { };
-//		start_time = System::Time();
-//		end = System::Time();
-//		sprintf(data, "%d\r\n", end - start_time);
-//		bt.SendStr(data);
 		if (tick != System::Time()) {
 			tick = System::Time();
-			if (c_start && tick % 50 == 0) {
+			if (c_start) {
 				const Byte* buf = cam.LockBuffer();
 				bt.SendBuffer(buf, width * height / 8);
 				cam.UnlockBuffer();

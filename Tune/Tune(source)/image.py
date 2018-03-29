@@ -74,28 +74,37 @@ def stop():
     ser.write(b's')
     status = False
 
-def sendPID(m_kp,m_kd,m_ki):
+def sendPID(self):
     global kp,kd,ki
+    m_kp = self.kp_entry.get()
+    m_ki = self.ki_entry.get()
+    m_kd = self.kd_entry.get()
     kp = float(m_kp)
     data = bytearray(struct.pack(">f", kp))
     ser.write(b'p')
     for b in data:
-        if(ser.read() == b'\n'):
-            ser.write(c_uint8(b))
+        while(True):
+            if(ser.read() == b'\n'):
+                ser.write(c_uint8(b))
+                break
 
     ki = float(m_ki)
     data = bytearray(struct.pack(">f", ki))
     ser.write(b'i')
     for b in data:
-        if(ser.read() == b'\n'):
-            ser.write(c_uint8(b))
+        while(True):
+            if(ser.read() == b'\n'):
+                ser.write(c_uint8(b))
+                break
 
     kd = float(m_kd)
     data = bytearray(struct.pack(">f", kd))
     ser.write(b'd')
     for b in data:
-        if(ser.read() == b'\n'):
-            ser.write(c_uint8(b))
+        while(True):
+            if(ser.read() == b'\n'):
+                ser.write(c_uint8(b))
+                break
 
 def save_status(save_mode):
     global save
@@ -165,6 +174,13 @@ def change_setting(output,self):
 def change_target(input_value):
     global target
     target = int(input_value)
+    data = bytearray(struct.pack(">I", target))
+    ser.write(b't')
+    for b in data:
+        while(True):
+            if(ser.read() == b'\n'):
+                ser.write(c_uint8(b))
+                break
 
 def reset():
     global x_value,value1,x,target_line
@@ -290,7 +306,7 @@ class PID_page(tk.Frame):
         ki_label = tk.Label(value_frame,text = "Ki")
         self.ki_entry = tk.Entry(value_frame,width = 10)
         self.ki_entry.insert(0,ki)
-        ok = tk.Button(value_frame,text="Set",width = 15,command = lambda: sendPID(kp_entry.get(),kd_entry.get(),ki_entry.get()))
+        ok = tk.Button(value_frame,text="Set",width = 15,command = lambda: sendPID(self))
 
         canvas_frame.pack(fill= tk.X)
         action_frame.pack(fill= tk.X)
