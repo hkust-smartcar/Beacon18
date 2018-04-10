@@ -74,6 +74,18 @@ def stop():
     ser.write(b's')
     status = False
 
+def sendData(text):
+    buffer = text.split(',')
+    for data in buffer:
+        data = data.strip('\n')
+        data_array = bytearray(struct.pack(">f", data[2:-1]))
+        ser.write(data[0].encode("ascii"))
+        for b in data_array:
+            while(True):
+                if(ser.read() == b'\n'):
+                    ser.write(c_uint8(b))
+                    break
+
 def sendPID(self):
     global kp,kd,ki
     m_kp = self.kp_entry.get()
@@ -308,9 +320,14 @@ class PID_page(tk.Frame):
         self.ki_entry.insert(0,ki)
         ok = tk.Button(value_frame,text="Set",width = 15,command = lambda: sendPID(self))
 
+        Data_frame = tk.Frame(parent)
+        input_box = tk.Text(Data_frame,width = 50,height = 10,wrap = "word")
+        send_data = tk.Button(Data_frame,text = "Send",width = 10,command = lambda: sendData(input_box.get("1.0",tk.END)))
+
         canvas_frame.pack(fill= tk.X)
         action_frame.pack(fill= tk.X)
         value_frame.pack(fill= tk.X)
+        Data_frame.pack(fill = tk.X)
         canvas.get_tk_widget().pack()
         start_button.pack(padx= 10,side = tk.LEFT)
         stop_button.pack(padx= 5,side = tk.LEFT)
@@ -325,6 +342,8 @@ class PID_page(tk.Frame):
         ki_label.pack(padx = 5,side =tk.LEFT)
         self.ki_entry.pack(padx = 5,side =tk.LEFT)
         ok.pack(pady = 10)
+        input_box.pack(side = tk.LEFT,padx = [30,10], pady = [0,10])
+        send_data.pack(side = tk.LEFT)
 
 #start of the program
 global img,fig,ser,ani

@@ -21,6 +21,7 @@
 #include "libsc/lcd_typewriter.h"
 #include <libsc/k60/ov7725.h>
 #include "libsc/alternate_motor.h"
+#include "pid.h"
 
 namespace libbase {
 namespace k60 {
@@ -40,12 +41,15 @@ using namespace libsc::k60;
 using namespace libbase::k60;
 
 float kp = 0.1;
-float kd = 0.9;
-float ki = 0.005;
+float kd = 0;
+float ki = 0;
+float previous_error = 0;
+uint32_t integral[10] = {0};
+uint32_t derivative = 0;
 uint32_t target = 0;
 uint16_t speed = 0;
-const uint16_t width = 80;
-const uint16_t height = 60;
+const uint16_t width = 320;
+const uint16_t height = 240;
 
 int main() {
 
@@ -95,13 +99,16 @@ int main() {
 	cam_config.fps = k60::Ov7725Configurator::Config::Fps::kHigh;
 	k60::Ov7725 cam(cam_config);
 
+	PID pid(kp,ki,kd);
+	pid.errorSumBound = 0; // not sure what to set
+
 	JyMcuBt106::Config config;
 	config.baud_rate = libbase::k60::Uart::Config::BaudRate::k115200;
 	config.id = 0;
-	config.tx_buf_size = 14; //change this to 1 if working with large image size
+	config.tx_buf_size = 2; //change this to 1 if working with large image size
 	JyMcuBt106 bt(config);
 	bt.SetRxIsr(
-			[&lcd,&writer,&led0,&g_start,&c_start,&receiving,&led1,&brightness,&cam,&bt,&contrast,&motor1,&motor2,&factor,&temp_data](const Byte *data, const size_t size) {
+			[&pid,&lcd,&writer,&led0,&g_start,&c_start,&receiving,&led1,&brightness,&cam,&bt,&contrast,&motor1,&motor2,&factor,&temp_data](const Byte *data, const size_t size) {
 				if(data[0] =='c') {
 					led0.Switch();
 					c_start = !c_start;
@@ -120,7 +127,9 @@ int main() {
 					g_start = !g_start;
 					sprintf(temp,"%f\n%f\n%f\n",kp,ki,kd);
 					bt.SendStr(temp);
-					motor1.SetPower(target);
+					if(speed > 600)
+						speed = 600;
+					motor1.SetPower(speed);
 				}
 				if(data[0]=='s') {
 					c_start = false;
@@ -162,6 +171,7 @@ int main() {
 						sprintf(out,"kp: %f",kp);
 						lcd.SetRegion(Lcd::Rect(0,0,100,15));
 						writer.WriteBuffer(out,10);
+						pid.kP = kp;
 					}
 				}
 				if(receiving[1] == true) {
@@ -175,6 +185,7 @@ int main() {
 						sprintf(out,"ki: %f",ki);
 						lcd.SetRegion(Lcd::Rect(0,32,128,15));
 						writer.WriteBuffer(out,10);
+						pid.kI = ki;
 					}
 				}
 				if(receiving[2] == true) {
@@ -188,8 +199,10 @@ int main() {
 						sprintf(out,"kd: %f",kd);
 						lcd.SetRegion(Lcd::Rect(0,16,128,15));
 						writer.WriteBuffer(out,10);
+						pid.kD = kd;
 					}
-				}if(receiving[3] == true) {
+				}
+				if(receiving[3] == true) {
 					bt.SendStr("\n");
 					temp_data |= data[0] << factor;
 					factor -= 8;
@@ -198,7 +211,6 @@ int main() {
 						memcpy(&target,&temp_data,sizeof(target));
 						char out[20]= {};
 						sprintf(out,"target: %d",target);
-						motor1.SetPower(target);
 						lcd.SetRegion(Lcd::Rect(0,48,128,15));
 						writer.WriteBuffer(out,20);
 					}
@@ -234,13 +246,10 @@ int main() {
 	DirEncoder::Config encoder_config;
 	encoder_config.id = 1;
 	DirEncoder encoder1(encoder_config);
-//	ab_config.id = 1;
-//	AbEncoder encoder2(ab_config);
 
 	lcd.SetRegion(Lcd::Rect(0, 0, 160, 128));
 	lcd.Clear(Lcd::kWhite);
 	int count1 = 0;
-	int count2 = 0;
 	bt.SendStrLiteral("s");
 
 	while (1) {
@@ -254,15 +263,19 @@ int main() {
 			if (tick % 100 == 0 && g_start) {
 				char data[20] = { };
 				encoder1.Update();
-//				encoder2.Update();
 				count1 = encoder1.GetCount();
-//				count2 = encoder2.GetCount();
-
 				sprintf(data, "%d\n", count1);
-//				lcd.SetRegion(Lcd::Rect(0, 0, 128, 15));
-//				writer.WriteBuffer(data, 20);
-				std::string out = data;
 				bt.SendStr(data);
+				sprintf(data, "encoder: %d", count1);
+				lcd.SetRegion(Lcd::Rect(0,85,128,15));
+				writer.WriteBuffer(data,20);
+				speed+= pid.output(target,count1);
+				if(speed > 1000)
+					speed = 1000;
+				motor1.SetPower(speed);
+				sprintf(data, "speed: %d", speed);
+				lcd.SetRegion(Lcd::Rect(0,70,128,15));
+				writer.WriteBuffer(data,20);
 			}
 		}
 	}
