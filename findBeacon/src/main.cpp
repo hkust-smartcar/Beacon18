@@ -46,12 +46,14 @@ const uint16_t height = 240;
 const uint16_t numOfPixel = width * height / 8;
 const uint8_t max_beacon = 10;
 
-uint8_t contrast = 0x40;
+uint8_t contrast = 74;
 uint8_t brightness = 0x00;
-const uint8_t x_range = 40;
-const uint8_t y_range = 50;
+const uint8_t x_range = 30;
+const uint8_t y_range = 40;
 Beacon* target = nullptr;
 const uint16_t min_size = 100;
+const uint8_t error = 10;
+bool seen = false;
 
 int16_t getX(uint16_t m_pos, int8_t m_bit_pos) {
 	int16_t x = (m_pos + 1) * 8 % width - m_bit_pos - 1;
@@ -77,55 +79,72 @@ bool skip(uint16_t m_pos, int8_t m_bit_pos, Beacon beacons[max_beacon],
 		return false;
 	int16_t x = getX(m_pos, m_bit_pos);
 	int16_t y = getY(m_pos);
-	const uint8_t error = 5;
-	uint16_t temp = 0;
 	for (uint8_t i = 0; i < beacon_count; i++) {
-		if (x < beacons[i].right_x + error && y < beacons[i].lower_y + error) {
-			if (beacons[i].upper_y - error < 0)
-				temp = 0;
-			else
-				temp = beacons[i].upper_y - error;
-			if (y > temp) {
-				if (beacons[i].left_x - error < 0)
-					temp = 0;
-				else
-					temp = beacons[i].left_x - error;
-				if (x > temp)
-					return true;
-			}
+		if (x < beacons[i].right_x + error && y < beacons[i].lower_y + error
+				&& y
+						> (beacons[i].upper_y - error < 0 ?
+								0 : beacons[i].upper_y - error)
+				&& x
+						> (beacons[i].left_x - error < 0 ?
+								0 : beacons[i].left_x - error)) {
+			return true;
 		}
 	}
 	return false;
 }
 
-void scan(const Byte* buf, uint16_t m_pos, int8_t m_bit_pos,
-		Beacon beacons[max_beacon], uint8_t &beacon_count) {
+// 1 = upper left, 2 = upper right , 3 = lower left, 4 = lower right
+void sub_scan(const Byte* buf, uint16_t m_pos, int8_t m_bit_pos,
+		Beacon* current, int dir) {
 
-	int16_t pos = m_pos;
-	int8_t bit_pos = m_bit_pos;
-	int16_t x = getX(pos, bit_pos);
-	int16_t y = getY(pos);
-	beacons[beacon_count].init(x, y);
+	switch (dir) {
+	case 2:
+		if (--m_bit_pos < 0) {
+			m_bit_pos = 7;
+			++m_pos;
+		}
+	case 1:
+		if (m_pos - width / 8 < 0)
+			return;
+		else
+			m_pos -= width / 8;
+		break;
+	case 4:
+		if (--m_bit_pos < 0) {
+			m_bit_pos = 7;
+			++m_pos;
+		}
+	}
 
-//scan left
 	uint8_t x_count = 0;
 	uint8_t y_count = 0;
 	uint8_t i = 0;
 	bool all_black = true;
+	int16_t x = 0;
+	int16_t y = getY(m_pos);
+	int16_t temp_pos = 0;
+
 	while (x_count < x_range) {
 		while (y_count < y_range) {
-			int16_t temp_pos = pos + width * i / 8;
-			if (temp_pos >= numOfPixel)
+			temp_pos = dir > 2 ? m_pos + width * i / 8 : m_pos - width * i / 8;
+			if (temp_pos >= numOfPixel || temp_pos < 0)
 				break;
-			if (!GET_BIT(buf[temp_pos], bit_pos)) {
-				int16_t temp_y = y + i;
+			if (!GET_BIT(buf[temp_pos], m_bit_pos)) {
+				int16_t temp_y = dir > 2 ? y + i : y - i;
+				x = getX(temp_pos, m_bit_pos);
 				all_black = false;
-				beacons[beacon_count].count++;
-				if (x < beacons[beacon_count].left_x)
-					beacons[beacon_count].left_x = x;
-				if (temp_y > beacons[beacon_count].lower_y)
-					beacons[beacon_count].lower_y = temp_y;
-//				y_count = 0;
+				current->count++;
+				if (dir % 2 != 0) {					//scan left
+					if (x < current->left_x)
+						current->left_x = x;
+				} else if (x > current->right_x) 	//scan right
+					current->right_x = x;
+				if (dir > 2) {						//scan lower
+					if (temp_y > current->lower_y)
+						current->lower_y = temp_y;
+				} else if (temp_y < current->upper_y)	//scan upper
+					current->upper_y = temp_y;
+				//	y_count = 0;
 			} else
 				y_count++;
 			i++;
@@ -133,77 +152,64 @@ void scan(const Byte* buf, uint16_t m_pos, int8_t m_bit_pos,
 
 		if (all_black)
 			x_count++;
-//		else
-//			x_count = 0;
-
-		if (++bit_pos > 7) {
-			bit_pos = 0;
-			--pos;
+		//		else
+		//			x_count = 0;
+		if (dir % 2 != 0) {				//scan left
+			if (++m_bit_pos > 7) {
+				m_bit_pos = 0;
+				--m_pos;
+			}
+		} else if (--m_bit_pos < 0) {		//scan right
+			m_bit_pos = 7;
+			++m_pos;
 		}
-		if (pos < 0)
-			break;
-		x = getX(pos, bit_pos);
 		y_count = 0;
 		i = 0;
 		all_black = true;
-		if (pos * 8 / width != y)
+		if (m_pos * 8 / width != y)
 			break;
 	}
+}
 
-//	//scan right
-	pos = m_pos;
-	bit_pos = m_bit_pos;
-	if (--bit_pos < 0) {
-		bit_pos = 7;
-		++pos;
+void scan(const Byte* buf, uint16_t m_pos, int8_t m_bit_pos,
+		Beacon beacons[max_beacon], uint8_t &beacon_count, int mode) {
+
+	int16_t x = getX(m_pos, m_bit_pos);
+	int16_t y = getY(m_pos);
+	beacons[beacon_count].init(x, y);
+
+	//scan lower left
+	sub_scan(buf, m_pos, m_bit_pos, beacons + beacon_count, 3);
+	//scan lower right
+	sub_scan(buf, m_pos, m_bit_pos, beacons + beacon_count, 4);
+
+	if (mode == 1) {
+		sub_scan(buf, m_pos, m_bit_pos, beacons + beacon_count, 1);
+		sub_scan(buf, m_pos, m_bit_pos, beacons + beacon_count, 2);
 	}
-	x_count = 0;
-	y_count = 0;
-	i = 0;
-	while (x_count < x_range) {
-		while (y_count < y_range) {
-			int16_t temp_pos = pos + width * i / 8;
-			if (temp_pos >= numOfPixel)
-				break;
-			if (!GET_BIT(buf[temp_pos], bit_pos)) {
-				int16_t temp_y = y + i;
-				all_black = false;
-				beacons[beacon_count].count++;
-				if (x > beacons[beacon_count].right_x)
-					beacons[beacon_count].right_x = x;
-				if (temp_y > beacons[beacon_count].lower_y)
-					beacons[beacon_count].lower_y = temp_y;
-//				y_count = 0;
-			} else
-				y_count++;
-			i++;
-		}
 
-		if (all_black)
-			x_count++;
-//		else
-//			x_count = 0;
-
-		if (--bit_pos < 0) {
-			bit_pos = 7;
-			++pos;
-		}
-		x = getX(pos, bit_pos);
-		y_count = 0;
-		i = 0;
-		all_black = true;
-		if (pos * 8 / width != y)
-			break;
-	}
 	beacons[beacon_count].calc();
 	check_target(beacons, beacon_count);
 	beacon_count++;
 }
 
-bool process(const Byte* buf, Beacon beacons[max_beacon],
-		uint8_t &beacon_count) {
+bool process(const Byte* buf, Beacon beacons[max_beacon], uint8_t &beacon_count,
+		std::pair<uint16_t, uint16_t>* last_center) {
+
 	uint16_t pos = 0;
 	int8_t bit_pos = 8;
+
+	if (seen) {
+		uint16_t temp_pos = (width * last_center->second) / 8
+				+ last_center->first / 8;
+		uint16_t temp_bit_pos = 8 - (last_center->first % 8 + 1);
+		scan(buf, temp_pos, temp_bit_pos, beacons, beacon_count, 1);
+		if (/*beacons[0].area > min_size*/beacons[0].count != 0)
+			return true;
+		else beacon_count = 0;
+//		if (beacons[0].count == 0)
+//			beacon_count--;
+	}
 	for (uint16_t y = 0; y < height; y++) {
 		for (uint16_t x = 0; x < width; ++x) {
 			if (--bit_pos < 0) {
@@ -213,11 +219,18 @@ bool process(const Byte* buf, Beacon beacons[max_beacon],
 			if (!GET_BIT(buf[pos], bit_pos)) {
 				if (skip(pos, bit_pos, beacons, beacon_count))
 					continue;
-				scan(buf, pos, bit_pos, beacons, beacon_count);
+				scan(buf, pos, bit_pos, beacons, beacon_count, 0);
 				if (beacon_count > max_beacon - 1)
 					return true;
 			}
 		}
+	}
+	if (beacon_count != 0) {
+		last_center->first = target->center.first;
+		last_center->second = target->center.second;
+		seen = true;
+	} else {
+		seen = false;
 	}
 	return true;
 }
@@ -257,12 +270,14 @@ int main() {
 	lcd.Clear(Lcd::kWhite);
 
 	uint32_t tick = System::Time();
+	std::pair<uint16_t, uint16_t>* last_center = new std::pair<uint16_t,
+			uint16_t>(0, 0);
 	uint32_t start;
 	uint32_t end;
 	while (1) {
 		if (tick != System::Time()) {
 			tick = System::Time();
-			if (tick % 15 == 0) {
+			if (tick % 100 == 0) {
 				start = System::Time();
 				const Byte* buf = cam.LockBuffer();
 //				const Byte* buf = test;
@@ -271,7 +286,7 @@ int main() {
 				Beacon beacons[max_beacon];
 				uint8_t beacon_count = 0;
 				target = beacons;
-				process(buf, beacons, beacon_count);
+				process(buf, beacons, beacon_count, last_center);
 //				lcd.SetRegion(Lcd::Rect(target->left_x, 0, 1, height));
 //				lcd.FillColor(lcd.kGreen);
 //				lcd.SetRegion(Lcd::Rect(target->right_x, 0, 1, height));
@@ -280,12 +295,20 @@ int main() {
 //				lcd.FillColor(lcd.kGreen);
 //				lcd.SetRegion(Lcd::Rect(0, target->lower_y, width, 1));
 //				lcd.FillColor(lcd.kGreen);
+//				lcd.SetRegion(
+//						Lcd::Rect(target->center.first, target->center.second,
+//								1, 1));
+//				lcd.FillColor(lcd.kBlue);
 				cam.UnlockBuffer();
 				end = System::Time();
 				char data[10] = { };
 				sprintf(data, "%d", end - start);
 				lcd.SetRegion(Lcd::Rect(0, 0, 80, 15));
 				writer.WriteBuffer(data, 10);
+				lcd.SetRegion(Lcd::Rect(0, 15, 80, 15));
+				if (beacon_count != 0)
+					writer.WriteString("Find");
+				else writer.WriteString("not find");
 			}
 		}
 	}

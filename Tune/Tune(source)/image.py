@@ -12,12 +12,11 @@ import struct
 from ctypes import c_uint8
 
 def open_port(Port_no,self,com_status):
-    global ser,ser1
+    global ser
     comPort = "COM" + Port_no
     baudRate = 115200
     try:
         ser = serial.Serial(comPort,baudRate,timeout=5)
-        ser1 = serial.Serial("COM8",baudRate,timeout=5)
         com_status.config(text = "Connected")
     except serial.SerialException as e:
         if "OSError" in str(e.args):
@@ -33,7 +32,6 @@ def close_port(self,com_status):
     if self.newWindow:
         self.newWindow.destroy()
     ser.close()
-    ser1.close()
     com_status.config(text = "Disconnect")
 
 def start(mode,self):
@@ -42,10 +40,6 @@ def start(mode,self):
         ser.reset_input_buffer()
         time.sleep(.5)
         ser.reset_input_buffer()
-    if ser1.inWaiting() != 0:
-        ser1.reset_input_buffer()
-        time.sleep(.5)
-        ser1.reset_input_buffer()
     status = True
 
     if mode == "video":
@@ -97,32 +91,33 @@ def sendPID(self):
     m_kp = self.kp_entry.get()
     m_ki = self.ki_entry.get()
     m_kd = self.kd_entry.get()
-    kp = float(m_kp)
-    data = bytearray(struct.pack(">f", kp))
-    ser.write(b'p')
-    for b in data:
-        while(True):
-            if(ser.read() == b'\n'):
-                ser.write(c_uint8(b))
-                break
-
-    ki = float(m_ki)
-    data = bytearray(struct.pack(">f", ki))
-    ser.write(b'i')
-    for b in data:
-        while(True):
-            if(ser.read() == b'\n'):
-                ser.write(c_uint8(b))
-                break
-
-    kd = float(m_kd)
-    data = bytearray(struct.pack(">f", kd))
-    ser.write(b'd')
-    for b in data:
-        while(True):
-            if(ser.read() == b'\n'):
-                ser.write(c_uint8(b))
-                break
+    if kp != float(m_kp):
+        kp = float(m_kp)
+        data = bytearray(struct.pack(">f", kp))
+        ser.write(b'p')
+        for b in data:
+            while(True):
+                if(ser.read() == b'\n'):
+                    ser.write(c_uint8(b))
+                    break
+    if ki != float(m_ki):
+        ki = float(m_ki)
+        data = bytearray(struct.pack(">f", ki))
+        ser.write(b'i')
+        for b in data:
+            while(True):
+                if(ser.read() == b'\n'):
+                    ser.write(c_uint8(b))
+                    break
+    if kd != float(m_kd):
+        kd = float(m_kd)
+        data = bytearray(struct.pack(">f", kd))
+        ser.write(b'd')
+        for b in data:
+            while(True):
+                if(ser.read() == b'\n'):
+                    ser.write(c_uint8(b))
+                    break
 
 def save_status(save_mode):
     global save
@@ -353,9 +348,6 @@ class PID_page(tk.Frame):
 
 #start of the program
 global img,fig,ser,ani
-ser = []
-ser.append(serial.Serial("COM7",115200,timeout=5))
-ser.append(serial.Serial("COM8",115200,timeout=5))
 
 status = False
 save = False
@@ -394,7 +386,8 @@ app.mainloop()
 
 if ser.isOpen():
     ser.close()
-ser.close()
+
+
 '''
 ser = serial.Serial("COM8",115200,timeout=5)
 ser.write(b'e')
