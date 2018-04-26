@@ -54,20 +54,7 @@ def start(mode,self):
         self.height_label.config(text = "Height: " + str(height))
         video_animate()
     elif mode == "PID":
-        global kp,kd,ki
         ser.write(b'g')
-        in_data = ser.readline()
-        kp = float(in_data.decode("ascii").strip('\n'))
-        self.kp_entry.delete(0,tk.END)
-        self.kp_entry.insert(0,kp)
-        in_data = ser.readline()
-        ki = float(in_data.decode("ascii").strip('\n'))
-        self.ki_entry.delete(0,tk.END)
-        self.ki_entry.insert(0,ki)
-        in_data = ser.readline()
-        kd = float(in_data.decode("ascii").strip('\n'))
-        self.kd_entry.delete(0,tk.END)
-        self.kd_entry.insert(0,kd)
 
 def stop():
     global status
@@ -100,6 +87,7 @@ def sendPID(self):
                 if(ser.read() == b'\n'):
                     ser.write(c_uint8(b))
                     break
+    time.sleep(0.05)
     if ki != float(m_ki):
         ki = float(m_ki)
         data = bytearray(struct.pack(">f", ki))
@@ -109,6 +97,7 @@ def sendPID(self):
                 if(ser.read() == b'\n'):
                     ser.write(c_uint8(b))
                     break
+    time.sleep(0.05)
     if kd != float(m_kd):
         kd = float(m_kd)
         data = bytearray(struct.pack(">f", kd))
