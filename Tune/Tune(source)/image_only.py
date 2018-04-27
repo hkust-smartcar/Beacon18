@@ -12,6 +12,7 @@ import struct
 from ctypes import c_uint8
 
 def open_port(Port_no,self,com_status):
+    global ser
     comPort = "COM" + Port_no
     baudRate = 115200
     try:
@@ -72,7 +73,7 @@ def save_status(save_mode):
 def video_animate():
     global image,img,pixels,frameNo
     if status:
-        pixels = ser[0].read(4800) + ser[1].read(4800)
+        pixels = ser[0].read(int(imageSize/2)) + ser[1].read(int(imageSize/2))
     image = Image.frombytes('1',(width,height),pixels)
     img = ImageTk.PhotoImage(image)
     if save:
@@ -180,11 +181,11 @@ class video_page(tk.Frame):
         self.save_frame.pack()
 
 #start of the program
-global img,fig,ser,ani
+global img,fig,ani
 ser = []
 status = False
 save = False
-width = 320
+width = 240
 height = 180
 imageSize = width*height /8
 contrast = 0

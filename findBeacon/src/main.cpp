@@ -8,6 +8,7 @@
 
 #include <cassert>
 #include <cstring>
+#include <stdlib.h>
 #include <string>
 #include <libbase/k60/mcg.h>
 #include <libsc/system.h>
@@ -42,8 +43,8 @@ using namespace libsc;
 using namespace libsc::k60;
 using namespace libbase::k60;
 
-const uint16_t width = 160;
-const uint16_t height = 120;
+const uint16_t width = 320;
+const uint16_t height = 240;
 const uint16_t numOfPixel = width * height / 8;
 
 float L_kp = 0.04;
@@ -57,16 +58,16 @@ float R_kd = 0.0099;
 uint8_t contrast = 0x40;
 uint8_t brightness = 0x00;
 
-const uint8_t x_range = 5;
-const uint8_t y_range = 10;
-const uint16_t min_size = 40;
+const uint8_t x_range = 5;  //160 = 5
+const uint8_t y_range = 55; //160 = 10
+const uint16_t min_size = 70; //160 = 40
 const uint8_t error = 10;
 const uint8_t max_beacon = 10;
 const uint16_t critical_density = 65;
-Beacon* target = nullptr;
+Beacon* target = NULL;
 
 bool seen = false;
-bool center = false;
+bool not_find = false;
 
 int16_t getX(uint16_t m_pos, int8_t m_bit_pos) {
 	int16_t x = (m_pos + 1) * 8 % width - m_bit_pos - 1;
@@ -79,9 +80,9 @@ int16_t getY(uint16_t m_pos) {
 	int16_t y = m_pos * 8 / width;
 	return y;
 }
+
 bool check_target(Beacon beacons[max_beacon], uint8_t beacon_count) {
-	if (beacons[beacon_count].area > min_size
-			&& beacons[beacon_count].count > min_size)
+	if (beacons[beacon_count].count > min_size)
 		if (beacons[beacon_count].density > critical_density) {
 			target = beacons + beacon_count;
 			return true;
@@ -223,12 +224,11 @@ bool process(const Byte* buf, Beacon beacons[max_beacon], uint8_t &beacon_count,
 				+ last_center->first / 8;
 		uint16_t temp_bit_pos = 8 - (last_center->first % 8 + 1);
 		scan(buf, temp_pos, temp_bit_pos, beacons, beacon_count, 1);
-		if (/*beacons[0].area > min_size*/beacons[0].count != 0)
+		if (beacons[0].count != 0) {
+			target = beacons;
 			return true;
-		else
+		} else
 			beacon_count = 0;
-//		if (beacons[0].count == 0)
-//			beacon_count--;
 	}
 	for (uint16_t y = 0; y < height; y++) {
 		for (uint16_t x = 0; x < width; ++x) {
@@ -241,19 +241,34 @@ bool process(const Byte* buf, Beacon beacons[max_beacon], uint8_t &beacon_count,
 					continue;
 				if (scan(buf, pos, bit_pos, beacons, beacon_count, 0))
 					return true;
-				if (beacon_count > max_beacon - 1)
+				if (beacon_count == max_beacon)
 					return false;
 			}
 		}
 	}
 	return false;
 }
+bool check_near(Beacon b1, Beacon b2) {
+	if (abs(b1.center.first - b2.center.first) < 40)
+		if (abs(b1.center.second - b2.center.second) < 40)
+			return true;
+	return false;
+}
+
+void move(AlternateMotor &motor, int &speed) {
+
+	if (speed < 0) {
+		speed = 0;
+	}
+	if (speed > 500)
+		speed = 500;
+	motor.SetPower(speed);
+}
 
 int main() {
-
 	System::Init();
 
-//led init
+	//led init
 	Led::Config led_config;
 	led_config.is_active_low = true;
 	led_config.id = 0;
@@ -271,16 +286,16 @@ int main() {
 	LcdTypewriter writer(writer_config);
 
 	AlternateMotor::Config motor_config;
-	motor_config.id = 0;		//left	jp4 outside
+	motor_config.id = 1;
 	AlternateMotor L_motor(motor_config);
-	motor_config.id = 1;		//right
+	motor_config.id = 0;
 	AlternateMotor R_motor(motor_config);
-	R_motor.SetClockwise(false);
+	L_motor.SetClockwise(false);
 
 	DirEncoder::Config encoder_config;
-	encoder_config.id = 0;		//encoder1
+	encoder_config.id = 0;		//right
 	DirEncoder encoder1(encoder_config);
-	encoder_config.id = 1;		//encoder2
+	encoder_config.id = 1;		//left
 	DirEncoder encoder2(encoder_config);
 
 	Ov7725::Config cam_config;
@@ -309,31 +324,25 @@ int main() {
 	int R_count = 0;
 	int L_speed = 0;
 	int R_speed = 0;
-	int target_count = 0;
-	bool state = false;
+	int L_target_count = 0;
+	int R_target_count = 0;
+	bool center = false;
+	int frame_count = 0;
+	Beacon center_record[10];
+
 	while (1) {
 		if (tick != System::Time()) {
 			tick = System::Time();
-			if (center) {
-				continue;
-			}
+			//PID
 			if (tick % 100 == 0) {
 				encoder1.Update();
 				L_count = encoder1.GetCount();
 				encoder2.Update();
 				R_count = encoder2.GetCount();
-				L_speed += L_pid.output(target_count, L_count);
-				L_motor.SetPower(L_speed);
-				if (L_speed < 0)
-					L_speed = 0;
-				if (L_speed > 600)
-					L_speed = 600;
-				R_speed += R_pid.output(target_count, R_count);
-				if (R_speed < 0)
-					R_speed = 0;
-				if (R_speed > 600)
-					R_speed = 600;
-				R_motor.SetPower(R_speed);
+				L_speed += L_pid.output(L_target_count, abs(L_count));
+				R_speed += L_pid.output(R_target_count, abs(R_count));
+				move(L_motor, L_speed);
+				move(R_motor, R_speed);
 //				char data[20] = { };
 //				sprintf(data, "L_encoder: %d", L_count);
 //				lcd.SetRegion(Lcd::Rect(0, 45, 128, 15));
@@ -355,54 +364,97 @@ int main() {
 //				lcd.FillBits(0, 0xFFFF, buf, width * height);
 				Beacon beacons[max_beacon];
 				uint8_t beacon_count = 0;
-				target = beacons;
+				target = NULL;
 				process(buf, beacons, beacon_count, last_center);
-//				if (beacon_count) {
-////					lcd.SetRegion(Lcd::Rect(target->left_x, 0, 1, height));
-////					lcd.FillColor(lcd.kGreen);
-////					lcd.SetRegion(Lcd::Rect(target->right_x, 0, 1, height));
-////					lcd.FillColor(lcd.kGreen);
-////					lcd.SetRegion(Lcd::Rect(0, target->upper_y, width, 1));
-////					lcd.FillColor(lcd.kGreen);
-////					lcd.SetRegion(Lcd::Rect(0, target->lower_y, width, 1));
-////					lcd.FillColor(lcd.kGreen);
-////					lcd.SetRegion(
-////							Lcd::Rect(target->center.first, target->center.second,
-////									1, 1));
-////					lcd.FillColor(lcd.kBlue);
-//					target_count = 0;
-//					L_motor.SetPower(0);
-//					R_motor.SetPower(0);
-//					center = true;
-////					lcd.SetRegion(Lcd::Rect(0, 15, 80, 15));
-////					writer.WriteString("find");
-//				} else {
-//					L_motor.SetClockwise(true);
-//					R_motor.SetClockwise(true);
-//					target_count = 300;
-//					lcd.SetRegion(Lcd::Rect(0, 15, 80, 15));
-//					writer.WriteString("not find");
-//				}
-				if(beacon_count && !seen){
-					seen = true;
+
+				if (target == NULL && beacon_count) {
+					center_record[frame_count] = Beacon(beacons[0]);
+					for (int i = 1; i < beacon_count; i++) {
+						if (beacons[i].density
+								> center_record[frame_count].density)
+							center_record[frame_count] = Beacon(beacons[i]);
+					}
+					frame_count++;
+
+					if (frame_count == 5) {
+						int temp = 0;
+						for (int i = 0; i < frame_count - 1; i++) {
+							if (check_near(center_record[i],
+									center_record[i + 1]))
+								temp++;
+						}
+						if (check_near(center_record[frame_count - 1],
+								center_record[0]))
+							temp++;
+						if (temp >= 3) {
+							target = center_record + (frame_count - 1);
+							frame_count = 0;
+						}
+					}
+					if (frame_count == 10) {
+						frame_count = 0;
+					}
 				}
-				if(!beacon_count && seen){
-					continue;
-				}
-				if (!beacon_count || target->center.first > 200) { //right
+				if (target != NULL) {
+					frame_count = 0;
+					if (not_find)		//target find
+						not_find = false;
+					if (target->center.first > 210) {	//160 = 85
+						if (center) {
+							L_target_count = 250;
+							R_target_count = 600;
+						} else if (target->center.first > 280) {
+							L_motor.SetClockwise(true);
+							R_motor.SetClockwise(true);
+							L_target_count = 400;
+							R_target_count = 400;
+						} else {
+							L_motor.SetClockwise(true);
+							R_motor.SetClockwise(true);
+							L_target_count = 500;
+							R_target_count = 500;
+						}
+					} else if (target->center.first < 170) { 	//160 = 70
+						if (center) {
+							L_target_count = 600;
+							R_target_count = 250;
+						} else if (target->center.first < 100) {
+							L_motor.SetClockwise(false);
+							R_motor.SetClockwise(false);
+							L_target_count = 350;
+							R_target_count = 350;
+						} else {
+							L_motor.SetClockwise(false);
+							R_motor.SetClockwise(false);
+							L_target_count = 500;
+							R_target_count = 500;
+						}
+					} else {
+						L_target_count = 400;
+						R_target_count = 400;
+						L_motor.SetClockwise(false);
+						R_motor.SetClockwise(true);
+						center = true;
+					}
+					last_center->first = target->center.first;
+					last_center->second = target->center.second;
+					if (!seen)
+						seen = true;
+				} else if (seen) { //target not find but have seen target before, do nothing
+					if (!not_find) {
+						start = System::Time();
+						not_find = true;
+					} else if (tick - start >= 500) {
+						seen = false;
+						center = false;
+					}
+//					lcd.SetRegion(Lcd::Rect(0, 0, 160, 128));
+//					writer.WriteString("Not find");
+				} else { //target not find and have not seen target before, keep rotate
 					L_motor.SetClockwise(true);
 					R_motor.SetClockwise(true);
-					target_count = 300;
-				} else if (target->center.first < 100) {
-					L_motor.SetClockwise(false);
-					R_motor.SetClockwise(true);
-					target_count = 300;
-				}
-				else{
-					target_count = 0;
-				L_motor.SetPower(0);
-				R_motor.SetPower(0);
-				center = true;
+					L_target_count = 500;
+					R_target_count = 500;
 				}
 //				if (beacon_count) {
 //					lcd.SetRegion(Lcd::Rect(target->left_x, 0, 1, height));
