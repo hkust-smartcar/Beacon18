@@ -1,0 +1,7 @@
+"diff > 0, turn left"
+"diff < 0, turn right"
+"rotate left"
+"rotate right"
+"target lost"
+"target not find"
+

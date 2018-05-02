@@ -32,6 +32,7 @@ def open_port(Port_no,self,com_status):
 def close_port(self,com_status):
     if self.newWindow:
         self.newWindow.destroy()
+    global ser
     for bt in ser:
         bt.close()
     ser = []
@@ -60,6 +61,7 @@ def stop():
     global status
     ser[0].write(b's')
     status = False
+    app.after_cancel(id)
 
 def save_status(save_mode):
     global save
@@ -71,7 +73,7 @@ def save_status(save_mode):
         save_mode.config(text = "Off")
 
 def video_animate():
-    global image,img,pixels,frameNo
+    global image,img,pixels,frameNo,id
     if status:
         pixels = ser[0].read(int(imageSize/2)) + ser[1].read(int(imageSize/2))
     image = Image.frombytes('1',(width,height),pixels)
@@ -81,7 +83,7 @@ def video_animate():
         frameNo+=1
     fig.itemconfig(fig.image,image = img)
     app.update_idletasks()
-    app.after(300,video_animate)
+    id = app.after(300,video_animate)
 
 def change_setting(output,self):
     global contrast,brightness
@@ -181,7 +183,7 @@ class video_page(tk.Frame):
         self.save_frame.pack()
 
 #start of the program
-global img,fig,ani
+global img,fig,ani,id
 ser = []
 status = False
 save = False
@@ -206,6 +208,7 @@ image = Image.frombytes('1',(width,height),pixels)
 
 app = GUI()
 app.mainloop()
+
 
 '''
 ser =[]

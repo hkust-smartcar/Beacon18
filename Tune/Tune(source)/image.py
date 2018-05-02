@@ -64,14 +64,17 @@ def stop():
 def sendData(text):
     buffer = text.split(',')
     for data in buffer:
-        data = data.strip('\n')
-        data_array = bytearray(struct.pack(">f", data[2:-1]))
-        ser.write(data[0].encode("ascii"))
-        for b in data_array:
-            while(True):
-                if(ser.read() == b'\n'):
-                    ser.write(c_uint8(b))
-                    break
+        if data == '':
+            continue
+        try:
+            data = float(data)
+            data_array = bytearray(struct.pack(">f", data))
+            for b in data_array:
+                ser.write(c_uint8(b))
+        except ValueError:
+            data = str(data)
+            ser.write(data.encode(encoding= 'ascii'))
+        time.sleep(0.05)
 
 def sendPID(self):
     global kp,kd,ki
@@ -131,17 +134,20 @@ def video_animate():
     app.after(50,video_animate)
 
 def PID_animate(i):
-    global x_value,value1,x,target_line
+    global x_value
     if ser.in_waiting == 0 or not status:
         return
     data = ser.readline().decode("ascii").strip('\n')
     if data != '':
+        a,b = data.split(",")
         target_line.append(target)
-        value1.append(int(data))
+        target_line1.append(target1)
         x.append(x_value)
         x_value+=1
+        value1.append(int(a))
+        value2.append(int(b))
     ax.clear()
-    ax.plot(x,value1,'b-',x,target_line,'r')
+    ax.plot(x,value1,'b-',x,target_line,'r',x,value2,'g',x,target_line1,'y')
 
 def switch_win(mode,frame):
     frame.newWindow.destroy()
@@ -174,22 +180,36 @@ def change_setting(output,self):
     self.b_label.config(text = brightness)
 
 def change_target(input_value):
-    global target
+    global target,target1
     target = int(input_value)
-    data = bytearray(struct.pack(">I", target))
-    ser.write(b't')
-    for b in data:
-        while(True):
-            if(ser.read() == b'\n'):
-                ser.write(c_uint8(b))
-                break
+    target1 = -int(input_value)
+    if target < 0:
+        data = bytearray(struct.pack(">I", -target))
+        ser.write(b't')
+        for b in data:
+            while(True):
+                if(ser.read() == b'\n'):
+                    ser.write(c_uint8(b))
+                    break
+        time.sleep(0.5)
+        ser.write(b'n')
+    else:
+        data = bytearray(struct.pack(">I", target))
+        ser.write(b't')
+        for b in data:
+            while(True):
+                if(ser.read() == b'\n'):
+                    ser.write(c_uint8(b))
+                    break
 
 def reset():
-    global x_value,value1,x,target_line
+    global x_value,value1,x,target_line,value2,target_line1
     x_value = 1
     value1 = [0]
+    value2 = [0]
     x =[1]
     target_line =[target]
+    target_line1 =[target1]
     ser.reset_input_buffer()
     ax.clear()
 
@@ -288,7 +308,7 @@ class PID_page(tk.Frame):
         canvas_frame = tk.Frame(parent)
         canvas = FigureCanvasTkAgg(graph_fig,canvas_frame)
         canvas.show()
-        ani = animation.FuncAnimation(graph_fig, PID_animate, interval=40)
+        ani = animation.FuncAnimation(graph_fig, PID_animate, interval= 5)
 
         action_frame = tk.Frame(parent)
         start_button = tk.Button(action_frame,text = "Start", command = lambda : start("PID",self),width = 10)
@@ -347,6 +367,7 @@ contrast = 0
 brightness = 0
 frameNo = 0
 value1 =[0]
+value2 =[0]
 x = [1]
 x_value = 1
 kp = 0.0
@@ -354,7 +375,8 @@ kd = 0.0
 ki = 0.0
 target = 0
 target_line = [target]
-
+target1 = 0
+target_line1 = [target1]
 image_path = r'.\image\sample'
 folder_no = 1
 newpath= image_path +  str(folder_no)
@@ -375,8 +397,6 @@ app.mainloop()
 
 if ser.isOpen():
     ser.close()
-
-
 '''
 ser = serial.Serial("COM8",115200,timeout=5)
 ser.write(b'e')
