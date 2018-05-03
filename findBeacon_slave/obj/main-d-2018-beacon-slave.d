@@ -1,11 +1,11 @@
-obj/main-d-2018-beacon-master.o: src/main.cpp \
+obj/main-d-2018-beacon-slave.o: src/main.cpp \
  C:\Users\Sheldon\git\libsccc\inc/libbase/k60/mcg.h \
  C:\Users\Sheldon\git\libsccc\inc/libbase/k60/mcg_c.h \
  C:\Users\Sheldon\git\libsccc\inc/libsc/system.h \
  C:\Users\Sheldon\git\libsccc\inc/libsc/timer.h \
  C:\Users\Sheldon\git\libsccc\inc/libsc/dir_encoder.h \
  C:\Users\Sheldon\git\libsccc\inc/libsc/config.h \
- C:\Users\Sheldon\git\libsccc\inc/libsc/k60/config/2018_beacon_master.h \
+ C:\Users\Sheldon\git\libsccc\inc/libsc/k60/config/2018_beacon_slave.h \
  C:\Users\Sheldon\git\libsccc\inc/libsc/encoder.h \
  C:\Users\Sheldon\git\libsccc\inc/libbase/helper.h \
  C:\Users\Sheldon\git\libsccc\inc/libbase/pinout_macros.h \

@@ -144,7 +144,7 @@ def PID_animate(i):
         target_line1.append(target1)
         x.append(x_value)
         x_value+=1
-        value1.append(int(a))
+        value1.append(int(a[2:]))
         value2.append(int(b))
     ax.clear()
     ax.plot(x,value1,'b-',x,target_line,'r',x,value2,'g',x,target_line1,'y')

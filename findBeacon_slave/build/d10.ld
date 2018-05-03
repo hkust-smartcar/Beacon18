@@ -6,11 +6,11 @@
 /*##                                   */
 /*##     Project   : ProcessorExpert   */
 /*##                                   */
-/*##     Processor : MK60FX512VLQ15    */
+/*##     Processor : MK60DN512ZVLQ10   */
 /*##                                   */
 /*##     Compiler  : GNU C Compiler    */
 /*##                                   */
-/*##     Date/Time : 2014-11-16, 04:20, # CodeGen: 0 */
+/*##     Date/Time : 2014-01-15, 23:29, # CodeGen: 0 */
 /*##                                   */
 /*##     Abstract  :                   */
 /*##                                   */
@@ -32,12 +32,12 @@ _estack = 0x20000000;    /* end of m_data */
 __SP_INIT = _estack;
 
 /* Generate a link error if heap and stack don't fit into RAM */
-__heap_size = 0x9000;                    /* required amount of heap  */
-__stack_size = 0x1000;                 /* required amount of stack */
+__heap_size = 0x5000;                    /* required amount of heap  */
+__stack_size = 0x1F00;                 /* required amount of stack */
 
 
 MEMORY {
-  m_interrupts (RX) : ORIGIN = 0x00000000, LENGTH = 0x000001E8
+  m_interrupts (RX) : ORIGIN = 0x00000000, LENGTH = 0x000001E0
   m_text      (RX) : ORIGIN = 0x00000410, LENGTH = 0x0007FBF0
   m_data      (RW) : ORIGIN = 0x1FFF0000, LENGTH = 0x00010000
   m_data_20000000 (RW) : ORIGIN = 0x20000000, LENGTH = 0x00010000

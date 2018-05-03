@@ -8,6 +8,7 @@ import tkinter as tk
 import turtle
 import struct
 from ctypes import c_uint8
+import time
 import sys
 import os
 
@@ -61,7 +62,6 @@ def begin(self):
     state = len(status) - 1
     t.penup()
     t.clear()
-    receive()
 
 def receive():
     global id,status_update,turtle_update,id
@@ -82,8 +82,6 @@ def receive():
         t.dot(size,"blue")
         t.penup()
         turtle_update = False
-    app.update_idletasks()
-    id = app.after(20,receive)
 
 def stop():
     ser.write(b'S')
@@ -123,6 +121,7 @@ def PID_animate(i):
             X_Coor = int(a[2:])
             Y_Coor  = int(b)
             turtle_update = True
+    receive()
 
 def sendData(text):
     buffer = text.split(',')
@@ -182,7 +181,7 @@ class main_page(tk.Frame):
         canvas = FigureCanvasTkAgg(graph_fig,canvas_frame)
         canvas.show()
         global ani
-        ani = animation.FuncAnimation(graph_fig, PID_animate, interval= 5)
+        ani = animation.FuncAnimation(graph_fig, PID_animate, interval= 20)
 
         start_button = tk.Button(box_frame,text = "Start",font =("Helvetica",10),command = lambda : begin(self))
         stop_button = tk.Button(box_frame,text = "Stop",font =("Helvetica",10),command =  stop)

@@ -356,127 +356,127 @@ Discarded input sections
  .text          0x00000000        0x0 obj/main-d-2018-beacon-master.o
  .data          0x00000000        0x0 obj/main-d-2018-beacon-master.o
  .bss           0x00000000        0x0 obj/main-d-2018-beacon-master.o
- .gnu.lto_.inline.247fc81e
+ .gnu.lto_.inline.221db701
                 0x00000000      0x262 obj/main-d-2018-beacon-master.o
- .gnu.lto__ZSt4moveIRZ4mainEUlPKhjE_EONSt16remove_referenceIT_E4typeEOS5_.247fc81e
+ .gnu.lto__ZSt4moveIRZ4mainEUlPKhjE_EONSt16remove_referenceIT_E4typeEOS5_.221db701
                 0x00000000      0x10c obj/main-d-2018-beacon-master.o
- .gnu.lto__ZNSt14_Function_base13_Base_managerIZ4mainEUlPKhjE_E21_M_not_empty_functionIS3_EEbRKT_.247fc81e
+ .gnu.lto__ZNSt14_Function_base13_Base_managerIZ4mainEUlPKhjE_E21_M_not_empty_functionIS3_EEbRKT_.221db701
                 0x00000000      0x108 obj/main-d-2018-beacon-master.o
- .gnu.lto__ZL20__gthread_key_deletei.247fc81e
+ .gnu.lto__ZL20__gthread_key_deletei.221db701
                 0x00000000      0x122 obj/main-d-2018-beacon-master.o
- .gnu.lto__ZNSt9_Any_data9_M_accessEv.247fc81e
+ .gnu.lto__ZNSt9_Any_data9_M_accessEv.221db701
                 0x00000000      0x131 obj/main-d-2018-beacon-master.o
- .gnu.lto__ZNSt9_Any_data9_M_accessIPZ4mainEUlPKhjE_EERT_v.247fc81e
+ .gnu.lto__ZNSt9_Any_data9_M_accessIPZ4mainEUlPKhjE_EERT_v.221db701
                 0x00000000      0x11b obj/main-d-2018-beacon-master.o
- .gnu.lto__ZNSt14_Function_base13_Base_managerIZ4mainEUlPKhjE_E10_M_destroyERSt9_Any_dataSt17integral_constantIbLb0EE.247fc81e
+ .gnu.lto__ZNSt14_Function_base13_Base_managerIZ4mainEUlPKhjE_E10_M_destroyERSt9_Any_dataSt17integral_constantIbLb0EE.221db701
                 0x00000000      0x14c obj/main-d-2018-beacon-master.o
- .gnu.lto__ZNSt14_Function_base13_Base_managerIZ4mainEUlPKhjE_E15_M_init_functorERSt9_Any_dataOS3_St17integral_constantIbLb0EE.247fc81e
+ .gnu.lto__ZNSt14_Function_base13_Base_managerIZ4mainEUlPKhjE_E15_M_init_functorERSt9_Any_dataOS3_St17integral_constantIbLb0EE.221db701
                 0x00000000      0x17f obj/main-d-2018-beacon-master.o
- .gnu.lto__ZNSt14_Function_base13_Base_managerIZ4mainEUlPKhjE_E15_M_init_functorERSt9_Any_dataOS3_.247fc81e
+ .gnu.lto__ZNSt14_Function_base13_Base_managerIZ4mainEUlPKhjE_E15_M_init_functorERSt9_Any_dataOS3_.221db701
                 0x00000000      0x15b obj/main-d-2018-beacon-master.o
- .gnu.lto__ZNKSt9_Any_data9_M_accessEv.247fc81e
+ .gnu.lto__ZNKSt9_Any_data9_M_accessEv.221db701
                 0x00000000      0x133 obj/main-d-2018-beacon-master.o
- .gnu.lto__ZNKSt9_Any_data9_M_accessIPZ4mainEUlPKhjE_EERKT_v.247fc81e
+ .gnu.lto__ZNKSt9_Any_data9_M_accessIPZ4mainEUlPKhjE_EERKT_v.221db701
                 0x00000000      0x11a obj/main-d-2018-beacon-master.o
- .gnu.lto__ZNSt14_Function_base13_Base_managerIZ4mainEUlPKhjE_E14_M_get_pointerERKSt9_Any_data.247fc81e
+ .gnu.lto__ZNSt14_Function_base13_Base_managerIZ4mainEUlPKhjE_E14_M_get_pointerERKSt9_Any_data.221db701
                 0x00000000      0x17f obj/main-d-2018-beacon-master.o
- .gnu.lto__ZNSt14_Function_base13_Base_managerIZ4mainEUlPKhjE_E8_M_cloneERSt9_Any_dataRKS5_St17integral_constantIbLb0EE.247fc81e
+ .gnu.lto__ZNSt14_Function_base13_Base_managerIZ4mainEUlPKhjE_E8_M_cloneERSt9_Any_dataRKS5_St17integral_constantIbLb0EE.221db701
                 0x00000000      0x1af obj/main-d-2018-beacon-master.o
- .gnu.lto__ZNSt14_Function_base13_Base_managerIZ4mainEUlPKhjE_E10_M_managerERSt9_Any_dataRKS5_St18_Manager_operation.247fc81e
+ .gnu.lto__ZNSt14_Function_base13_Base_managerIZ4mainEUlPKhjE_E10_M_managerERSt9_Any_dataRKS5_St18_Manager_operation.221db701
                 0x00000000      0x27d obj/main-d-2018-beacon-master.o
- .gnu.lto__ZNSt14_Function_baseC2Ev.247fc81e
+ .gnu.lto__ZNSt14_Function_baseC2Ev.221db701
                 0x00000000      0x139 obj/main-d-2018-beacon-master.o
- .gnu.lto__ZNSt14_Function_baseD2Ev.247fc81e
+ .gnu.lto__ZNSt14_Function_baseD2Ev.221db701
                 0x00000000      0x1e0 obj/main-d-2018-beacon-master.o
- .gnu.lto__ZNK5libsc7Encoder8GetCountEv.247fc81e
+ .gnu.lto__ZNK5libsc7Encoder8GetCountEv.221db701
                 0x00000000       0xf3 obj/main-d-2018-beacon-master.o
- .gnu.lto__ZN5libsc3Lcd4RectC2Ejjjj.247fc81e
+ .gnu.lto__ZN5libsc3Lcd4RectC2Ejjjj.221db701
                 0x00000000      0x12a obj/main-d-2018-beacon-master.o
- .gnu.lto__ZZ4mainENKUlPKhjE_clES0_j.247fc81e
+ .gnu.lto__ZZ4mainENKUlPKhjE_clES0_j.221db701
                 0x00000000     0x1856 obj/main-d-2018-beacon-master.o
- .gnu.lto__ZN5libsc7St7735r9SetRegionERKNS_3Lcd4RectE.247fc81e
+ .gnu.lto__ZN5libsc7St7735r9SetRegionERKNS_3Lcd4RectE.221db701
                 0x00000000       0xc6 obj/main-d-2018-beacon-master.o
- .gnu.lto__ZNK5libsc5Motor11IsClockwiseEv.247fc81e
+ .gnu.lto__ZNK5libsc5Motor11IsClockwiseEv.221db701
                 0x00000000       0xec obj/main-d-2018-beacon-master.o
- .gnu.lto__ZN6BeaconC2Ev.247fc81e
+ .gnu.lto__ZN6BeaconC2Ev.221db701
                 0x00000000      0x11b obj/main-d-2018-beacon-master.o
- .gnu.lto__ZN6Beacon4initEtt.247fc81e
+ .gnu.lto__ZN6Beacon4initEtt.221db701
                 0x00000000       0xd5 obj/main-d-2018-beacon-master.o
- .gnu.lto__ZSt7forwardIiEOT_RNSt16remove_referenceIS0_E4typeE.247fc81e
+ .gnu.lto__ZSt7forwardIiEOT_RNSt16remove_referenceIS0_E4typeE.221db701
                 0x00000000      0x10b obj/main-d-2018-beacon-master.o
- .gnu.lto__ZNSt4pairIiiEC1IiivEEOT_OT0_.247fc81e
+ .gnu.lto__ZNSt4pairIiiEC1IiivEEOT_OT0_.221db701
                 0x00000000      0x1ce obj/main-d-2018-beacon-master.o
- .gnu.lto__ZSt9make_pairIiiESt4pairINSt17__decay_and_stripIT_E6__typeENS1_IT0_E6__typeEEOS2_OS5_.247fc81e
+ .gnu.lto__ZSt9make_pairIiiESt4pairINSt17__decay_and_stripIT_E6__typeENS1_IT0_E6__typeEEOS2_OS5_.221db701
                 0x00000000      0x171 obj/main-d-2018-beacon-master.o
- .gnu.lto__ZN3PIDC2ERKfS1_S1_.247fc81e
+ .gnu.lto__ZN3PIDC2ERKfS1_S1_.221db701
                 0x00000000      0x160 obj/main-d-2018-beacon-master.o
- .gnu.lto__ZN3PID5resetEv.247fc81e
+ .gnu.lto__ZN3PID5resetEv.221db701
                 0x00000000       0xa6 obj/main-d-2018-beacon-master.o
- .gnu.lto__ZN3PID9accuErrorERKl.247fc81e
+ .gnu.lto__ZN3PID9accuErrorERKl.221db701
                 0x00000000      0x1f7 obj/main-d-2018-beacon-master.o
- .gnu.lto__ZN3PID6outputERKlS1_.247fc81e
+ .gnu.lto__ZN3PID6outputERKlS1_.221db701
                 0x00000000      0x2e7 obj/main-d-2018-beacon-master.o
- .gnu.lto__Z4getXta.247fc81e
+ .gnu.lto__Z4getXta.221db701
                 0x00000000      0x251 obj/main-d-2018-beacon-master.o
- .gnu.lto__Z4getYt.247fc81e
+ .gnu.lto__Z4getYt.221db701
                 0x00000000      0x184 obj/main-d-2018-beacon-master.o
- .gnu.lto__Z4skiptaP6Beaconh.247fc81e
+ .gnu.lto__Z4skiptaP6Beaconh.221db701
                 0x00000000      0x47f obj/main-d-2018-beacon-master.o
- .gnu.lto__Z8sub_scanPKhtaP6Beaconi.247fc81e
+ .gnu.lto__Z8sub_scanPKhtaP6Beaconi.221db701
                 0x00000000      0xd43 obj/main-d-2018-beacon-master.o
- .gnu.lto__Z12check_targetP6Beaconh.247fc81e
+ .gnu.lto__Z12check_targetP6Beaconh.221db701
                 0x00000000      0x257 obj/main-d-2018-beacon-master.o
- .gnu.lto__Z10check_near6BeaconS_.247fc81e
+ .gnu.lto__Z10check_near6BeaconS_.221db701
                 0x00000000      0x26c obj/main-d-2018-beacon-master.o
- .gnu.lto__ZN7libbase3k603Mcg12GetMcgConfigEv.247fc81e
+ .gnu.lto__ZN7libbase3k603Mcg12GetMcgConfigEv.221db701
                 0x00000000      0x115 obj/main-d-2018-beacon-master.o
- .gnu.lto__ZN5libsc5Motor6ConfigC2Ev.247fc81e
+ .gnu.lto__ZN5libsc5Motor6ConfigC2Ev.221db701
                 0x00000000      0x103 obj/main-d-2018-beacon-master.o
- .gnu.lto__ZN5libsc14AlternateMotor6ConfigC2Ev.247fc81e
+ .gnu.lto__ZN5libsc14AlternateMotor6ConfigC2Ev.221db701
                 0x00000000      0x140 obj/main-d-2018-beacon-master.o
- .gnu.lto__ZN5libsc3k606Ov77256ConfigC2Ev.247fc81e
+ .gnu.lto__ZN5libsc3k606Ov77256ConfigC2Ev.221db701
                 0x00000000      0x119 obj/main-d-2018-beacon-master.o
- .gnu.lto__ZNSt8functionIFbPKhjEED2Ev.247fc81e
+ .gnu.lto__ZNSt8functionIFbPKhjEED2Ev.221db701
                 0x00000000      0x16a obj/main-d-2018-beacon-master.o
- .gnu.lto__ZNSt4pairIttEaSERKS0_.247fc81e
+ .gnu.lto__ZNSt4pairIttEaSERKS0_.221db701
                 0x00000000      0x189 obj/main-d-2018-beacon-master.o
- .gnu.lto__ZNSt4pairIttEaSIiiEERS0_OS_IT_T0_E.247fc81e
+ .gnu.lto__ZNSt4pairIttEaSIiiEERS0_OS_IT_T0_E.221db701
                 0x00000000      0x211 obj/main-d-2018-beacon-master.o
- .gnu.lto__ZN6Beacon4calcEv.247fc81e
+ .gnu.lto__ZN6Beacon4calcEv.221db701
                 0x00000000      0x3be obj/main-d-2018-beacon-master.o
- .gnu.lto__Z4scanPKhtaP6BeaconRhi.247fc81e
+ .gnu.lto__Z4scanPKhtaP6BeaconRhi.221db701
                 0x00000000      0x417 obj/main-d-2018-beacon-master.o
- .gnu.lto__Z7processPKhP6BeaconRhb.247fc81e
+ .gnu.lto__Z7processPKhP6BeaconRhb.221db701
                 0x00000000      0x712 obj/main-d-2018-beacon-master.o
- .gnu.lto__ZNSt15binary_functionIPKhjbEC2Ev.247fc81e
+ .gnu.lto__ZNSt15binary_functionIPKhjbEC2Ev.221db701
                 0x00000000      0x112 obj/main-d-2018-beacon-master.o
- .gnu.lto__ZNSt31_Maybe_unary_or_binary_functionIbIPKhjEEC2Ev.247fc81e
+ .gnu.lto__ZNSt31_Maybe_unary_or_binary_functionIbIPKhjEEC2Ev.221db701
                 0x00000000      0x12e obj/main-d-2018-beacon-master.o
- .gnu.lto__ZNSt8functionIFbPKhjEEC2Ev.247fc81e
+ .gnu.lto__ZNSt8functionIFbPKhjEEC2Ev.221db701
                 0x00000000      0x18d obj/main-d-2018-beacon-master.o
- .gnu.lto__ZN5libsc3k6010UartDevice6ConfigC2Ev.247fc81e
+ .gnu.lto__ZN5libsc3k6010UartDevice6ConfigC2Ev.221db701
                 0x00000000      0x175 obj/main-d-2018-beacon-master.o
- .gnu.lto__ZNSt8functionIFbPKhjEEC2IZ4mainEUlS1_jE_vEET_.247fc81e
+ .gnu.lto__ZNSt8functionIFbPKhjEEC2IZ4mainEUlS1_jE_vEET_.221db701
                 0x00000000      0x275 obj/main-d-2018-beacon-master.o
- .gnu.lto__ZNSt17_Function_handlerIFbPKhjEZ4mainEUlS1_jE_E9_M_invokeERKSt9_Any_dataS1_j.247fc81e
+ .gnu.lto__ZNSt17_Function_handlerIFbPKhjEZ4mainEUlS1_jE_E9_M_invokeERKSt9_Any_dataS1_j.221db701
                 0x00000000      0x1d3 obj/main-d-2018-beacon-master.o
- .gnu.lto__ZSt7forwardIPKhEOT_RNSt16remove_referenceIS2_E4typeE.247fc81e
+ .gnu.lto__ZSt7forwardIPKhEOT_RNSt16remove_referenceIS2_E4typeE.221db701
                 0x00000000      0x10b obj/main-d-2018-beacon-master.o
- .gnu.lto__ZSt7forwardIjEOT_RNSt16remove_referenceIS0_E4typeE.247fc81e
+ .gnu.lto__ZSt7forwardIjEOT_RNSt16remove_referenceIS0_E4typeE.221db701
                 0x00000000      0x10b obj/main-d-2018-beacon-master.o
- .gnu.lto__Z41__static_initialization_and_destruction_0ii.247fc81e
+ .gnu.lto__Z41__static_initialization_and_destruction_0ii.221db701
                 0x00000000       0xda obj/main-d-2018-beacon-master.o
- .gnu.lto__GLOBAL__sub_I__Z4getXta.247fc81e
+ .gnu.lto__GLOBAL__sub_I__Z4getXta.221db701
                 0x00000000       0x89 obj/main-d-2018-beacon-master.o
- .gnu.lto_main.247fc81e
-                0x00000000     0x1c8a obj/main-d-2018-beacon-master.o
- .gnu.lto_.symbol_nodes.247fc81e
+ .gnu.lto_main.221db701
+                0x00000000     0x1c8d obj/main-d-2018-beacon-master.o
+ .gnu.lto_.symbol_nodes.221db701
                 0x00000000      0x5ae obj/main-d-2018-beacon-master.o
- .gnu.lto_.refs.247fc81e
+ .gnu.lto_.refs.221db701
                 0x00000000       0x94 obj/main-d-2018-beacon-master.o
- .gnu.lto_.decls.247fc81e
+ .gnu.lto_.decls.221db701
                 0x00000000     0xbce6 obj/main-d-2018-beacon-master.o
- .gnu.lto_.symtab.247fc81e
+ .gnu.lto_.symtab.221db701
                 0x00000000     0x154f obj/main-d-2018-beacon-master.o
  .gnu.lto_.opts
                 0x00000000       0xd7 obj/main-d-2018-beacon-master.o
@@ -15219,51 +15219,51 @@ OUTPUT(bin/inno14-d-2018-beacon-master.elf elf32-littlearm)
  .debug_macro   0x000201f8      0x519 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(soft_i2c_master-d-2018-beacon-master.o)
  .debug_macro   0x00020711      0x61f C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(sys_tick-d-2018-beacon-master.o)
 
-.debug_line     0x00000000    0x273ff
- .debug_line    0x00000000     0x15f6 obj/main-d-2018-beacon-master.o
- .debug_line    0x000015f6      0x4ec C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(startup-d-2018-beacon-master.o)
- .debug_line    0x00001ae2      0x2fe C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(system-d-2018-beacon-master.o)
- .debug_line    0x00001de0      0x55d C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(fpu-d-2018-beacon-master.o)
- .debug_line    0x0000233d      0xe2b C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(mcg-d-2018-beacon-master.o)
- .debug_line    0x00003168      0xce3 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(watchdog-d-2018-beacon-master.o)
- .debug_line    0x00003e4b      0xab0 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(alternate_motor-d-2018-beacon-master.o)
- .debug_line    0x000048fb      0xaf5 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(dir_encoder-d-2018-beacon-master.o)
- .debug_line    0x000053f0      0xcb3 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(encoder-d-2018-beacon-master.o)
- .debug_line    0x000060a3     0x136e C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(lcd_typewriter-d-2018-beacon-master.o)
- .debug_line    0x00007411      0xa94 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(led-d-2018-beacon-master.o)
- .debug_line    0x00007ea5      0xbf0 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(motor-d-2018-beacon-master.o)
- .debug_line    0x00008a95     0x11fa C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(st7735r-d-2018-beacon-master.o)
- .debug_line    0x00009c8f      0xc55 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(jy_mcu_bt_106-d-2018-beacon-master.o)
- .debug_line    0x0000a8e4     0x1e31 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(ov7725-d-2018-beacon-master.o)
- .debug_line    0x0000c715      0xd57 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(ov7725_configurator-d-2018-beacon-master.o)
- .debug_line    0x0000d46c      0xbc1 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(system-d-2018-beacon-master.o)
- .debug_line    0x0000e02d     0x2944 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(uart_device-d-2018-beacon-master.o)
- .debug_line    0x00010971      0x2e6 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(assert-d-2018-beacon-master.o)
- .debug_line    0x00010c57      0x3f6 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(syscall-d-2018-beacon-master.o)
- .debug_line    0x0001104d      0x4e0 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(vectors-d-2018-beacon-master.o)
- .debug_line    0x0001152d      0x51a C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(cache-d-2018-beacon-master.o)
- .debug_line    0x00011a47     0x11ce C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(dma-d-2018-beacon-master.o)
- .debug_line    0x00012c15      0xe15 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(dma_manager-d-2018-beacon-master.o)
- .debug_line    0x00013a2a      0xd6e C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(dma_mux-d-2018-beacon-master.o)
- .debug_line    0x00014798      0x510 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(dwt-d-2018-beacon-master.o)
- .debug_line    0x00014ca8     0x12d1 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(ftm_pwm-d-2018-beacon-master.o)
- .debug_line    0x00015f79     0x12f4 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(ftm_quad_decoder-d-2018-beacon-master.o)
- .debug_line    0x0001726d     0x14c1 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(gpio-d-2018-beacon-master.o)
- .debug_line    0x0001872e     0x16a5 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(gpio_array-d-2018-beacon-master.o)
- .debug_line    0x00019dd3      0xf94 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(pin-d-2018-beacon-master.o)
- .debug_line    0x0001ad67     0x122f C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(pin_isr_manager-d-2018-beacon-master.o)
- .debug_line    0x0001bf96      0xd3b C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(sim-d-2018-beacon-master.o)
- .debug_line    0x0001ccd1      0xbb1 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(soft_sccb_master-d-2018-beacon-master.o)
- .debug_line    0x0001d882     0x15a5 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(spi_master-d-2018-beacon-master.o)
- .debug_line    0x0001ee27      0x932 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(spi_utils-d-2018-beacon-master.o)
- .debug_line    0x0001f759     0x16ed C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(uart-d-2018-beacon-master.o)
- .debug_line    0x00020e46     0x1169 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(sys_tick_timer-d-2018-beacon-master.o)
- .debug_line    0x00021faf      0xb8a C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(endian_utils-d-2018-beacon-master.o)
- .debug_line    0x00022b39     0x110d C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(mk60f15_lqfp144-d-2018-beacon-master.o)
- .debug_line    0x00023c46      0x5bd C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(clock_utils-d-2018-beacon-master.o)
- .debug_line    0x00024203      0xda8 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(ftm-d-2018-beacon-master.o)
- .debug_line    0x00024fab     0x1533 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(soft_i2c_master-d-2018-beacon-master.o)
- .debug_line    0x000264de      0xf21 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(sys_tick-d-2018-beacon-master.o)
+.debug_line     0x00000000    0x27401
+ .debug_line    0x00000000     0x15f8 obj/main-d-2018-beacon-master.o
+ .debug_line    0x000015f8      0x4ec C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(startup-d-2018-beacon-master.o)
+ .debug_line    0x00001ae4      0x2fe C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(system-d-2018-beacon-master.o)
+ .debug_line    0x00001de2      0x55d C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(fpu-d-2018-beacon-master.o)
+ .debug_line    0x0000233f      0xe2b C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(mcg-d-2018-beacon-master.o)
+ .debug_line    0x0000316a      0xce3 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(watchdog-d-2018-beacon-master.o)
+ .debug_line    0x00003e4d      0xab0 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(alternate_motor-d-2018-beacon-master.o)
+ .debug_line    0x000048fd      0xaf5 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(dir_encoder-d-2018-beacon-master.o)
+ .debug_line    0x000053f2      0xcb3 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(encoder-d-2018-beacon-master.o)
+ .debug_line    0x000060a5     0x136e C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(lcd_typewriter-d-2018-beacon-master.o)
+ .debug_line    0x00007413      0xa94 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(led-d-2018-beacon-master.o)
+ .debug_line    0x00007ea7      0xbf0 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(motor-d-2018-beacon-master.o)
+ .debug_line    0x00008a97     0x11fa C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(st7735r-d-2018-beacon-master.o)
+ .debug_line    0x00009c91      0xc55 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(jy_mcu_bt_106-d-2018-beacon-master.o)
+ .debug_line    0x0000a8e6     0x1e31 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(ov7725-d-2018-beacon-master.o)
+ .debug_line    0x0000c717      0xd57 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(ov7725_configurator-d-2018-beacon-master.o)
+ .debug_line    0x0000d46e      0xbc1 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(system-d-2018-beacon-master.o)
+ .debug_line    0x0000e02f     0x2944 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(uart_device-d-2018-beacon-master.o)
+ .debug_line    0x00010973      0x2e6 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(assert-d-2018-beacon-master.o)
+ .debug_line    0x00010c59      0x3f6 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(syscall-d-2018-beacon-master.o)
+ .debug_line    0x0001104f      0x4e0 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(vectors-d-2018-beacon-master.o)
+ .debug_line    0x0001152f      0x51a C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(cache-d-2018-beacon-master.o)
+ .debug_line    0x00011a49     0x11ce C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(dma-d-2018-beacon-master.o)
+ .debug_line    0x00012c17      0xe15 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(dma_manager-d-2018-beacon-master.o)
+ .debug_line    0x00013a2c      0xd6e C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(dma_mux-d-2018-beacon-master.o)
+ .debug_line    0x0001479a      0x510 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(dwt-d-2018-beacon-master.o)
+ .debug_line    0x00014caa     0x12d1 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(ftm_pwm-d-2018-beacon-master.o)
+ .debug_line    0x00015f7b     0x12f4 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(ftm_quad_decoder-d-2018-beacon-master.o)
+ .debug_line    0x0001726f     0x14c1 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(gpio-d-2018-beacon-master.o)
+ .debug_line    0x00018730     0x16a5 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(gpio_array-d-2018-beacon-master.o)
+ .debug_line    0x00019dd5      0xf94 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(pin-d-2018-beacon-master.o)
+ .debug_line    0x0001ad69     0x122f C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(pin_isr_manager-d-2018-beacon-master.o)
+ .debug_line    0x0001bf98      0xd3b C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(sim-d-2018-beacon-master.o)
+ .debug_line    0x0001ccd3      0xbb1 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(soft_sccb_master-d-2018-beacon-master.o)
+ .debug_line    0x0001d884     0x15a5 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(spi_master-d-2018-beacon-master.o)
+ .debug_line    0x0001ee29      0x932 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(spi_utils-d-2018-beacon-master.o)
+ .debug_line    0x0001f75b     0x16ed C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(uart-d-2018-beacon-master.o)
+ .debug_line    0x00020e48     0x1169 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(sys_tick_timer-d-2018-beacon-master.o)
+ .debug_line    0x00021fb1      0xb8a C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(endian_utils-d-2018-beacon-master.o)
+ .debug_line    0x00022b3b     0x110d C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(mk60f15_lqfp144-d-2018-beacon-master.o)
+ .debug_line    0x00023c48      0x5bd C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(clock_utils-d-2018-beacon-master.o)
+ .debug_line    0x00024205      0xda8 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(ftm-d-2018-beacon-master.o)
+ .debug_line    0x00024fad     0x1533 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(soft_i2c_master-d-2018-beacon-master.o)
+ .debug_line    0x000264e0      0xf21 C:\Users\Sheldon\git\libsccc\lib\libsccc-d-2018-beacon-master.a(sys_tick-d-2018-beacon-master.o)
 
 .debug_str      0x00000000    0x8552c
  .debug_str     0x00000000     0xf1e7 obj/main-d-2018-beacon-master.o

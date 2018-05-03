@@ -6,11 +6,11 @@
 /*##                                   */
 /*##     Project   : ProcessorExpert   */
 /*##                                   */
-/*##     Processor : MK60FX512VLQ15    */
+/*##     Processor : MKL26Z256VMC4     */
 /*##                                   */
 /*##     Compiler  : GNU C Compiler    */
 /*##                                   */
-/*##     Date/Time : 2014-11-16, 04:20, # CodeGen: 0 */
+/*##     Date/Time : 2015-03-01, 18:04, # CodeGen: 0 */
 /*##                                   */
 /*##     Abstract  :                   */
 /*##                                   */
@@ -28,19 +28,19 @@
 ENTRY(__thumb_startup)
 
 /* Highest address of the user mode stack */
-_estack = 0x20000000;    /* end of m_data */
+_estack = 0x20006000;    /* end of m_data */
 __SP_INIT = _estack;
 
 /* Generate a link error if heap and stack don't fit into RAM */
-__heap_size = 0x9000;                    /* required amount of heap  */
-__stack_size = 0x1000;                 /* required amount of stack */
+__heap_size = 0x3F00;                    /* required amount of heap  */
+__stack_size = 0x1F00;                 /* required amount of stack */
 
 
 MEMORY {
-  m_interrupts (RX) : ORIGIN = 0x00000000, LENGTH = 0x000001E8
-  m_text      (RX) : ORIGIN = 0x00000410, LENGTH = 0x0007FBF0
-  m_data      (RW) : ORIGIN = 0x1FFF0000, LENGTH = 0x00010000
-  m_data_20000000 (RW) : ORIGIN = 0x20000000, LENGTH = 0x00010000
+  m_interrupts (RX) : ORIGIN = 0x00000000, LENGTH = 0x000000C0
+  m_text      (RX) : ORIGIN = 0x00000410, LENGTH = 0x0003FBF0
+  m_data      (RW) : ORIGIN = 0x1FFFE000, LENGTH = 0x00007000
+  m_data_2 (RW) : ORIGIN = 0x20005000, LENGTH = 0x00001000
   m_cfmprotrom  (RX) : ORIGIN = 0x00000400, LENGTH = 0x00000010
 }
 
@@ -147,6 +147,16 @@ SECTIONS
         ___ROM_AT = .;
   } > m_text
 
+  /* reserve MTB memory at the beginning of m_data */
+  .mtb : /* MTB buffer address as defined by the hardware */
+  {
+    . = ALIGN(8);
+    _mtb_start = .;
+    KEEP(*(.mtb_buf)) /* need to KEEP Micro Trace Buffer as not referenced by application */
+    . = ALIGN(8);
+    _mtb_end = .;
+  } > m_data
+
   /* Initialized data sections goes into RAM, load LMA copy after code */
   .data : AT(___ROM_AT)
   {
@@ -165,17 +175,17 @@ SECTIONS
   } > m_data
 
   ___data_size = _edata - _sdata;
-
-  ___m_data_20000000_ROMStart = ___ROM_AT + SIZEOF(.data);
-  .m_data_20000000 : AT(___m_data_20000000_ROMStart)
+  
+  ___m_data_2_ROMStart = ___ROM_AT + SIZEOF(.data);
+  .m_data_2 : AT(___m_data_2_ROMStart)
   {
      . = ALIGN(4);
-     ___m_data_20000000_RAMStart = .;
-     *(.m_data_20000000) /* This is an User defined section */
-     ___m_data_20000000_RAMEnd = .;
+     ___m_data_2_RAMStart = .;
+     *(.m_data_2) /* This is an User defined section */
+     ___m_data_2_RAMEnd = .;
      . = ALIGN(4);
-  } > m_data_20000000
-  ___m_data_20000000_ROMSize = ___m_data_20000000_RAMEnd - ___m_data_20000000_RAMStart;
+  } > m_data_2
+  ___m_data_2_ROMSize = ___m_data_2_RAMEnd - ___m_data_2_RAMStart;
 
 
 
@@ -208,16 +218,16 @@ SECTIONS
     . = ALIGN(4);
   } > m_data
 
-  _romp_at = ___ROM_AT + SIZEOF(.data) +SIZEOF(.m_data_20000000);
+  _romp_at = ___ROM_AT + SIZEOF(.data);
   .romp : AT(_romp_at)
   {
     __S_romp = _romp_at;
     LONG(___ROM_AT);
     LONG(_sdata);
     LONG(___data_size);
-    LONG(___m_data_20000000_ROMStart);
-    LONG(___m_data_20000000_RAMStart);
-    LONG(___m_data_20000000_ROMSize);
+    LONG(___m_data_2_ROMStart);
+    LONG(___m_data_2_RAMStart);
+    LONG(___m_data_2_ROMSize);
     LONG(0);
     LONG(0);
     LONG(0);
