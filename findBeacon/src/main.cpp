@@ -26,7 +26,7 @@
 #include "libbase/misc_utils_c.h"
 #include "pid.h"
 #include "image_processing.h"
-
+#include "camerafilter.h"
 namespace libbase {
 namespace k60 {
 
@@ -45,11 +45,11 @@ using namespace libsc::k60;
 using namespace libbase::k60;
 
 //////////////cam setting////////////////
-const uint16_t width = 320;
-const uint16_t height = 240;
+const uint16_t width = 80;
+const uint16_t height = 60;
 const uint16_t numOfPixel = width * height / 8;
-uint8_t contrast = 0x40;
-uint8_t brightness = 0x00;
+uint8_t contrast = 0x37;
+uint8_t brightness = 0x1E;
 /////////////////PID//////////////////////
 float L_kp = 0.1;
 float L_ki = 0.12;
@@ -280,21 +280,22 @@ int main() {
 
 	////////////////Main loop////////////////////////
 	while (1) {
-		if (tick != System::Time() && run) {
-			if (restart) {
-				run = false;
-				seen = false;
-				start = 0;
-				L_target_count = 0;
-				R_target_count = 0;
-				state = 6;
-				sent = true;
-				restart = false;
-				L_pid.reset();
-				R_pid.reset();
-				Dir_pid.reset();
-				continue;
-			}
+		//if (tick != System::Time() && run) {
+		if (tick != System::Time() ) {
+//			if (restart) {
+//				run = false;
+//				seen = false;
+//				start = 0;
+//				L_target_count = 0;
+//				R_target_count = 0;
+//				state = 6;
+//				sent = true;
+//				restart = false;
+//				L_pid.reset();
+//				R_pid.reset();
+//				Dir_pid.reset();
+//				continue;
+//			}
 			tick = System::Time();
 			if (tick % 30 == 0) {
 				////////////////////Debug///////////////////
@@ -358,74 +359,35 @@ int main() {
 				///////////////process image/////////////////
 				process(buf, beacons, beacon_count, seen);
 				///////////////decision making///////////////
-				if (target != NULL) {		//target find
-					frame_count = 0;
-					pos_sent = false;
-					if (rotate == performing)
-						rotate = no;
-					if (target->area > near_area && rotate != prepare)
-						rotate = prepare;
-					int diff = Dir_pid.output(200, target->center.first);
-					if (diff > 0) {
-						if (state != 0) {
-							state = 0;
-							sent = false;
-						}
-						R_target_count = forward_speed + diff;
-						L_target_count = forward_speed;
-					} else {
-						if (state != 1) {
-							state = 1;
-							sent = false;
-						}
-						R_target_count = forward_speed;
-						L_target_count = forward_speed + abs(diff);
-					}
-					last_beacon.area = target->area;
-					last_beacon.center = target->center;
-					if (!seen)
-						seen = true;
-					if (start)
-						start = 0;
-				} else if (rotate == performing) {
-				} else if (seen) { //target not find but have seen target before
-					if (start == 0)
-						start = System::Time();
-					else if (tick - start > 75) {
-						if (rotate == prepare) {		//went over the target
-							rotate = performing;
-							if (last_beacon.center.first < 170) {//rotate around the beacon
-								R_target_count = rotate_speed;
-								L_target_count = finding_speed;
-								if (state != 2) {
-									state = 2;
-									sent = false;
+
+				bool boolbuf[width*height];
+				Bytetoboolarray(buf,boolbuf,width,height);
+				lcd.SetRegion(Lcd::Rect(0,0,width,height));
+				lcd.FillBits(0x0000,0xFFFF,boolbuf,height*width);
+				int decision = threepartpixel(boolbuf,width,height);
+				lcd.SetRegion(Lcd::Rect(0,60,width,height));
+				if(decision==0){
+
+					R_target_count = 0;
+					L_target_count = 0;
+					writer.WriteString("for");
 								}
-							} else {
-								R_target_count = finding_speed;
-								L_target_count = rotate_speed;
-								if (state != 3) {
-									state = 3;
-									sent = false;
-								}
-							}
-						}
-						seen = false;
-						start = 0;
-						Dir_pid.reset();
-						if (state != 4 && state != 3 && state != 2) {
-							state = 4;
-							sent = false;
-						}
-					}
-				} else { //target not find and have not seen target before
-					L_target_count = finding_speed;
-					R_target_count = finding_speed;
-					if (state != 5) {
-						state = 5;
-						sent = false;
-					}
+				if(decision==1){
+					R_target_count = 100;
+					L_target_count =150;
+					writer.WriteString("right");
 				}
+				if(decision==2){
+					R_target_count = 150;
+					L_target_count = 100;
+					writer.WriteString("left");
+				}
+				if(decision==3){
+					R_target_count = 150;
+					L_target_count = 100;
+					writer.WriteString("front");
+				}
+
 				cam.UnlockBuffer();
 
 			}
