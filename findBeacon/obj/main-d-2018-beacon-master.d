@@ -40,8 +40,9 @@ obj/main-d-2018-beacon-master.o: src/main.cpp \
  C:\Users\Sheldon\git\libsccc\inc/libbase/k60/soft_sccb_master.h \
  C:\Users\Sheldon\git\libsccc\inc/libbase/k60/soft_i2c_master.h \
  C:\Users\Sheldon\git\libsccc\inc/libbase/k60/i2c_master_interface.h \
- C:\Users\Sheldon\git\libsccc\inc/libsc/alternate_motor.h \
+ C:\Users\Sheldon\git\libsccc\inc/libsc/dir_motor.h \
  C:\Users\Sheldon\git\libsccc\inc/libbase/k60/ftm_pwm.h \
  C:\Users\Sheldon\git\libsccc\inc/libbase/k60/pwm.h \
  C:\Users\Sheldon\git\libsccc\inc/libsc/motor.h inc/beacon.h inc/pid.h \
- inc/image_processing.h
+ inc/image_processing.h inc/motor_util.h \
+ C:\Users\Sheldon\git\libsccc\inc/libutil/misc.h

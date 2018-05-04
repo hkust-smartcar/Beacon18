@@ -129,7 +129,7 @@ def sendData(text):
         if data == '':
             continue
         if data[0] == '+':
-            status.append(tk.Label(status_frame,text = data[1:],font =("Helvetica",15)))
+            status.append(tk.Label(status_frame,text = data[1:],font =("Helvetica",10)))
             status[-1].pack(padx =[5,0])
             names.append(data[1:])
             continue
@@ -169,12 +169,12 @@ class main_page(tk.Frame):
         status = []
         if len(names) > 0:
             for name in names:
-                status.append(tk.Label(status_frame,text = name,font =("Helvetica",15)))
+                status.append(tk.Label(status_frame,text = name,font =("Helvetica",10)))
         else:
-            status.append(tk.Label(status_frame,text = "diff > 0, turn left",font =("Helvetica",15)))
-            status.append(tk.Label(status_frame,text = "diff < 0, turn right",font =("Helvetica",15)))
-            status.append(tk.Label(status_frame,text = "target lost",font =("Helvetica",15)))
-            status.append( tk.Label(status_frame,text = "target not find",font =("Helvetica",15),bg = "red"))
+            status.append(tk.Label(status_frame,text = "diff > 0, turn left",font =("Helvetica",10)))
+            status.append(tk.Label(status_frame,text = "diff < 0, turn right",font =("Helvetica",10)))
+            status.append(tk.Label(status_frame,text = "target lost",font =("Helvetica",10)))
+            status.append( tk.Label(status_frame,text = "target not find",font =("Helvetica",10),bg = "red"))
 
         Turtle_canvas = tk.Canvas(master = status_frame, width = 320, height = 240)
         canvas_frame = tk.Frame(middle_frame)
