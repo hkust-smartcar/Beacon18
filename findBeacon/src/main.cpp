@@ -1,8 +1,8 @@
 /*
  * main.cpp
  *
- * Author:Sheldon
- * Copyright (c) 2017-2018 HKUST SmartCar Team
+ * Author: 
+ * Copyright (c) 2014-2015 HKUST SmartCar Team
  * Refer to LICENSE for details
  */
 
@@ -280,22 +280,22 @@ int main() {
 
 	////////////////Main loop////////////////////////
 	while (1) {
-		//if (tick != System::Time() && run) {
-		if (tick != System::Time() ) {
-//			if (restart) {
-//				run = false;
-//				seen = false;
-//				start = 0;
-//				L_target_count = 0;
-//				R_target_count = 0;
-//				state = 6;
-//				sent = true;
-//				restart = false;
-//				L_pid.reset();
-//				R_pid.reset();
-//				Dir_pid.reset();
-//				continue;
-//			}
+		if (tick != System::Time() && run) {
+//		if (tick != System::Time() ) {
+			if (restart) {
+				run = false;
+				seen = false;
+				start = 0;
+				L_target_count = 0;
+				R_target_count = 0;
+				state = 6;
+				sent = true;
+				restart = false;
+				L_pid.reset();
+				R_pid.reset();
+				Dir_pid.reset();
+				continue;
+			}
 			tick = System::Time();
 			if (tick % 30 == 0) {
 				////////////////////Debug///////////////////
@@ -374,16 +374,16 @@ int main() {
 								}
 				if(decision==1){
 					R_target_count = 100;
-					L_target_count =150;
+					L_target_count =270;
 					writer.WriteString("right");
 				}
 				if(decision==2){
-					R_target_count = 150;
+					R_target_count = 270;
 					L_target_count = 100;
 					writer.WriteString("left");
 				}
 				if(decision==3){
-					R_target_count = 150;
+					R_target_count = 270;
 					L_target_count = 100;
 					writer.WriteString("front");
 				}
