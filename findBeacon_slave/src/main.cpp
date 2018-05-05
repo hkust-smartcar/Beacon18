@@ -20,9 +20,9 @@
 //#include "libbase/k60/pit.h"
 #include "libsc/lcd_typewriter.h"
 #include <libsc/k60/ov7725.h>
-#include "beacon.h"
+// #include "beacon.h"
 #include "libbase/misc_utils_c.h"
-#include "image_processing.h"
+// #include "image_processing.h"
 
 namespace libbase {
 namespace k60 {
@@ -42,21 +42,11 @@ using namespace libsc::k60;
 using namespace libbase::k60;
 
 //////////////cam setting////////////////
-const uint16_t width = 320;
-const uint16_t height = 240;
+const uint16_t width = 80;
+const uint16_t height = 60;
 const uint16_t numOfPixel = width * height / 8;
-uint8_t contrast = 0x40;
-uint8_t brightness = 0x00;
-//////////////algo parm///////////////////
-const uint8_t max_beacon = 10;
-const uint16_t near_area = 3000;
-/////////////state//////////////////////
-Beacon* target = NULL;
-Beacon last_beacon;
-
-enum rotate_state {
-	no, prepare, performing
-};
+uint8_t contrast = 0x37;
+uint8_t brightness = 0x1E;
 
 int main() {
 	System::Init();
@@ -91,53 +81,46 @@ int main() {
 
 	////////////////Variable init/////////////////
 	uint32_t tick = System::Time();
-	uint32_t start;
-	uint32_t end;
-	uint8_t frame_count = 0;
-	Beacon center_record[10];
-	bool seen = false;
-	rotate_state rotate = no;
 	/////////////////For Dubug////////////////////
 	bool run = false;
 	JyMcuBt106::Config config;
-	config.baud_rate = libbase::k60::Uart::Config::BaudRate::k9600;
+	config.baud_rate = libbase::k60::Uart::Config::BaudRate::k4800;
 	config.id = 2;
 	JyMcuBt106 comm(config);
 	comm.SetRxIsr(
-			[&lcd,&writer,&led0,&run](const Byte *data, const size_t size) {
+			[&comm,&state,&lcd,&writer,&led0,&run](const Byte *data, const size_t size) {
+				if(data[0] == 's') {
+					run = true;
+					led0.Switch();
+				}
 				return true;
 			});
-
+	char sent = ' ';
 	////////////////Main loop////////////////////////
 	while (1) {
-		if (tick != System::Time()) {
+		if (tick != System::Time() && run) {
 			tick = System::Time();
-			if (tick % 20 == 0) {
-				///////////////////decision//////////////////////
+			if (tick % 25 == 0) {
 				const Byte* buf = cam.LockBuffer();
-//				lcd.SetRegion(Lcd::Rect(0, 0, width, height));
-//				lcd.FillBits(0, 0xFFFF, buf, width * height);
-				////////////init value///////////////////////
-				Beacon b[max_beacon];
-				Beacon *beacons = b;
-				uint8_t beacon_count = 0;
-				target = NULL;
-				///////////////process image/////////////////
-				process(buf, beacons, beacon_count, seen);
-				if (target != NULL) {
-					Byte buffer[3];
-					Byte* b = buffer;
-					buffer[0] = 'x';
-					buffer[1] = target->center.first >> 8;
-					buffer[2] = target->center.first & 255;
-					comm.SendBuffer(b, 3);
-					buffer[0] = 'y';
-					buffer[1] = target->center.second >> 8;
-					buffer[2] = target->center.second & 255;
-					comm.SendBuffer(b, 3);
-
-				} else
-					comm.SendStrLiteral("n");
+				
+				bool boolbuf[width*height];
+				Bytetoboolarray(buf,boolbuf,width,height);
+				lcd.SetRegion(Lcd::Rect(0,0,width,height));
+				lcd.FillBits(0x0000,0xFFFF,boolbuf,height*width);
+				int decision = threepartpixel(boolbuf,width,height);
+				lcd.SetRegion(Lcd::Rect(0,60,width,height));
+				if(decision==1 && sent != 'R'){
+					comm.SendStrLiteral("R");
+					sent = 'R';
+				}
+				if(decision==2 && sent != 'L'){
+					comm.SendStrLiteral("L");
+					sent = 'L';
+				}
+				if(decision==3 && sent != 'F'){
+					comm.SendStrLiteral("F");
+					sent = 'F';
+				}
 				cam.UnlockBuffer();
 			}
 		}

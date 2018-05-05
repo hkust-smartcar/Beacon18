@@ -8,18 +8,18 @@
 #ifndef MOTOR_UTIL_H_
 #define MOTOR_UTIL_H_
 
-#include "libsc/dir_motor.h"
+#include "libsc/alternate_motor.h"
 #include "libutil/misc.h"
 using namespace libsc;
 
-extern DirMotor* L_motor;
-extern DirMotor* R_motor;
+extern AlternateMotor* L_motor;
+extern AlternateMotor* R_motor;
 
 
 void SetPower(int speed,int id){
-	int power = (speed > 0?power:-power);
-	bool direction = (power > 0);
-	power = libutil::Clamp<int>(0,power,1000);
+	bool direction = (speed > 0);
+	int power = (speed > 0?speed:-speed);
+	power = libutil::Clamp<int>(0,power,600);
 	switch(id){
 	case 0:
 		L_motor->SetPower(power);

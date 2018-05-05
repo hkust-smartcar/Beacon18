@@ -15,7 +15,7 @@ public:
 	uint16_t upper_y;
 	uint16_t lower_y;
 	uint16_t count;
-	uint16_t density;
+	uint8_t density;
 	uint16_t area;
 	std::pair<uint16_t, uint16_t> center;
 
