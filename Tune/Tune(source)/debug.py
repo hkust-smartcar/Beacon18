@@ -45,11 +45,14 @@ def close_port(self):
 
 def begin(self):
     global start,state,x_value,L_color, R_color,Ltarget,Rtarget
-    if ser.inWaiting != 0:
-        ser.reset_input_buffer()
-        time.sleep(.5)
-        ser.reset_input_buffer()
-    ser.write(b's')
+    try:
+        if ser.inWaiting != 0:
+            ser.reset_input_buffer()
+            time.sleep(.5)
+            ser.reset_input_buffer()
+            ser.write(b's')
+    except:
+        print("error")
     Lvalue.clear()
     Rvalue.clear()
     x.clear()
@@ -90,7 +93,9 @@ def stop():
     start = False
 
 def PID_animate(i):
-    if not start or ser.in_waiting == 0:
+    if not start:
+        return
+    if  ser.in_waiting == 0:
         return
     global id,state,x_value,L_color, R_color,Ltarget,Rtarget
     while ser.in_waiting != 0:

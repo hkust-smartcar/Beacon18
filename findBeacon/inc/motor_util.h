@@ -32,15 +32,12 @@ void SetPower(int speed,int id){
 }
 
 int GetMotorPower(int id){
-	int power;
 	switch(id){
 	case 0:
-		power = L_motor->GetPower();
-		return (L_motor->IsClockwise() ? power : -power);//true is forward
+		return L_motor->IsClockwise() ? L_motor->GetPower() : -L_motor->GetPower();//true is forward
 		break;
 	case 1:
-		power = R_motor->GetPower();
-		return (R_motor->IsClockwise() ? -power : power);//false is forward
+		return R_motor->IsClockwise() ? -R_motor->GetPower() : R_motor->GetPower();//false is forward
 		break;
 	}
 	return 0;

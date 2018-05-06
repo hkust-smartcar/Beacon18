@@ -36,10 +36,13 @@ def close_port(self,com_status):
 
 def start(mode,self):
     global status
-    if ser.inWaiting() != 0:
-        ser.reset_input_buffer()
-        time.sleep(.5)
-        ser.reset_input_buffer()
+    try:
+        if ser.inWaiting() != 0:
+            ser.reset_input_buffer()
+            time.sleep(.5)
+            ser.reset_input_buffer()
+    except:
+        print("error")
     status = True
 
     if mode == "video":
@@ -308,7 +311,7 @@ class PID_page(tk.Frame):
         canvas_frame = tk.Frame(parent)
         canvas = FigureCanvasTkAgg(graph_fig,canvas_frame)
         canvas.show()
-        ani = animation.FuncAnimation(graph_fig, PID_animate, interval= 5)
+        ani = animation.FuncAnimation(graph_fig, PID_animate, interval= 2)
 
         action_frame = tk.Frame(parent)
         start_button = tk.Button(action_frame,text = "Start", command = lambda : start("PID",self),width = 10)

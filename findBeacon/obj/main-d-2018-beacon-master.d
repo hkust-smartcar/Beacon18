@@ -33,6 +33,8 @@ obj/main-d-2018-beacon-master.o: src/main.cpp \
  C:\Users\Sheldon\git\libsccc\inc/libbase/k60/spi_master_interface.h \
  C:\Users\Sheldon\git\libsccc\inc/libbase/k60/spi_master.h \
  C:\Users\Sheldon\git\libsccc\inc/libsc/lcd.h \
+ C:\Users\Sheldon\git\libsccc\inc/libsc/battery_meter.h \
+ C:\Users\Sheldon\git\libsccc\inc/libbase/k60/adc.h \
  C:\Users\Sheldon\git\libsccc\inc/libsc/lcd_typewriter.h \
  C:\Users\Sheldon\git\libsccc\inc/libsc/k60/ov7725.h \
  C:\Users\Sheldon\git\libsccc\inc/libbase/k60/gpio_array.h \
@@ -43,6 +45,10 @@ obj/main-d-2018-beacon-master.o: src/main.cpp \
  C:\Users\Sheldon\git\libsccc\inc/libsc/alternate_motor.h \
  C:\Users\Sheldon\git\libsccc\inc/libbase/k60/ftm_pwm.h \
  C:\Users\Sheldon\git\libsccc\inc/libbase/k60/pwm.h \
- C:\Users\Sheldon\git\libsccc\inc/libsc/motor.h inc/beacon.h inc/pid.h \
- inc/image_processing.h inc/motor_util.h \
- C:\Users\Sheldon\git\libsccc\inc/libutil/misc.h
+ C:\Users\Sheldon\git\libsccc\inc/libsc/motor.h inc/beacon.h \
+ C:\Users\Sheldon\git\libsccc\inc/libutil\incremental_pid_controller.h \
+ C:\Users\Sheldon\git\libsccc\inc/libutil/pid_controller.h \
+ C:\Users\Sheldon\git\libsccc\inc/libutil/pid_controller.tcc \
+ C:\Users\Sheldon\git\libsccc\inc/libutil/misc.h \
+ C:\Users\Sheldon\git\libsccc\inc/libutil\incremental_pid_controller.tcc \
+ inc/pid.h inc/image_processing.h inc/motor_util.h

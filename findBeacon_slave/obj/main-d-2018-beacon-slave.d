@@ -34,4 +34,4 @@ obj/main-d-2018-beacon-slave.o: src/main.cpp \
  C:\Users\Sheldon\git\libsccc\inc/libbase/k60/soft_sccb_master.h \
  C:\Users\Sheldon\git\libsccc\inc/libbase/k60/soft_i2c_master.h \
  C:\Users\Sheldon\git\libsccc\inc/libbase/k60/i2c_master_interface.h \
- inc/beacon.h inc/image_processing.h
+ inc/camerafilter.h

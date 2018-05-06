@@ -17,7 +17,7 @@
 #include <libsc/k60/jy_mcu_bt_106.h>
 //#include "libsc/joystick.h"
 #include "libsc/st7735r.h"
-//#include "libsc/battery_meter.h"
+#include "libsc/battery_meter.h"
 //#include "libbase/k60/pit.h"
 #include "libsc/lcd_typewriter.h"
 #include <libsc/k60/ov7725.h>
@@ -46,6 +46,7 @@ using libsc::System;
 using namespace libsc;
 using namespace libsc::k60;
 using namespace libbase::k60;
+using namespace libutil;
 
 //////////////cam setting////////////////
 const uint16_t width = 320;
@@ -54,13 +55,13 @@ const uint16_t numOfPixel = width * height / 8;
 uint8_t contrast = 0x40;
 uint8_t brightness = 0x00;
 /////////////////PID//////////////////////
-float L_kp = 0.1;
-float L_ki = 0.12;
-float L_kd = 0.01;
-float R_kp = 0.1;
-float R_ki = 0.12;
-float R_kd = 0.01;
-float Dir_kp = 0.2;
+float L_kp = 2.5;
+float L_ki = 0.02;
+float L_kd = 0;
+float R_kp = 2.5;
+float R_ki = 0.02;
+float R_kd = 0;
+float Dir_kp = 0.5;
 float Dir_ki = 0.1;
 float Dir_kd = 0.05;
 //////////////algo parm///////////////////
@@ -91,6 +92,10 @@ int main() {
 	Led led0(led_config);
 	led_config.id = 1;
 	Led led1(led_config);
+
+	BatteryMeter::Config bConfig;
+	bConfig.voltage_ratio = 0.4;
+	BatteryMeter bMeter(bConfig);
 	/////////////////////LCD init///////////////////
 	St7735r::Config lcd_config;
 	lcd_config.orientation = 1;
@@ -126,12 +131,13 @@ int main() {
 	k60::Ov7725 cam(cam_config);
 	cam.Start();
 	//////////////////PID init////////////////////
-	// IncrementalPidController<int,int> L_pid(0,L_kp, L_ki, L_kd);
-	// L_pid.SetOutputBound(-600,600);
-	PID L_pid(L_kp, L_ki, L_kd);
-	L_pid.errorSumBound = 10000;
-	PID R_pid(R_kp, R_ki, R_kd);
-	R_pid.errorSumBound = 10000;
+
+	IncrementalPidController<int, int> L_pid(0, L_kp, L_ki, L_kd);
+	L_pid.SetILimit(0);
+	L_pid.SetOutputBound(-600, 600);
+	IncrementalPidController<int, int> R_pid(0, R_kp, R_ki, R_kd);
+	R_pid.SetILimit(0);
+	R_pid.SetOutputBound(-600, 600);
 	PID Dir_pid(Dir_kp, Dir_ki, Dir_kp);
 	Dir_pid.errorSumBound = 10000;
 	////////////////Variable init/////////////////
@@ -140,14 +146,13 @@ int main() {
 	uint32_t end;
 	int L_count = 0;
 	int R_count = 0;
-	int L_speed = 0;
-	int R_speed = 0;
 	int L_target_count = 0;
 	int R_target_count = 0;
 	uint8_t frame_count = 0;
 	Beacon center_record[10];
 	uint32_t timer = 0;
 	bool seen = false;
+	int finding_time = 0;
 	rotate_state rotate = no;
 	/////////////////For Dubug////////////////////
 	bool sent = true;
@@ -156,45 +161,48 @@ int main() {
 	bool restart = false;
 	char avoid_state = 'F';
 	JyMcuBt106::Config config;
-	config.id = 0;
+	config.id = 1;
 	config.baud_rate = libbase::k60::Uart::Config::BaudRate::k115200;
 	JyMcuBt106 bt(config);
 	config.baud_rate = libbase::k60::Uart::Config::BaudRate::k4800;
 	config.id = 2;
 	JyMcuBt106 comm(config);
-	comm.SetRxIsr([&L_target_count,&R_target_count](const Byte *data, const size_t size){
-		switch(data[0]){
-			case 'L':
-				L_target_count = 100;
-				R_target_count = 270;
-				avoid_state = 'L';
-				break;
-			case 'R':
-				L_target_count = 270;
-				R_target_count = 100;
-				avoid_state = 'R';
-				break;
-			case 'F':
-				avoid_state = 'F';
-		}
-	});
+	comm.SetRxIsr(
+			[&avoid_state,&L_pid,&R_pid](const Byte *data, const size_t size) {
+				switch(data[0]) {
+					case 'L':
+					L_pid.SetSetpoint(50);
+					R_pid.SetSetpoint(150);
+					avoid_state = 'L';
+					break;
+					case 'R':
+					L_pid.SetSetpoint(150);
+					R_pid.SetSetpoint(50);
+					avoid_state = 'R';
+					break;
+					case 'F':
+					avoid_state = 'F';
+				}
+				return true;
+			});
 	bt.SetRxIsr(
-			[&L_pid,&R_pid,&led0,&run,&Dir_pid,&restart,&encoder1,&encoder2](const Byte *data, const size_t size) {
+			[&comm,&L_pid,&R_pid,&led0,&run,&Dir_pid,&restart,&encoder1,&encoder2](const Byte *data, const size_t size) {
 				if(data[0] == 's') {
 					run = true;
 					led0.SetEnable(1);
 					encoder1.Update();
 					encoder2.Update();
+					comm.SendStrLiteral("s");
 				}
 				if(data[0] == 'S') {
-					restart = true;
+					run = false;
 					led0.SetEnable(0);
 					L_motor->SetPower(0);
 					R_motor->SetPower(0);
+					comm.SendStrLiteral("s");
 				}
 				return true;
 			});
-	comm.SendStrLiteral("s");
 ////////////////Main loop////////////////////////
 	while (1) {
 		if (tick != System::Time() && run) {
@@ -215,13 +223,8 @@ int main() {
 				L_count = encoder1.GetCount();
 				encoder2.Update();
 				R_count = encoder2.GetCount();
-				/////////////Left motor///////////////////
-				L_speed = L_pid.output(L_target_count, L_count);
-				SetPower(L_speed, 0);
-				////////////Right motor///////////////////
-				R_speed = R_pid.output(R_target_count, -R_count);
-				SetPower(R_speed, 1);
-
+				SetPower(GetMotorPower(0) + L_pid.Calc(L_count), 0);
+				SetPower(GetMotorPower(1) + R_pid.Calc(-R_count), 1);
 			}
 			if (tick % 19 == 0 && avoid_state == 'F') {
 				///////////////decision making///////////////
@@ -237,25 +240,26 @@ int main() {
 					frame_count = 0;
 					if (target->area > near_area && rotate == no)
 						rotate = prepare;
-					if (rotate == performing && target->center.first > 160
-							&& target->center.first < 190) {
-						rotate = no;
+					if (rotate == performing && (target->center.first < 160
+						|| target->center.first > 210)) {
 					} else {
-						int diff = Dir_pid.output(200, target->center.first);
+						if(rotate == performing)
+							rotate = no;
+						int diff = Dir_pid.output(225, target->center.first);
 						if (diff > 0) {
 							if (state != 0) {
 								state = 0;
 								sent = false;
 							}
-							R_target_count = forward_speed + diff;
-							L_target_count = forward_speed;
+							L_pid.SetSetpoint(forward_speed - diff);
+							R_pid.SetSetpoint(forward_speed + diff);
 						} else {
 							if (state != 1) {
 								state = 1;
 								sent = false;
 							}
-							R_target_count = forward_speed;
-							L_target_count = forward_speed + abs(diff);
+							L_pid.SetSetpoint(forward_speed + abs(diff));
+							R_pid.SetSetpoint(forward_speed + diff);
 						}
 						last_beacon.area = target->area;
 						last_beacon.center = target->center;
@@ -265,9 +269,9 @@ int main() {
 							start = 0;
 					}
 				} else if (rotate == performing) {
-					if (System::Time() - timer > 500) {
-						R_target_count = forward_speed;
-						L_target_count = -finding_speed;
+					if (System::Time() - timer > 800) {
+						L_pid.SetSetpoint(-finding_speed);
+						R_pid.SetSetpoint(forward_speed);
 					}
 
 				} else if (seen) { //target not find but have seen target before
@@ -278,14 +282,14 @@ int main() {
 							rotate = performing;
 							if (last_beacon.center.first < 170) {//rotate around the beacon
 								R_target_count = rotate_speed;
-								L_target_count = finding_speed;
+								L_target_count = rotate_speed;
 								if (state != 2) {
 									state = 2;
 									sent = false;
 								}
 							} else {
-								R_target_count = finding_speed;
-								L_target_count = rotate_speed;
+								L_pid.SetSetpoint(rotate_speed);
+								R_pid.SetSetpoint(rotate_speed);
 								if (state != 3) {
 									state = 3;
 									sent = false;
@@ -302,8 +306,15 @@ int main() {
 						}
 					}
 				} else { //target not find and have not seen target before
-					L_target_count = finding_speed;
-					R_target_count = finding_speed;
+					if (finding_time == 0)
+						finding_time = System::Time();
+					else if (tick - finding_time > 1000) {
+						L_pid.SetSetpoint(finding_speed);
+						R_pid.SetSetpoint(-finding_speed);
+					} else {
+						L_pid.SetSetpoint(finding_speed);
+						R_pid.SetSetpoint(finding_speed);
+					}
 					if (state != 5) {
 						state = 5;
 						sent = false;

@@ -23,6 +23,7 @@
 // #include "beacon.h"
 #include "libbase/misc_utils_c.h"
 // #include "image_processing.h"
+#include "camerafilter.h";
 
 namespace libbase {
 namespace k60 {
@@ -88,9 +89,9 @@ int main() {
 	config.id = 2;
 	JyMcuBt106 comm(config);
 	comm.SetRxIsr(
-			[&comm,&state,&lcd,&writer,&led0,&run](const Byte *data, const size_t size) {
+			[&comm,&lcd,&writer,&led0,&run](const Byte *data, const size_t size) {
 				if(data[0] == 's') {
-					run = true;
+					run = !run;
 					led0.Switch();
 				}
 				return true;
