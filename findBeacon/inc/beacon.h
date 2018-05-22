@@ -23,7 +23,7 @@ public:
 			left_x(x), right_x(x), upper_y(y), lower_y(y), count(0), density(0), area(
 					0) {
 	}
-	Beacon(const Beacon& copy) {
+	Beacon(const Beacon& copy):left_x(0), right_x(0), upper_y(0), lower_y(0) {
 		this->area = copy.area;
 		this->density = copy.density;
 		this->count = copy.count;

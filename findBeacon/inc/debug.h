@@ -32,7 +32,7 @@
 //				sprintf(data, "%d", target_count);
 //				writer.WriteBuffer(data, 10);
 
-//				if (target == NULL && beacon_count) {//have possible beacon but not met requirement
+// else if (beacon_count) {		//have possible beacon but not met requirement
 //					/////record the beacon object with the highest density////
 //					center_record[frame_count] = Beacon(beacons[0]);
 //					for (int i = 1; i < beacon_count; i++) {

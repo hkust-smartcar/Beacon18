@@ -1,0 +1,4 @@
+Model slope:     0.004927548087104732
+Model intercept: 173.5123409387965
+Model slope:     0.009855697800993502
+Model intercept: 172.55532972120778

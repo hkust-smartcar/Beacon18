@@ -8,6 +8,8 @@
 #ifndef INC_IMAGE_PROCESSING_H_
 #define INC_IMAGE_PROCESSING_H_
 
+#include <list>
+
 extern const uint16_t width;
 extern const uint16_t height;
 extern const uint16_t numOfPixel;
@@ -21,6 +23,11 @@ const uint16_t critical_density = 65;
 extern const uint8_t max_beacon;
 extern Beacon* target;
 extern Beacon last_beacon;
+extern const uint8_t frame;
+const uint8_t min_frame = 3;
+const uint8_t near_dist = 40;
+uint8_t frame_count = 0;
+uint8_t count[20] = { };
 
 int16_t getX(uint16_t m_pos, int8_t m_bit_pos) {
 	int16_t x = (m_pos + 1) * 8 % width - m_bit_pos - 1;
@@ -36,8 +43,6 @@ int16_t getY(uint16_t m_pos) {
 
 bool skip(uint16_t m_pos, int8_t m_bit_pos, Beacon* beacons,
 		uint8_t beacon_count) {
-	if (beacon_count == 0)
-		return false;
 	int16_t x = getX(m_pos, m_bit_pos);
 	int16_t y = getY(m_pos);
 	for (uint8_t i = 0; i < beacon_count; i++) {
@@ -141,8 +146,8 @@ bool check_target(Beacon *beacons, uint8_t beacon_count) {
 	return false;
 }
 
-bool scan(const Byte* buf, uint16_t m_pos, int8_t m_bit_pos,
-		Beacon* beacons, uint8_t &beacon_count, int mode) {
+bool scan(const Byte* buf, uint16_t m_pos, int8_t m_bit_pos, Beacon* beacons,
+		uint8_t &beacon_count, int mode) {
 
 	int16_t x = getX(m_pos, m_bit_pos);
 	int16_t y = getY(m_pos);
@@ -167,37 +172,37 @@ bool scan(const Byte* buf, uint16_t m_pos, int8_t m_bit_pos,
 }
 
 bool check_near(Beacon b1, Beacon b2) {
-	if (abs(b1.center.first - b2.center.first) < 40)
-		if (abs(b1.center.second - b2.center.second) < 40)
+	if (abs(b1.center.first - b2.center.first) < near_dist)
+		if (abs(b1.center.second - b2.center.second) < near_dist)
 			return true;
 	return false;
 }
 
-bool process(const Byte* buf, Beacon* beacons,
-		uint8_t &beacon_count,bool seen) {
-
-	uint16_t pos = 0;
-	int8_t bit_pos = 8;
+bool process(const Byte* buf, Beacon* beacons, uint8_t &beacon_count, bool seen,
+		std::list<Beacon>& center_record) {
 	//////check for beacon with the last recorded pos/////////
 	if (seen) {
 		uint16_t temp_pos = (width * last_beacon.center.second) / 8
 				+ last_beacon.center.first / 8;
 		uint16_t temp_bit_pos = 8 - (last_beacon.center.first % 8 + 1);
 		scan(buf, temp_pos, temp_bit_pos, beacons, beacon_count, 1);
-		if (beacons[0].count > 100) {
+		if (beacons[0].count > 50) {
 			target = beacons;
 			return true;
 		} else
 			beacon_count = 0;
 	}
+	uint16_t pos = 0;
+	int8_t bit_pos = 8;
 	for (uint16_t y = 0; y < height; y++) {
-		for (uint16_t x = 0; x < width; ++x) {
-			if (--bit_pos < 0) {
-				bit_pos = 7;
+		for (uint16_t x = 0; x < width; x += 2) {
+			bit_pos -= 2;
+			if (bit_pos < 0) {
+				bit_pos = 6;
 				++pos;
 			}
 			if (!GET_BIT(buf[pos], bit_pos)) {
-				if (skip(pos, bit_pos, beacons, beacon_count))
+				if (beacon_count && skip(pos, bit_pos, beacons, beacon_count))
 					continue;
 				if (scan(buf, pos, bit_pos, beacons, beacon_count, 0))
 					return true;
@@ -205,6 +210,33 @@ bool process(const Byte* buf, Beacon* beacons,
 					return false;
 			}
 		}
+	}
+	if (beacon_count && target == NULL) { //have possible beacon but not met requirement
+		if (frame_count == 0 || frame_count == frame) {
+			frame_count = 0;
+			center_record.clear();
+		}
+		++frame_count;
+		for (int i = 0; i < beacon_count; i++) {
+			bool add = false;
+			for (auto it = center_record.begin(); it != center_record.end();
+					++it) {
+				if (check_near(*it, beacons[i])) {
+					add = true;
+					if (++count[std::distance(center_record.begin(), it)]
+							> min_frame) {
+						target = &(*it);
+						frame_count = 0;
+					}
+					break;
+				}
+			}
+			if (!add) {
+				center_record.emplace_back(beacons[i]);
+				count[center_record.size() - 1] = 1;
+			}
+		}
+
 	}
 	return false;
 }

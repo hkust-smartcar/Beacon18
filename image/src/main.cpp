@@ -82,8 +82,8 @@ int main() {
 	config.id = 1;
 	config.tx_buf_size = 2; //change this to 1 if working with large image size
 	JyMcuBt106 bt(config);
-	config.id = 0;
-	JyMcuBt106 bt2(config);
+//	config.id = 0;
+//	JyMcuBt106 bt2(config);
 	bt.SetRxIsr(
 			[&lcd,&writer,&led0,&c_start,&led1,&brightness,&cam,&bt,&contrast](const Byte *data, const size_t size) {
 				if(data[0] =='c') {
@@ -127,8 +127,8 @@ int main() {
 			tick = System::Time();
 			if (c_start && tick % 450 == 0) {
 				const Byte* buf = cam.LockBuffer();
-				bt.SendBuffer(buf, width * height / 16);
-				bt2.SendBuffer(buf + width * height / 16, width * height / 16);
+				bt.SendBuffer(buf, width * height / 8);
+//				bt2.SendBuffer(buf + width * height / 16, width * height / 16);
 				cam.UnlockBuffer();
 			}
 		}

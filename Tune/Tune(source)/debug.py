@@ -11,7 +11,8 @@ from ctypes import c_uint8
 import time
 import sys
 import os
-
+import pyttsx3
+import threading
 
 def find_data_file(filename):
     if getattr(sys, 'frozen', False):
@@ -43,16 +44,62 @@ def close_port(self):
     ser.close()
     self.com_status.config(text = "Disconnect")
 
+class bt_receive (threading.Thread):
+    def __init__(self,threadID):
+        threading.Thread.__init__(self)
+        self.threadID = threadID
+    def run(self):
+        while ser.isOpen():
+            if ser.inWaiting != 0:
+                data = ser.readline().decode("ascii").strip('\n')
+                if data == '':
+                    continue
+                elif data[0] == 'T':
+                    global Ltarget,Rtarget
+                    a,b = data.split(",")
+                    Ltarget = int(a[2:])
+                    Rtarget = -int(b)
+                elif data[0] == 'E':
+                    global x_value
+                    a,b = data.split(",")
+                    Ltarget_line.append(Ltarget)
+                    Rtarget_line.append(Rtarget)
+                    x.append(x_value)
+                    x_value+=1
+                    Lvalue.append(int(a[2:]))
+                    Rvalue.append(int(b))
+                elif  data[0] == 'S':
+                    global state
+                    state = int(data[2:])
+                    try:
+                        for label in status:
+                            label.config(bg = "SystemButtonFace")
+                            status[state].config(bg = "red")
+                            #engine.say(status[state]["text"]);
+                            #engine.runAndWait()
+                    except:
+                        print(state)
+'''
+          elif data[0] == 'P':
+              global X_Coor,Y_Coor,turtle_update
+              a,b = data.split(",")
+              X_Coor = int(a[2:])
+              Y_Coor  = int(b)
+              turtle_update = True
+'''
+
 def begin(self):
-    global start,state,x_value,L_color, R_color,Ltarget,Rtarget
+    global start,state,x_value,Ltarget,Rtarget
+    if start:
+        return
     try:
         if ser.inWaiting != 0:
             ser.reset_input_buffer()
             time.sleep(.5)
             ser.reset_input_buffer()
-            ser.write(b's')
     except:
         print("error")
+    ser.write(b's')
     Lvalue.clear()
     Rvalue.clear()
     x.clear()
@@ -63,21 +110,14 @@ def begin(self):
     Rtarget_line.clear()
     start = True
     state = len(status) - 1
+    if not bt_thread.isAlive():
+        bt_thread.start()
+    '''
     t.penup()
     t.clear()
+    '''
 
-def receive():
-    global id,status_update,turtle_update,id
-
-    if status_update:
-        try:
-            for label in status:
-                label.config(bg = "SystemButtonFace")
-                status[state].config(bg = "red")
-        except:
-            print(state)
-        status_update = False
-
+'''
     if turtle_update:
         print(str(X_Coor) + ',' + str(Y_Coor)+'\n')
         t.setpos(X_Coor - 160,Y_Coor - 120)
@@ -85,48 +125,23 @@ def receive():
         t.dot(size,"blue")
         t.penup()
         turtle_update = False
+'''
 
 def stop():
-    ser.write(b'S')
     global start
-    app.after_cancel(id)
+    try:
+        ser.write(b'S')
+    except:
+        print("error")
     start = False
 
 def PID_animate(i):
     if not start:
         return
-    if  ser.in_waiting == 0:
-        return
-    global id,state,x_value,L_color, R_color,Ltarget,Rtarget
-    while ser.in_waiting != 0:
-        data = ser.readline().decode("ascii").strip('\n')
-        if data[0] == 'T':
-            a,b = data.split(",")
-            Ltarget = int(a[2:])
-            Rtarget = -int(b)
-        elif data[0] == 'E':
-            a,b = data.split(",")
-            Ltarget_line.append(Ltarget)
-            Rtarget_line.append(Rtarget)
-            x.append(x_value)
-            x_value+=1
-            Lvalue.append(int(a[2:]))
-            Rvalue.append(int(b))
-            L_ax.clear()
-            L_ax.plot(x,Lvalue,'r',x,Ltarget_line,'b-')
-            R_ax.clear()
-            R_ax.plot(x,Rvalue,'r',x,Rtarget_line,'b-')
-        elif  data[0] == 'S':
-            state = int(data[2:])
-            global status_update
-            status_update = True
-        elif data[0] == 'P':
-            global X_Coor,Y_Coor,turtle_update
-            a,b = data.split(",")
-            X_Coor = int(a[2:])
-            Y_Coor  = int(b)
-            turtle_update = True
-    receive()
+    L_ax.clear()
+    L_ax.plot(x,Lvalue,'r',x,Ltarget_line,'b-')
+    R_ax.clear()
+    R_ax.plot(x,Rvalue,'r',x,Rtarget_line,'b-')
 
 def sendData(text):
     buffer = text.split(',')
@@ -186,7 +201,7 @@ class main_page(tk.Frame):
         canvas = FigureCanvasTkAgg(graph_fig,canvas_frame)
         canvas.show()
         global ani
-        ani = animation.FuncAnimation(graph_fig, PID_animate, interval= 20)
+        ani = animation.FuncAnimation(graph_fig, PID_animate, interval= 10)
 
         start_button = tk.Button(box_frame,text = "Start",font =("Helvetica",10),command = lambda : begin(self))
         stop_button = tk.Button(box_frame,text = "Stop",font =("Helvetica",10),command =  stop)
@@ -221,10 +236,12 @@ class main_page(tk.Frame):
         send_data.pack(padx = 10, side = tk.LEFT)
         canvas.get_tk_widget().pack()
         global t
+        '''
         t = turtle.RawTurtle(Turtle_canvas)
         t.speed("fastest")
-global ser,id,state,ani
+        '''
 
+global ser,state,ani
 file = open(find_data_file("log.txt"),'r')
 names = []
 buf = file.readline()
@@ -242,9 +259,9 @@ Rvalue = []
 x = []
 x_value = 0
 Ltarget = 0
-Ltarget_line = [Ltarget]
+Ltarget_line = []
 Rtarget = 0
-Rtarget_line = [Rtarget]
+Rtarget_line = []
 L_color = 'r'
 R_color = 'r'
 X_Coor = 0
@@ -255,6 +272,11 @@ L_ax = graph_fig.add_subplot(212)
 L_ax.set_title("Left")
 R_ax = graph_fig.add_subplot(211)
 R_ax.set_title("Right")
+engine = pyttsx3.init()
+engine.setProperty('volume',0.9)
+engine.setProperty('rate',150)
+bt_thread = bt_receive(1)
+
 app = GUI()
 app.mainloop()
 file = open(find_data_file("log.txt"),"w")

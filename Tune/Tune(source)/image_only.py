@@ -17,7 +17,7 @@ def open_port(Port_no,self,com_status):
     baudRate = 115200
     try:
         ser.append(serial.Serial(comPort,115200,timeout=5))
-        ser.append(serial.Serial("COM8",115200,timeout=5))
+        #ser.append(serial.Serial("COM8",115200,timeout=5))
         com_status.config(text = "Connected")
     except serial.SerialException as e:
         if "OSError" in str(e.args):
@@ -75,7 +75,7 @@ def save_status(save_mode):
 def video_animate():
     global image,img,pixels,frameNo,id
     if status:
-        pixels = ser[0].read(int(imageSize/2)) + ser[1].read(int(imageSize/2))
+        pixels = ser[0].read(int(imageSize)) # + ser[1].read(int(imageSize/2))
     image = Image.frombytes('1',(width,height),pixels)
     img = ImageTk.PhotoImage(image)
     if save:
