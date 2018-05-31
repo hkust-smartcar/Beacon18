@@ -29,7 +29,6 @@
 #include "image_processing.h"
 #include "motor_util.h"
 #include "libutil/misc.h"
-#include <list>
 
 namespace libbase {
 namespace k60 {
@@ -40,8 +39,8 @@ Mcg::Config Mcg::GetMcgConfig() {
 	config.core_clock_khz = 150000;
 	return config;
 }
-} // namespace k60
-} // namespace libbase
+}
+}
 
 using libsc::System;
 using namespace libsc;
@@ -66,18 +65,17 @@ float Dir_kp = 0.5;
 float Dir_ki = 0.1;
 float Dir_kd = 0.05;
 //////////////algo parm///////////////////
-const uint8_t max_beacon = 10;
-const uint8_t frame = 10;
-const uint16_t near_area = 3000;
+const uint16_t near_area = 3500;
 const float target_slope = 0.009855697800993502;
 const float target_intercept = 172.55532972120778;
 /////////////state//////////////////////
 Beacon *target = NULL;
-Beacon last_beacon;
 ////////////speed//////////////////////
-const int forward_speed = 100;
+const int chasing_speed = 100;
 const int finding_speed = 70;
 const int rotate_speed = 120;
+const int L_out_speed = 120;
+const int R_out_speed = 70;
 
 enum rotate_state {
 	no, prepare, performing
@@ -86,7 +84,7 @@ enum state_ {
 	forward, chase, rotation, out, keep
 };
 void send(state_ action, uint8_t &state, JyMcuBt106& bt) {
-	if(action == keep)
+	if (action == keep)
 		return;
 	if (state != action) {
 		state = action;
@@ -153,24 +151,22 @@ int main() {
 	IncrementalPidController<int, int> R_pid(0, R_kp, R_ki, R_kd);
 	R_pid.SetILimit(0);
 	R_pid.SetOutputBound(-600, 600);
-	PID Dir_pid(Dir_kp, Dir_ki, Dir_kp);
-	Dir_pid.errorSumBound = 10000;
+	// PID Dir_pid(Dir_kp, Dir_ki, Dir_kp);
+	// Dir_pid.errorSumBound = 10000;
+	IncrementalPidController<int, int> Dir_pid(0,Dir_kp, Dir_ki, Dir_kp);
+	Dir_pid.SetILimit(0);
+	R_pid.SetOutputBound(-200, 200);
 	////////////////Variable init/////////////////
 	uint32_t tick = System::Time();
-	uint32_t start;
-	uint32_t end;
 	int L_count = 0;
 	int R_count = 0;
-	uint32_t timer = 0;
+	uint32_t not_find_time = 0;
 	bool seen = false;
 	int finding_time = 0;
 	rotate_state rotate = no;
 	state_ action = forward;
-	std::list<Beacon> center_record;
 	uint16_t target_x = target_intercept;
 	uint32_t max_area = 0;
-	Beacon b[max_beacon];
-	Beacon *beacons = b;
 	/////////////////For Dubug////////////////////
 	uint8_t state = 100;
 	bool run = false;
@@ -240,27 +236,28 @@ int main() {
 				///////////////decision making///////////////
 				const Byte *buf = cam.LockBuffer();
 				////////////init value///////////////////////
-				uint8_t beacon_count = 0;
+				
 				target = NULL;
 				///////////////process image/////////////////
-				process(buf, beacons, beacon_count, seen, center_record);
+				process(buf, seen);
 				if (target != NULL) //target find
 				{
-					// char data[20];
-					// sprintf(data, "I:%d,%d\n", target_x,
-					//         target->area);
-					// bt.SendStr(data);
+					 char data[20];
+					 sprintf(data, "I:%d,%d\n", target->center.first,
+					         target->area);
+					 bt.SendStr(data);
 					if (target->area > max_area)
-						max_area = target->area;
+						max_area = (target->area + max_area) /2;
 					target_x = target_slope * max_area + target_intercept;
+					if(target_x > 320)
+						target_x = 320;
+					Dir_pid.SetSetpoint(target_x);
 					if (target->area > near_area && rotate == no)
 						rotate = prepare;
-					last_beacon.area = target->area;
-					last_beacon.center = target->center;
 					if (!seen)
 						seen = true;
-					if (start)
-						start = 0;
+					if (not_find_time)
+						not_find_time = 0;
 					if (rotate == performing
 							&& target->center.first > target_x) {
 						action = keep;
@@ -269,21 +266,22 @@ int main() {
 						action = chase;
 					}
 				} else if (rotate == performing) { //target not find and rotating
-					if (System::Time() - timer > 800)
+					if (System::Time() - not_find_time > 800)
 						action = rotation;
 				} else if (seen) { //target not find but have seen target before
-					if (start == 0){
-						start = System::Time();
+					if (not_find_time == 0) {
+						not_find_time = System::Time();
 						action = keep;
-					}
-					else if (tick - start > 75) { //target lost for more than 75 ms
-						rotate = performing;
+					} else if (tick - not_find_time > 75) { //target lost for more than 75 ms
+						if(rotate == prepare){
+							rotate = performing;
+							action = out;
+						}
+						else
+							action = rotation;
 						max_area = 0;
 						seen = false;
-						start = 0;
-						Dir_pid.reset();
-						timer = System::Time();
-						action = out;
+						Dir_pid.Reset();
 					}
 				} else { //target not find and have not seen target before
 					if (finding_time == 0)
@@ -300,18 +298,19 @@ int main() {
 					R_pid.SetSetpoint(finding_speed);
 					break;
 				case rotation:
-					L_pid.SetSetpoint(finding_speed);
-					R_pid.SetSetpoint(-finding_speed);
+					L_pid.SetSetpoint(rotate_speed);
+					R_pid.SetSetpoint(-rotate_speed);
 					break;
 				case chase:
+					// diff = Dir_pid.output(target_x, target->center.first);
 					int diff;
-					diff = Dir_pid.output(target_x, target->center.first);
-					L_pid.SetSetpoint(forward_speed - diff);
-					R_pid.SetSetpoint(forward_speed + diff);
+					diff = chasing_speed - L_pid.GetSetpoint() + Dir_pid.Calc(target->center.first);
+					L_pid.SetSetpoint(chasing_speed - diff);
+					R_pid.SetSetpoint(chasing_speed + diff);
 					break;
 				case out:
-					L_pid.SetSetpoint(rotate_speed);
-					R_pid.SetSetpoint(finding_speed);
+					L_pid.SetSetpoint(L_out_speed);
+					R_pid.SetSetpoint(R_out_speed);
 					break;
 				case keep:
 					break;

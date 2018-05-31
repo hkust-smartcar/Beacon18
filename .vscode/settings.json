@@ -3,6 +3,26 @@
     "files.associations": {
         "*.tcc": "cpp",
         "array": "cpp",
-        "functional": "cpp"
+        "functional": "cpp",
+        "bitset": "cpp",
+        "cctype": "cpp",
+        "clocale": "cpp",
+        "cstddef": "cpp",
+        "cstdint": "cpp",
+        "cstdio": "cpp",
+        "cstdlib": "cpp",
+        "cstring": "cpp",
+        "cwchar": "cpp",
+        "exception": "cpp",
+        "initializer_list": "cpp",
+        "iosfwd": "cpp",
+        "limits": "cpp",
+        "memory": "cpp",
+        "new": "cpp",
+        "stdexcept": "cpp",
+        "tuple": "cpp",
+        "type_traits": "cpp",
+        "typeinfo": "cpp",
+        "utility": "cpp"
     }
 }
