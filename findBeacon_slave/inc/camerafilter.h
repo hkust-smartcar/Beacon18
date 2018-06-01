@@ -1,7 +1,6 @@
 /*
  * camerafilter.h
  *
- *  Created on: 2018¦~2¤ë1¤é
  *      Author: User
  */
 
@@ -112,11 +111,11 @@ int threepartpixel (bool inputarray[],int width,int height ,St7735r & lcd,LcdTyp
 	int leftp = 0;//1
 	int rightp =0;//2
 	int midp=0;//3
-	lcd.SetRegion(Lcd::Rect(5,height-5,width/3-5,3));
+	lcd.SetRegion(Lcd::Rect(5,height,width/3-5,3));
 	lcd.FillColor(lcd.kGray);
-	lcd.SetRegion(Lcd::Rect(width/3,height-5,width*2/3-10-(width/3),3));
+	lcd.SetRegion(Lcd::Rect(width/3,height,width*2/3-10-(width/3),3));
 	lcd.FillColor(lcd.kGray);
-	lcd.SetRegion(Lcd::Rect(width*2/3-10,height-5,width-10-(width*2/3-10),3));
+	lcd.SetRegion(Lcd::Rect(width*2/3-10,height,width-10-(width*2/3-10),3));
 	lcd.FillColor(lcd.kGray);
 	lcd.SetRegion(Lcd::Rect(0,height/2,width,3));
 	lcd.FillColor(lcd.kGray);
@@ -128,7 +127,7 @@ int threepartpixel (bool inputarray[],int width,int height ,St7735r & lcd,LcdTyp
 	lcd.FillColor(lcd.kGray);
 	lcd.SetRegion(Lcd::Rect(width-15,height/2,3,height/2));
 	lcd.FillColor(lcd.kGray);
-	for(int j =height/2;j<height-5;j++){
+	for(int j =height/2;j<height;j++){
 	for(int i=5;i<width/3;i++){
 
 		if(inputarray[j*width+i]==1){
@@ -136,7 +135,7 @@ int threepartpixel (bool inputarray[],int width,int height ,St7735r & lcd,LcdTyp
 		}
 	}
 	}
-	for(int j =height/2;j<height-5;j++){
+	for(int j =height/2;j<height;j++){
 		for(int i=width/3;i<width*2/3-10;i++){
 
 			if(inputarray[j*width+i]==1){
@@ -144,7 +143,7 @@ int threepartpixel (bool inputarray[],int width,int height ,St7735r & lcd,LcdTyp
 			}
 		}
 		}
-	for(int j =height/2;j<height-5;j++){
+	for(int j =height/2;j<height;j++){
 			for(int i=width*2/3-10;i<width-15;i++){
 
 				if(inputarray[j*width+i]==1){
