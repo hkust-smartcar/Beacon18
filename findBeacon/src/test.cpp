@@ -153,9 +153,12 @@ int main() {
 	R_pid.SetOutputBound(-600, 600);
 	// PID Dir_pid(Dir_kp, Dir_ki, Dir_kp);
 	// Dir_pid.errorSumBound = 10000;
-	IncrementalPidController<int, int> Dir_pid(0,Dir_kp, Dir_ki, Dir_kp);
-	Dir_pid.SetILimit(0);
-	R_pid.SetOutputBound(-200, 200);
+//	IncrementalPidController<int, int> Dir_pid(0, Dir_kp, Dir_ki, Dir_kp);
+//	Dir_pid.SetILimit(0);
+//	R_pid.SetOutputBound(-200, 200);
+	PID Dir_pid(Dir_kp, Dir_ki, Dir_kp);
+	Dir_pid.errorSumBound = 10000;
+
 	////////////////Variable init/////////////////
 	uint32_t tick = System::Time();
 	int L_count = 0;
@@ -236,22 +239,21 @@ int main() {
 				///////////////decision making///////////////
 				const Byte *buf = cam.LockBuffer();
 				////////////init value///////////////////////
-				
 				target = NULL;
 				///////////////process image/////////////////
 				process(buf, seen);
 				if (target != NULL) //target find
 				{
-					 char data[20];
-					 sprintf(data, "I:%d,%d\n", target->center.first,
-					         target->area);
-					 bt.SendStr(data);
+					char data[20];
+					sprintf(data, "I:%d,%d\n", target->center.first,
+							target->area);
+					bt.SendStr(data);
 					if (target->area > max_area)
-						max_area = (target->area + max_area) /2;
+						max_area = (target->area + max_area) / 2;
 					target_x = target_slope * max_area + target_intercept;
-					if(target_x > 320)
+					if (target_x > 320)
 						target_x = 320;
-					Dir_pid.SetSetpoint(target_x);
+//					Dir_pid.SetSetpoint(target_x);
 					if (target->area > near_area && rotate == no)
 						rotate = prepare;
 					if (!seen)
@@ -273,15 +275,14 @@ int main() {
 						not_find_time = System::Time();
 						action = keep;
 					} else if (tick - not_find_time > 75) { //target lost for more than 75 ms
-						if(rotate == prepare){
+						if (rotate == prepare) {
 							rotate = performing;
 							action = out;
-						}
-						else
+						} else
 							action = rotation;
 						max_area = 0;
 						seen = false;
-						Dir_pid.Reset();
+						Dir_pid.reset();
 					}
 				} else { //target not find and have not seen target before
 					if (finding_time == 0)
@@ -302,9 +303,9 @@ int main() {
 					R_pid.SetSetpoint(-rotate_speed);
 					break;
 				case chase:
-					// diff = Dir_pid.output(target_x, target->center.first);
 					int diff;
-					diff = chasing_speed - L_pid.GetSetpoint() + Dir_pid.Calc(target->center.first);
+					diff = Dir_pid.output(target_x, target->center.first);
+//					diff = chasing_speed - L_pid.GetSetpoint() + Dir_pid.Calc(target->center.first);
 					L_pid.SetSetpoint(chasing_speed - diff);
 					R_pid.SetSetpoint(chasing_speed + diff);
 					break;

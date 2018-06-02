@@ -15,7 +15,8 @@
 #define LIBSC_USE_LED 4
 //#define LIBSC_USE_MOTOR 2
 // #define LIBSC_USE_LINEAR_CCD 2
-#define LIBSC_USE_OV7725 1
+//#define LIBSC_USE_OV7725 1
+#define LIBSC_USE_MT9V034 1
 #define LIBSC_USE_UART 3
 
 #define LIBSC_BATTERY_METER libbase::k60::Adc::Name::kAdc3Ad6A
@@ -55,12 +56,19 @@
 // #define LIBSC_LINEAR_CCD1_CLK libbase::k60::Pin::Name::kPtb2
 // #define LIBSC_LINEAR_CCD1_AD libbase::k60::Pin::Name::kPtb3
 
-#define LIBSC_OV77250_VSYNC libbase::k60::Pin::Name::kPtc2
-#define LIBSC_OV77250_PCLK libbase::k60::Pin::Name::kPtb6
-#define LIBSC_OV77250_DATA0 libbase::k60::Pin::Name::kPtb16
-#define LIBSC_OV77250_SDA libbase::k60::Pin::Name::kPtc1
-#define LIBSC_OV77250_SCL libbase::k60::Pin::Name::kPtc0
-#define LIBSC_OV77250_DMA_CH 1
+//#define LIBSC_OV77250_VSYNC libbase::k60::Pin::Name::kPtc2
+//#define LIBSC_OV77250_PCLK libbase::k60::Pin::Name::kPtb6
+//#define LIBSC_OV77250_DATA0 libbase::k60::Pin::Name::kPtb16
+//#define LIBSC_OV77250_SDA libbase::k60::Pin::Name::kPtc1
+//#define LIBSC_OV77250_SCL libbase::k60::Pin::Name::kPtc0
+//#define LIBSC_OV77250_DMA_CH 1
+
+#define LIBSC_MT9V034_VSYNC libbase::k60::Pin::Name::kPtc2
+#define LIBSC_MT9V034_PCLK libbase::k60::Pin::Name::kPtb6
+#define LIBSC_MT9V034_DATA0 libbase::k60::Pin::Name::kPtb16
+#define LIBSC_MT9V034_SDA libbase::k60::Pin::Name::kPtc1
+#define LIBSC_MT9V034_SCL libbase::k60::Pin::Name::kPtc0
+#define LIBSC_MT9V034_DMA_CH 1
 
 #define LIBSC_UART0_TX libbase::k60::Pin::Name::kPtd9 //UART0 on mainboard
 #define LIBSC_UART0_RX libbase::k60::Pin::Name::kPtd8

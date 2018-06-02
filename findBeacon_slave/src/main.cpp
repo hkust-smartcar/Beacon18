@@ -19,7 +19,7 @@
 //#include "libsc/battery_meter.h"
 //#include "libbase/k60/pit.h"
 #include "libsc/lcd_typewriter.h"
-#include <libsc/k60/ov7725.h>
+#include <libsc/k60/MT9V034.h>
 // #include "beacon.h"
 #include "libbase/misc_utils_c.h"
 // #include "image_processing.h"
@@ -43,11 +43,11 @@ using namespace libsc::k60;
 using namespace libbase::k60;
 
 //////////////cam setting////////////////
-const uint16_t width = 80;
-const uint16_t height = 60;
-const uint16_t numOfPixel = width * height / 8;
-uint8_t contrast = 0x37;
-uint8_t brightness = 0x1E;
+//const uint16_t width = 80;
+//const uint16_t height = 60;
+//const uint16_t numOfPixel = width * height / 8;
+//uint8_t contrast = 0x37;
+//uint8_t brightness = 0x1E;
 
 int main() {
 	System::Init();
@@ -69,15 +69,12 @@ int main() {
 	LcdTypewriter writer(writer_config);
 	lcd.SetRegion(Lcd::Rect(0, 0, 160, 128));
 	lcd.Clear(Lcd::kWhite);
+//	writer.WriteChar('c');
 	////////////////////cam init//////////////////
-	Ov7725::Config cam_config;
-	cam_config.id = 0;
-	cam_config.w = width;
-	cam_config.h = height;
-	cam_config.contrast = contrast;
-	cam_config.brightness = brightness;
-	cam_config.fps = k60::Ov7725Configurator::Config::Fps::kHigh;
-	k60::Ov7725 cam(cam_config);
+	MT9V034::Config cam_config;
+	cam_config.h_binning = cam_config.k4;
+	cam_config.w_binning = cam_config.k4;
+	k60::MT9V034 cam(cam_config);
 	cam.Start();
 
 	////////////////Variable init/////////////////
@@ -99,29 +96,32 @@ int main() {
 	char sent = ' ';
 	////////////////Main loop////////////////////////
 	while (1) {
-		if (tick != System::Time() && run) {
+		if (tick != System::Time() /*&& run*/) {
 			tick = System::Time();
-			if (tick % 25 == 0) {
+			if (tick % 15 == 0) {
 				const Byte* buf = cam.LockBuffer();
-				
-				bool boolbuf[width*height];
-				Bytetoboolarray(buf,boolbuf,width,height);
-				lcd.SetRegion(Lcd::Rect(0,0,width,height));
-				lcd.FillBits(0x0000,0xFFFF,boolbuf,height*width);
-				int decision = threepartpixel(boolbuf,width,height);
-				lcd.SetRegion(Lcd::Rect(0,60,width,height));
-				if(decision==1 && sent != 'R'){
-					comm.SendStrLiteral("R");
-					sent = 'R';
+				for (int i = 0; i < cam.GetH(); i++) {
+					lcd.SetRegion(Lcd::Rect(0, i, 160, 1));
+					lcd.FillGrayscalePixel(buf + cam.GetW() * i, 160);
 				}
-				if(decision==2 && sent != 'L'){
-					comm.SendStrLiteral("L");
-					sent = 'L';
-				}
-				if(decision==3 && sent != 'F'){
-					comm.SendStrLiteral("F");
-					sent = 'F';
-				}
+//				bool boolbuf[width * height];
+//				Bytetoboolarray(buf, boolbuf, width, height);
+//				lcd.SetRegion(Lcd::Rect(0, 0, width, height));
+//				lcd.FillBits(0x0000, 0xFFFF, boolbuf, height * width);
+//				int decision = threepartpixel(boolbuf, width, height);
+//				lcd.SetRegion(Lcd::Rect(0, 60, width, height));
+//				if (decision == 1 && sent != 'R') {
+//					comm.SendStrLiteral("R");
+//					sent = 'R';
+//				}
+//				if (decision == 2 && sent != 'L') {
+//					comm.SendStrLiteral("L");
+//					sent = 'L';
+//				}
+//				if (decision == 3 && sent != 'F') {
+//					comm.SendStrLiteral("F");
+//					sent = 'F';
+//				}
 				cam.UnlockBuffer();
 			}
 		}

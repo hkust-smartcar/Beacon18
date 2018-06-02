@@ -41,7 +41,10 @@ def open_port(Port_no,self):
         self.com_status.config(text = "Error")
 
 def close_port(self):
-    ser.close()
+    try:
+        ser.close()
+    except:
+        print("a")
     self.com_status.config(text = "Disconnect")
 
 class bt_receive (threading.Thread):
@@ -199,7 +202,7 @@ class main_page(tk.Frame):
         Turtle_canvas = tk.Canvas(master = status_frame, width = 320, height = 240)
         canvas_frame = tk.Frame(middle_frame)
         canvas = FigureCanvasTkAgg(graph_fig,canvas_frame)
-        canvas.show()
+        canvas.draw()
         global ani
         ani = animation.FuncAnimation(graph_fig, PID_animate, interval= 10)
 

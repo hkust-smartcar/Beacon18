@@ -28,9 +28,8 @@ obj/main-d-2018-beacon-slave.o: src/main.cpp \
  C:\Users\Sheldon\git\libsccc\inc/libsc/k60/config/2018_beacon_slave.h \
  C:\Users\Sheldon\git\libsccc\inc/libsc/lcd.h \
  C:\Users\Sheldon\git\libsccc\inc/libsc/lcd_typewriter.h \
- C:\Users\Sheldon\git\libsccc\inc/libsc/k60/ov7725.h \
+ C:\Users\Sheldon\git\libsccc\inc/libsc/k60/MT9V034.h \
  C:\Users\Sheldon\git\libsccc\inc/libbase/k60/gpio_array.h \
- C:\Users\Sheldon\git\libsccc\inc/libsc/k60/ov7725_configurator.h \
  C:\Users\Sheldon\git\libsccc\inc/libbase/k60/soft_sccb_master.h \
  C:\Users\Sheldon\git\libsccc\inc/libbase/k60/soft_i2c_master.h \
  C:\Users\Sheldon\git\libsccc\inc/libbase/k60/i2c_master_interface.h \
