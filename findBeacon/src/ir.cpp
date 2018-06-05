@@ -29,6 +29,7 @@
 #include "image_processing.h"
 #include "motor_util.h"
 #include "libutil/misc.h"
+#include "ir.h"
 
 namespace libbase {
 namespace k60 {
@@ -158,7 +159,8 @@ int main() {
 //	R_pid.SetOutputBound(-200, 200);
 	PID Dir_pid(Dir_kp, Dir_ki, Dir_kp);
 	Dir_pid.errorSumBound = 10000;
-
+	////////////////ir/////////////////////
+	IR_recevier ir1(libbase::k60::Pin::Name::kPte24);
 	////////////////Variable init/////////////////
 	uint32_t tick = System::Time();
 	int L_count = 0;
@@ -224,16 +226,28 @@ int main() {
 
 	////////////////Main loop////////////////////////
 	while (1) {
-		if (tick != System::Time() && run) {
+		if (tick != System::Time() /*&& run*/) {
 			tick = System::Time();
 			////////////////////PID///////////////////////
-			if (tick % 10 == 0) {
-				encoder1.Update();
-				L_count = encoder1.GetCount();
-				encoder2.Update();
-				R_count = encoder2.GetCount();
-				SetPower(GetMotorPower(0) + L_pid.Calc(L_count), 0);
-				SetPower(GetMotorPower(1) + R_pid.Calc(-R_count), 1);
+//			if (tick % 10 == 0) {
+//				encoder1.Update();
+//				L_count = encoder1.GetCount();
+//				encoder2.Update();
+//				R_count = encoder2.GetCount();
+//				SetPower(GetMotorPower(0) + L_pid.Calc(L_count), 0);
+//				SetPower(GetMotorPower(1) + R_pid.Calc(-R_count), 1);
+//			}
+			if (tick % 10 == 1) {
+				lcd.SetRegion(Lcd::Rect(0, 0, 160, 15));
+				char data[20] = { };
+				sprintf(data, "time: %d", ir1.get_pulse());
+				writer.WriteBuffer(data, 20);
+				lcd.SetRegion(Lcd::Rect(0, 16, 160, 15));
+				if(ir1.getState())
+					sprintf(data, "True");
+				else
+					sprintf(data, "False");
+				writer.WriteBuffer(data, 20);
 			}
 			if (tick % 15 == 0 && avoid_state == 'F') {
 				///////////////decision making///////////////
