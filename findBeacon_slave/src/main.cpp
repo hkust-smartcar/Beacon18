@@ -74,9 +74,8 @@ int main() {
 	MT9V034::Config cam_config;
 	cam_config.h_binning = cam_config.k4;
 	cam_config.w_binning = cam_config.k4;
+	cam_config.HDR = true;
 	k60::MT9V034 cam(cam_config);
-	cam.Start();
-
 	////////////////Variable init/////////////////
 	uint32_t tick = System::Time();
 	/////////////////For Dubug////////////////////
@@ -85,6 +84,31 @@ int main() {
 	config.baud_rate = libbase::k60::Uart::Config::BaudRate::k4800;
 	config.id = 2;
 	JyMcuBt106 comm(config);
+	config.baud_rate = libbase::k60::Uart::Config::BaudRate::k115200;
+	config.id = 0;
+	config.tx_buf_size = 1;
+	JyMcuBt106 bt(config);
+	bool comfirm = false;
+	bt.SetRxIsr(
+			[&cam,&bt,&led0,&run,&comfirm](const Byte *data, const size_t size) {
+				if(data[0] =='c') {
+					led0.Switch();
+					run = true;
+					cam.Start();
+					char temp[20] = {};
+					sprintf(temp,"%d\n%d\n",cam.GetW(),cam.GetH());
+					bt.SendStr(temp);
+				}
+				if(data[0]=='s') {
+					run = false;
+					cam.Stop();
+					led0.SetEnable(0);
+				}
+				if(data[0] == '\n') {
+					comfirm = true;
+				}
+				return true;
+			});
 	comm.SetRxIsr(
 			[&comm,&lcd,&writer,&led0,&run](const Byte *data, const size_t size) {
 				if(data[0] == 's') {
@@ -93,17 +117,34 @@ int main() {
 				}
 				return true;
 			});
-	char sent = ' ';
+	int start = 0;
 	////////////////Main loop////////////////////////
 	while (1) {
-		if (tick != System::Time() /*&& run*/) {
+		if (tick != System::Time() && run) {
 			tick = System::Time();
-			if (tick % 15 == 0) {
+			if (tick % 300 == 0) {
+				int start = tick;
+				int size = cam.GetH() * cam.GetW();
 				const Byte* buf = cam.LockBuffer();
-				for (int i = 0; i < cam.GetH(); i++) {
-					lcd.SetRegion(Lcd::Rect(0, i, 160, 1));
-					lcd.FillGrayscalePixel(buf + cam.GetW() * i, 160);
-				}
+				bt.SendBuffer(buf, size / 3);
+				while (!comfirm)
+					;
+				comfirm = false;
+				bt.SendStrLiteral("\n");
+				bt.SendBuffer(buf + size / 3, size / 3);
+				while (!comfirm)
+					;
+				comfirm = false;
+				bt.SendStrLiteral("\n");
+				bt.SendBuffer(buf + size / 3 * 2, size / 3);
+				while (!comfirm)
+					;
+				comfirm = false;
+				bt.SendStrLiteral("\n");
+//				for (int i = 0; i < cam.GetH(); i++) {
+//					lcd.SetRegion(Lcd::Rect(0, i, 160, 1));
+//					lcd.FillGrayscalePixel(buf + cam.GetW() * i, 160);
+//				}
 //				bool boolbuf[width * height];
 //				Bytetoboolarray(buf, boolbuf, width, height);
 //				lcd.SetRegion(Lcd::Rect(0, 0, width, height));
@@ -123,6 +164,10 @@ int main() {
 //					sent = 'F';
 //				}
 				cam.UnlockBuffer();
+				char data[20] ={};
+				sprintf(data,"%d",System::Time() - start);
+				lcd.SetRegion(Lcd::Rect(0,0,160,15));
+				writer.WriteBuffer(data,20);
 			}
 		}
 	}

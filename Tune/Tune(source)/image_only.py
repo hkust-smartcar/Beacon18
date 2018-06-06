@@ -52,9 +52,9 @@ def start(mode,self):
     width = int(num[0:-1])
     self.width_label.config(text = "Width: " + str(width))
     num = ser[0].readline().decode("ascii")
-    imageSize = int(num[0:-1])
-    height = int(imageSize * 8 / width)
+    height = int(num[0:-1])
     self.height_label.config(text = "Height: " + str(height))
+    imageSize = width * height
     video_animate()
 
 def stop():
@@ -75,15 +75,23 @@ def save_status(save_mode):
 def video_animate():
     global image,img,pixels,frameNo,id
     if status:
-        pixels = ser[0].read(int(imageSize)) # + ser[1].read(int(imageSize/2))
-    image = Image.frombytes('1',(width,height),pixels)
+        pixels = ser[0].read(int(imageSize / 3))
+        ser[0].write(b'\n')
+        ser[0].read()
+        pixels += ser[0].read(int(imageSize / 3))
+        ser[0].write(b'\n')
+        ser[0].read()
+        pixels += ser[0].read(int(imageSize / 3))
+        ser[0].write(b'\n')
+        ser[0].read()
+    image = Image.frombytes('P',(width,height),pixels)
     img = ImageTk.PhotoImage(image)
     if save:
         image.save(newpath + r'\frame'+str(frameNo)+'.bmp')
         frameNo+=1
     fig.itemconfig(fig.image,image = img)
     app.update_idletasks()
-    id = app.after(300,video_animate)
+    id = app.after(500,video_animate)
 
 def change_setting(output,self):
     global contrast,brightness
@@ -183,13 +191,13 @@ class video_page(tk.Frame):
         self.save_frame.pack()
 
 #start of the program
-global img,fig,ani,id
+global img,fig,id
 ser = []
 status = False
 save = False
 width = 240
 height = 180
-imageSize = width*height /8
+imageSize = width*height
 contrast = 0
 brightness = 0
 frameNo = 0
@@ -208,7 +216,7 @@ image = Image.frombytes('1',(width,height),pixels)
 
 app = GUI()
 app.mainloop()
-
+ser[0].close()
 
 '''
 ser =[]

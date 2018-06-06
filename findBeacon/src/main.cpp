@@ -5,7 +5,7 @@
 //  * Copyright (c) 2017-2018 HKUST SmartCar Team
 //  * Refer to LICENSE for details
 //  */
-
+//
 // #include <cassert>
 // #include <cstring>
 // #include <stdlib.h>
@@ -29,10 +29,10 @@
 // #include "image_processing.h"
 // #include "motor_util.h"
 // #include "libutil/misc.h"
-
+//
 // namespace libbase {
 // namespace k60 {
-
+//
 // Mcg::Config Mcg::GetMcgConfig() {
 // 	Mcg::Config config;
 // 	config.external_oscillator_khz = 50000;
@@ -41,13 +41,13 @@
 // }
 // }
 // }
-
+//
 // using libsc::System;
 // using namespace libsc;
 // using namespace libsc::k60;
 // using namespace libbase::k60;
 // using namespace libutil;
-
+//
 // //////////////cam setting////////////////
 // const uint16_t width = 320;
 // const uint16_t height = 240;
@@ -76,7 +76,7 @@
 // const int rotate_speed = 120;
 // const int L_out_speed = 120;
 // const int R_out_speed = 70;
-
+//
 // enum rotate_state {
 // 	no, prepare, performing
 // };
@@ -95,10 +95,10 @@
 // }
 // AlternateMotor *L_motor = NULL;
 // AlternateMotor *R_motor = NULL;
-
+//
 // int main() {
 // 	System::Init();
-
+//
 // 	/////////////////////led init////////////////////
 // 	Led::Config led_config;
 // 	led_config.is_active_low = true;
@@ -106,7 +106,7 @@
 // 	Led led0(led_config);
 // 	led_config.id = 1;
 // 	Led led1(led_config);
-
+//
 // 	BatteryMeter::Config bConfig;
 // 	bConfig.voltage_ratio = 0.4;
 // 	BatteryMeter bMeter(bConfig);
@@ -158,7 +158,7 @@
 // //	R_pid.SetOutputBound(-200, 200);
 // 	PID Dir_pid(Dir_kp, Dir_ki, Dir_kp);
 // 	Dir_pid.errorSumBound = 10000;
-
+//
 // 	////////////////Variable init/////////////////
 // 	uint32_t tick = System::Time();
 // 	int L_count = 0;
@@ -221,7 +221,7 @@
 // 				}
 // 				return true;
 // 			});
-
+//
 // 	////////////////Main loop////////////////////////
 // 	while (1) {
 // 		if (tick != System::Time() && run) {
@@ -292,7 +292,7 @@
 // 					else
 // 						action = forward;
 // 				}
-
+//
 // 				switch (action) {
 // 				case forward:
 // 					L_pid.SetSetpoint(finding_speed);
