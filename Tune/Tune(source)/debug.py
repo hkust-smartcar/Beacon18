@@ -5,13 +5,11 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 import matplotlib.animation as animation
 import tkinter as tk
-import turtle
 import struct
 from ctypes import c_uint8
 import time
 import sys
 import os
-import pyttsx3
 import threading
 
 def find_data_file(filename):
@@ -275,9 +273,6 @@ L_ax = graph_fig.add_subplot(212)
 L_ax.set_title("Left")
 R_ax = graph_fig.add_subplot(211)
 R_ax.set_title("Right")
-engine = pyttsx3.init()
-engine.setProperty('volume',0.9)
-engine.setProperty('rate',150)
 bt_thread = bt_receive(1)
 
 app = GUI()

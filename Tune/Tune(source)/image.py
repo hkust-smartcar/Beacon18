@@ -153,13 +153,15 @@ def PID_animate(i):
     ax.plot(x,value1,'b-',x,target_line,'r',x,value2,'g',x,target_line1,'y')
 
 def switch_win(mode,frame):
-    frame.newWindow.destroy()
+    try:
+        frame.newWindow.destroy()
+    except:
+        print("error")
     frame.newWindow = tk.Toplevel(frame)
     global status
     if status:
         ser.write(b's')
         status = False
-
     if mode == "PID":
         frame.app = PID_page(frame.newWindow)
     elif mode == "video":
