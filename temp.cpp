@@ -77,17 +77,28 @@
 // const int L_out_speed = 120;
 // const int R_out_speed = 70;
 
+ //lower
  const int chasing_speed = 70;
  const int finding_speed = 50;
- const int rotate_speed = 70;
- const int L_out_speed = 50;
- const int R_out_speed = 22;
+ const int rotate_speed = 50;
+ const int L_out_speed = 70;
+ const int R_out_speed = 41;
+ const int L_Rcircle_speed = 70;
+ const int R_Rcircle_speed = 31;
+
+// const int chasing_speed = 100;
+// const int finding_speed = 70;
+// const int rotate_speed = 70;
+// const int L_out_speed = 100;
+// const int R_out_speed = 58;
+// const int L_Rcircle_speed = 100;
+// const int R_Rcircle_speed = 44;
 
  enum rotate_state {
  	no, prepare, performing
  };
  enum state_ {
- 	forward, chase, rotation, out, keep
+ 	forward, chase, rotation, out, circle, keep
  };
  void send(state_ action, uint8_t &state, JyMcuBt106& bt) {
  	if (action == keep)
@@ -166,7 +177,7 @@
  	Dir_pid.errorSumBound = 10000;
 
  	////////////////Variable init/////////////////
- 	uint32_t tick = System::Time();
+ 	//uint32_t tick = System::Time();
  	int L_count = 0;
  	int R_count = 0;
  	uint32_t not_find_time = 0;
@@ -176,72 +187,81 @@
  	state_ action = forward;
  	uint16_t target_x = target_intercept;
  	uint32_t max_area = 0;
+ 	uint32_t lastPid = 0;
+ 	uint32_t lastCycle = 0;
+
  	/////////////////For Dubug////////////////////
  	uint8_t state = 100;
- 	bool run = false;
+ 	bool run = true; //
  	bool restart = false;
  	char avoid_state = 'F';
- 	JyMcuBt106::Config config;
- 	config.id = 1;
- 	config.baud_rate = libbase::k60::Uart::Config::BaudRate::k115200;
- 	JyMcuBt106 bt(config);
- 	config.baud_rate = libbase::k60::Uart::Config::BaudRate::k4800;
- 	config.id = 2;
- 	JyMcuBt106 comm(config);
- 	comm.SetRxIsr(
- 			[&avoid_state, &L_pid, &R_pid](const Byte *data, const size_t size) {
- 				switch (data[0])
- 				{
- 					case 'L':
- 					L_pid.SetSetpoint(50);
- 					R_pid.SetSetpoint(150);
- 					avoid_state = 'L';
- 					break;
- 					case 'R':
- 					L_pid.SetSetpoint(150);
- 					R_pid.SetSetpoint(50);
- 					avoid_state = 'R';
- 					break;
- 					case 'F':
- 					avoid_state = 'F';
- 				}
- 				return true;
- 			});
- 	bt.SetRxIsr(
- 			[&comm, &L_pid, &R_pid, &led0, &run, &Dir_pid, &restart, &encoder1, &encoder2](const Byte *data, const size_t size) {
- 				if (data[0] == 's')
- 				{
- 					run = true;
- 					led0.SetEnable(1);
- 					encoder1.Update();
- 					encoder2.Update();
- 					comm.SendStrLiteral("s");
- 				}
- 				if (data[0] == 'S')
- 				{
- 					run = false;
- 					led0.SetEnable(0);
- 					L_motor->SetPower(0);
- 					R_motor->SetPower(0);
- 					comm.SendStrLiteral("s");
- 				}
- 				return true;
- 			});
+// 	JyMcuBt106::Config config;
+// 	config.id = 1;
+// 	config.baud_rate = libbase::k60::Uart::Config::BaudRate::k115200;
+// 	JyMcuBt106 bt(config);
+// 	config.baud_rate = libbase::k60::Uart::Config::BaudRate::k4800;
+// 	config.id = 2;
+// 	JyMcuBt106 comm(config);
+//
+// 	comm.SetRxIsr(
+// 			[&avoid_state, &L_pid, &R_pid](const Byte *data, const size_t size)->bool {
+// 				switch (data[0])
+// 				{
+// 					case 'L':
+// 					L_pid.SetSetpoint(50);
+// 					R_pid.SetSetpoint(150);
+// 					avoid_state = 'L';
+// 					break;
+// 					case 'R':
+// 					L_pid.SetSetpoint(150);
+// 					R_pid.SetSetpoint(50);
+// 					avoid_state = 'R';
+// 					break;
+// 					case 'F':
+// 					avoid_state = 'F';
+// 				}
+// 				return true;
+// 			});
+// 	bt.SetRxIsr(
+// 			[&comm, &L_pid, &R_pid, &led0, &run, &Dir_pid, &restart, &encoder1, &encoder2](const Byte *data, const size_t size)->bool {
+// 				if (data[0] == 's')
+// 				{
+// 					run = true;
+// 					led0.SetEnable(1);
+// 					encoder1.Update();
+// 					encoder2.Update();
+// 					comm.SendStrLiteral("s");
+// 				}
+// 				if (data[0] == 'S')
+// 				{
+// 					run = false;
+// 					led0.SetEnable(0);
+// 					L_motor->SetPower(0);
+// 					R_motor->SetPower(0);
+// 					comm.SendStrLiteral("s");
+// 				}
+// 				return true;
+// 			});
 
  	////////////////Main loop////////////////////////
  	while (1) {
- 		if (tick != System::Time() && run) {
- 			tick = System::Time();
+// 		if (tick != System::Time() && run) {
+// 			tick = System::Time();
+ 		if(run){
  			////////////////////PID///////////////////////
- 			if (tick % 10 == 0) {
+// 			if (tick % 10 == 0) {
+ 			if (System::Time() - lastPid>= 10) {
  				encoder1.Update();
  				L_count = encoder1.GetCount();
  				encoder2.Update();
  				R_count = encoder2.GetCount();
  				SetPower(GetMotorPower(0) + L_pid.Calc(L_count), 0);
  				SetPower(GetMotorPower(1) + R_pid.Calc(-R_count), 1);
+
+ 				lastPid = System::Time();
  			}
- 			if (tick % 15 == 0 && avoid_state == 'F') {
+// 			if (tick % 15 == 0 && avoid_state == 'F') {
+ 			if (System::Time() - lastCycle >= 15 && avoid_state == 'F') {
  				///////////////decision making///////////////
  				const Byte *buf = cam.LockBuffer();
  				////////////init value///////////////////////
@@ -253,37 +273,49 @@
  					char data[20];
  					sprintf(data, "I:%d,%d\n", target->center.first,
  							target->area);
- 					bt.SendStr(data);
+ 					//bt.SendStr(data);
  					if (target->area > max_area)
  						max_area = (target->area + max_area) / 2;
  					target_x = target_slope * max_area + target_intercept;
  					if (target_x > 320)
  						target_x = 320;
  //					Dir_pid.SetSetpoint(target_x);
- 					if (target->area > near_area && rotate == no)
+ 					if (target->area > near_area && rotate == no) //close to target, prepare to rotate circle
  						rotate = prepare;
+ 					else if(target->area < near_area){rotate = no;} //too far away
+
  					if (!seen)
  						seen = true;
  					if (not_find_time)
  						not_find_time = 0;
- 					if (rotate == performing
- 							&& target->center.first > target_x) {
- 						action = keep;
- 					} else {
- 						rotate = no;
- 						action = chase;
- 					}
- 				} else if (rotate == performing) { //target not find and rotating
- 					if (System::Time() - not_find_time > 800)
+
+ 					if (rotate == no) //still locating beacon
+					{
+						if (target->center.first > target_x) {
+							if (action != out) {
+								action = out;
+							}
+
+						} else {
+							if(action!=chase) {
+								action = chase;
+							}
+						}
+					}
+
+ 				} else if (rotate == performing) { //target not find and rotate circle
+ 					if (System::Time() - not_find_time > 800) //find new target
  						action = rotation;
+ 						rotate=no;
  				} else if (seen) { //target not find but have seen target before
  					if (not_find_time == 0) {
  						not_find_time = System::Time();
  						action = keep;
- 					} else if (tick - not_find_time > 75) { //target lost for more than 75 ms
+ // 				} else if (tick - not_find_time > 75) {
+ 					} else if (System::Time() - not_find_time > 75) { //target lost for more than 75 ms
  						if (rotate == prepare) {
  							rotate = performing;
- 							action = out;
+ 							action = circle;
  						} else
  							action = rotation;
  						max_area = 0;
@@ -293,7 +325,8 @@
  				} else { //target not find and have not seen target before
  					if (finding_time == 0)
  						finding_time = System::Time();
- 					else if (tick - finding_time > 1000) //change to rotate after going foward for 1000ms
+// 					else if (tick - finding_time > 1000)
+ 					else if (System::Time() - finding_time > 1000) //change to rotate after going foward for 1000ms
  						action = rotation;
  					else
  						action = forward;
@@ -322,8 +355,10 @@
  				case keep:
  					break;
  				}
- 				send(action, state, bt);
+ 				//send(action, state, bt);
  				cam.UnlockBuffer();
+
+ 				lastCycle = System::Time();
  			}
  		}
  	}
