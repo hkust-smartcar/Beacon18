@@ -21,10 +21,11 @@ uint8_t mean(const Byte* buf, uint16_t x,uint16_t y,const uint16_t width){
 }
 
 void process(const Byte* buf,const uint16_t width, const uint16_t height,St7735r &lcd) {
-	uint8_t prev_mean = 0;
-	for(uint16_t y = 0; y < height, y+=3){
-		for(uint16_t x = 0 ; x < width, x+=3){
-			
+	for(uint16_t y = 0; y < height, y++){
+		for(uint16_t x = 0 ; x < width, x++){
+			if(buf[y * width + x] > 225){
+				
+			}
 		}
 	}
 }

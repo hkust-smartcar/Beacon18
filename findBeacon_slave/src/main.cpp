@@ -22,8 +22,8 @@
 #include <libsc/k60/MT9V034.h>
 // #include "beacon.h"
 #include "libbase/misc_utils_c.h"
-// #include "image_processing.h"
-#include "camerafilter.h";
+#include "image_processing.h"
+// #include "camerafilter.h";
 
 namespace libbase {
 namespace k60 {
@@ -42,12 +42,6 @@ using namespace libsc;
 using namespace libsc::k60;
 using namespace libbase::k60;
 
-//////////////cam setting////////////////
-//const uint16_t width = 80;
-//const uint16_t height = 60;
-//const uint16_t numOfPixel = width * height / 8;
-//uint8_t contrast = 0x37;
-//uint8_t brightness = 0x1E;
 
 int main() {
 	System::Init();
