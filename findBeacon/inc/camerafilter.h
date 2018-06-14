@@ -9,6 +9,10 @@
 #define INC_CAMERAFILTER_H_
 #include "libbase/misc_utils_c.h"
 #include <libsc/k60/uart_device.h>
+#include "libsc/lcd_typewriter.h"
+#include "libsc/st7735r.h"
+#include "libsc/mpu6050.h"
+#include "libsc/alternate_motor.h"
 const int camwidth =80;
 using namespace libsc::k60 ;
 
@@ -107,11 +111,27 @@ void Bytetoboolarray(const Byte oriarray[],bool outarray[],int width,int height)
 			}
 		}
 }
-int threepartpixel (bool inputarray[],int width,int height){
+int threepartpixel (bool inputarray[],int width,int height ,libsc::St7735r & lcd,libsc::LcdTypewriter & writer){
 	int leftp = 0;//1
 	int rightp =0;//2
 	int midp=0;//3
-	for(int j =0;j<height-10;j++){
+	lcd.SetRegion(libsc::Lcd::Rect(5,height,width/3-5,3));
+	lcd.FillColor(lcd.kGray);
+	lcd.SetRegion(libsc::Lcd::Rect(width/3,height,width*2/3-10-(width/3),3));
+	lcd.FillColor(lcd.kGray);
+	lcd.SetRegion(libsc::Lcd::Rect(width*2/3-10,height,width-10-(width*2/3-10),3));
+	lcd.FillColor(lcd.kGray);
+	lcd.SetRegion(libsc::Lcd::Rect(0,height/2,width,3));
+	lcd.FillColor(lcd.kGray);
+	lcd.SetRegion(libsc::Lcd::Rect(5,height/2,3,height/2));
+	lcd.FillColor(lcd.kGray);
+	lcd.SetRegion(libsc::Lcd::Rect(width/3,height/2,3,height/2));
+	lcd.FillColor(lcd.kGray);
+	lcd.SetRegion(libsc::Lcd::Rect(width*2/3-10,height/2,3,height/2));
+	lcd.FillColor(lcd.kGray);
+	lcd.SetRegion(libsc::Lcd::Rect(width-15,height/2,3,height/2));
+	lcd.FillColor(lcd.kGray);
+	for(int j =height/2;j<height;j++){
 	for(int i=5;i<width/3;i++){
 
 		if(inputarray[j*width+i]==1){
@@ -119,7 +139,7 @@ int threepartpixel (bool inputarray[],int width,int height){
 		}
 	}
 	}
-	for(int j =0;j<height-15;j++){
+	for(int j =height/2;j<height;j++){
 		for(int i=width/3;i<width*2/3-10;i++){
 
 			if(inputarray[j*width+i]==1){
@@ -127,20 +147,127 @@ int threepartpixel (bool inputarray[],int width,int height){
 			}
 		}
 		}
-	for(int j =0;j<height-10;j++){
-			for(int i=width*2/3;i<width-10;i++){
+	for(int j =height/2;j<height;j++){
+			for(int i=width*2/3-10;i<width-15;i++){
 
 				if(inputarray[j*width+i]==1){
 					rightp++;
 				}
 			}
 	}
+	lcd.SetRegion(libsc::Lcd::Rect(0,100,width,10));
+	char data[20] = { };
+	sprintf(data, "%d,%d,%d", leftp, midp,rightp);
+	writer.WriteString(data);
 	if(leftp<=10&&rightp<=10&&midp<=10){return 0;}
-	if(leftp>midp){return (rightp>leftp)?2:1;}else{
-		return (rightp>midp)?2:3;
+	if(leftp>midp){return (rightp>leftp)?2:1;}else{///2=right ,1=leftp
+		return (rightp>midp)?2:3;//3=mid
 	}
 }
+int threepartpixelgreyscale (const Byte * inputarray,int width,int height ,libsc::St7735r & lcd,libsc::LcdTypewriter & writer,int & prestage){//width=189 height=120
+	lcd.SetRegion(libsc::Lcd::Rect(45,0,3,height/2));
+	lcd.FillColor(lcd.kGray);
+	int previous = prestage ;
+	int decision=0;
+	int blackpointleft=0;
+	int blackpointmid=0;
+	int blackpointright=0;
+	int whitepointmid = 0;
+	int bpmid=0;
+	int bpright=0;
+	int bpleft=0;
+	for(int i=0;i<height;i+=2){
+		for(int j=0;j<45;j++){
+			if(inputarray[i*width+j]<30){
+				//lcd.SetRegion(libsc::Lcd::Rect(j,i/2,1,1));
+				//lcd.FillColor(lcd.kGreen);
+				blackpointleft++;
+			}
+			if(inputarray[i*width+j]>130&&inputarray[i*width+j]<140){
+//
 
+							bpleft++;
+						}
+		}
+	}
+	for(int i=0;i<height;i+=2){
+		for(int j=45;j<160;j++){
+			if(inputarray[i*width+j]>200){
+
+				whitepointmid++;
+				prestage =3;
+						}
+			if(inputarray[i*width+j]<30){
+				lcd.SetRegion(libsc::Lcd::Rect(j,i/2,1,1));
+				lcd.FillColor(lcd.kGreen);
+				blackpointmid++;
+			}
+			if(inputarray[i*width+j]>130&&inputarray[i*width+j]<140){
+							lcd.SetRegion(libsc::Lcd::Rect(j,i/2,1,1));
+							lcd.FillColor(lcd.kBlue);
+							bpmid++;
+						}
+		}
+	}
+	for(int i=0;i<height;i+=2){
+			for(int j=160;j<189;j++){
+				if(inputarray[i*width+j]<30){
+//					lcd.SetRegion(libsc::Lcd::Rect(j,i/2,1,1));
+//					lcd.FillColor(lcd.kGreen);
+					blackpointright++;
+				}
+				if(inputarray[i*width+j]>130&&inputarray[i*width+j]<140){
+//								lcd.SetRegion(libsc::Lcd::Rect(j,i/2,1,1));
+//								lcd.FillColor(lcd.kBlue);
+								bpright++;
+							}
+			}
+		}
+	if((blackpointmid ==0 && bpmid==0)||(whitepointmid!=0)||previous==3){decision=3;}else
+		if(blackpointright!=0&&bpright!=0){decision = 2;}
+		else{decision=3;}
+	lcd.SetRegion(libsc::Lcd::Rect(0,60,159,20));
+
+		char data[20] = { };
+		sprintf(data, "L:%d,%d M:%d,%d R:%d,%d",blackpointleft,bpleft,blackpointmid,bpmid,blackpointright,bpright);
+		writer.WriteString(data);
+	lcd.SetRegion(libsc::Lcd::Rect(0,80,159,20));
+	sprintf(data, "D:%d ",decision);
+			writer.WriteString(data);
+	return decision;
+}
+bool turnadegree(const int degree,const int speed,libsc::Mpu6050 & mpu,libsc::St7735r & lcd,libsc::LcdTypewriter & writer ,libsc::AlternateMotor * R_motor,libsc::AlternateMotor * L_motor){//15ms
+	char data[20];
+	mpu.IsCalibrated();
+	float cardegree=0;
+	std::array<int32_t, 1> gyropre={0};
+	std::array<int32_t, 1> gyro={0};
+	while(!(cardegree < degree+2 && cardegree > degree - 2)){
+		mpu.Update();
+		gyropre[0]=mpu.GetOmega()[2]*15/1000;
+		gyro[0]+=gyropre[0];
+		cardegree=gyro[0]*90/759135;
+		lcd.SetRegion(libsc::Lcd::Rect(0,0, 160, 20));
+		sprintf(data, "gyro:%f",cardegree);
+		writer.WriteString(data);
+		if(cardegree>degree){
+			R_motor->SetClockwise(1);
+			L_motor->SetClockwise(1);
+			R_motor->SetPower(speed);
+			L_motor->SetPower(speed);
+		}
+		if(cardegree<degree){
+					R_motor->SetClockwise(0);
+					L_motor->SetClockwise(0);
+					R_motor->SetPower(speed);
+					L_motor->SetPower(speed);
+		}
+
+	}
+
+return true;
+
+}
 void onedtotwod(bool oriarray[],bool outputarray[][camwidth],int width,int height){
 	for(int y=0;y<height;y++){
 		for(int x=0;x<width;x++){
@@ -243,3 +370,4 @@ public:
 
 
 #endif /* INC_CAMERAFILTER_H_ */
+
