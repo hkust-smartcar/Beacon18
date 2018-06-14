@@ -9,10 +9,7 @@
 #define INC_IMAGE_PROCESSING_H_
 
 #include <list>
-
-extern const uint16_t width;
-extern const uint16_t height;
-extern const uint16_t numOfPixel;
+#include "var.h"
 
 //////////////algo parm///////////////////
 const uint8_t x_range = 5;
@@ -21,7 +18,6 @@ const uint16_t min_size = 30;
 const uint8_t error = 10;
 const uint16_t critical_density = 45;
 const uint8_t max_beacon = 10;
-extern Beacon *target;
 std::pair<uint16_t, uint16_t> last_beacon;
 const uint8_t frame = 10;
 const uint8_t min_frame = 3;
@@ -61,7 +57,7 @@ inline bool skip(uint16_t m_pos, int8_t m_bit_pos, const uint8_t beacon_count) {
 }
 
 // 1 = upper left, 2 = upper right , 3 = lower left, 4 = lower right
-void sub_scan(const Byte *buf, uint16_t m_pos, int8_t m_bit_pos,
+void sub_scan(uint16_t m_pos, int8_t m_bit_pos,
 		const uint8_t beacon_count, int dir) {
 	Beacon *current = beacons + beacon_count;
 	switch (dir) {
@@ -144,7 +140,7 @@ inline void check_target(uint8_t &beacon_count) {
 		beacon_count++;
 }
 
-inline void scan(const Byte *buf, uint16_t m_pos, int8_t m_bit_pos,
+inline void scan(uint16_t m_pos, int8_t m_bit_pos,
 		uint8_t &beacon_count, int mode) {
 
 	int16_t x = getX(m_pos, m_bit_pos);
@@ -152,13 +148,13 @@ inline void scan(const Byte *buf, uint16_t m_pos, int8_t m_bit_pos,
 	beacons[beacon_count].init(x, y);
 
 	//scan lower left
-	sub_scan(buf, m_pos, m_bit_pos, beacon_count, 3);
+	sub_scan(m_pos, m_bit_pos, beacon_count, 3);
 	//scan lower right
-	sub_scan(buf, m_pos, m_bit_pos, beacon_count, 4);
+	sub_scan( m_pos, m_bit_pos, beacon_count, 4);
 
 	if (mode == 1) {
-		sub_scan(buf, m_pos, m_bit_pos, beacon_count, 1);
-		sub_scan(buf, m_pos, m_bit_pos, beacon_count, 2);
+		sub_scan( m_pos, m_bit_pos, beacon_count, 1);
+		sub_scan(m_pos, m_bit_pos, beacon_count, 2);
 	}
 
 	beacons[beacon_count].calc();
@@ -169,16 +165,16 @@ inline bool check_near(const Beacon b1, const Beacon b2) {
 	return abs(b1.center.first - b2.center.first) < near_dist && abs(b1.center.second - b2.center.second) < near_dist;
 }
 
-inline bool process(const Byte *buf, bool seen) {
+inline bool process(bool seen) {
 	//////check for beacon with the last recorded pos/////////
 	uint8_t beacon_count = 0;
 	if (seen) {
 		uint16_t temp_pos = (width * last_beacon.second) / 8
 				+ last_beacon.first / 8;
 		uint16_t temp_bit_pos = 8 - (last_beacon.first % 8 + 1);
-		scan(buf, temp_pos, temp_bit_pos, beacon_count, 1);
+		scan(temp_pos, temp_bit_pos, beacon_count, 1);
 		if (beacons[0].count > 50) {
-			target = beacons;
+			ir_target = beacons;
 			return true;
 		} else
 			beacon_count = 0;
@@ -196,7 +192,7 @@ inline bool process(const Byte *buf, bool seen) {
 			if (!GET_BIT(buf[pos], bit_pos)) {
 				if (beacon_count && skip(pos, bit_pos, beacon_count))
 					continue;
-				scan(buf, pos, bit_pos, beacon_count, 0);
+				scan(pos, bit_pos, beacon_count, 0);
 				if (beacon_count == max_beacon)
 					return false;
 			}
@@ -217,9 +213,9 @@ inline bool process(const Byte *buf, bool seen) {
 					add = true;
 					if (++count[std::distance(center_record.begin(), it)]
 							> min_frame) {
-						target = &(*it);
-						last_beacon.first = target->center.first;
-						last_beacon.second = target->center.second;
+						ir_target = &(*it);
+						last_beacon.first = ir_target->center.first;
+						last_beacon.second = ir_target->center.second;
 						frame_count = 0;
 					}
 					break;

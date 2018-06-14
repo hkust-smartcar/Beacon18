@@ -8,13 +8,9 @@
 #ifndef MOTOR_UTIL_H_
 #define MOTOR_UTIL_H_
 
-#include "libsc/alternate_motor.h"
+#include "var.h"
 #include "libutil/misc.h"
 using namespace libsc;
-
-extern AlternateMotor* L_motor;
-extern AlternateMotor* R_motor;
-
 
 void SetPower(int speed,int id){
 	bool direction = (speed > 0);
