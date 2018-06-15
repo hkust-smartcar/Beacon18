@@ -370,4 +370,3 @@ public:
 
 
 #endif /* INC_CAMERAFILTER_H_ */
-
