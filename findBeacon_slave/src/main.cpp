@@ -39,30 +39,24 @@ using namespace libbase::k60;
 
 void reset_recrod() {
 	if (ir_target != NULL) {
-		if (ir_record != NULL)
-			delete ir_record;
-		ir_record = new Beacon(*ir_target);
+		insert(*ir_target,ptr_mode::irRecord);
+//		if (ir_record != NULL)
+//			delete ir_record;
+//		ir_record = new Beacon(*ir_target);
 		delete ir_target;
 		ir_target = NULL;
 	}
 
 	if (o_target != NULL) {
-		if (o_record != NULL)
-			delete o_record;
-		o_record = new Beacon(*o_target);
+		insert(*o_target,ptr_mode::oRecord);
+//		if (o_record != NULL)
+//			delete o_record;
+//		o_record = new Beacon(*o_target);
 		delete o_target;
 		o_target = NULL;
 	}
 }
 
-enum PkgType {
-	irTarget = 0, oTarget = 1, sameTarget = 2
-};
-
-struct BitConsts {
-	 uint8_t kSTART = 0xF0;
-	 uint8_t kEND = 0xFF;
-};
 void send_coord(uint8_t type) {
 	BitConsts a;
 	uint8_t buffer[5];
@@ -82,7 +76,7 @@ void send_coord(uint8_t type) {
 		ptr = ir_target;
 		break;
 	}
-	buffer[2] = (uint8_t)ptr->center.first;
+	buffer[2] = (uint8_t) ptr->center.first;
 	buffer[3] = ptr->center.second;
 	buffer[4] = a.kEND;
 	comm->SendBuffer(buffer, 5);
@@ -128,7 +122,6 @@ void display_time(uint16_t start) {
 
 int main() {
 	System::Init();
-
 	Led Led0(init_led(0));
 	led0 = &Led0;
 	Led Led1(init_led(1));
@@ -152,6 +145,7 @@ int main() {
 	int start = 0;
 	uint32_t tick = System::Time();
 	cam->Start();
+	irState = no;
 	lcd->SetRegion(Lcd::Rect(0, 0, 160, 15));
 	writer->WriteString("ir target");
 	lcd->SetRegion(Lcd::Rect(0, 30, 160, 15));
@@ -162,50 +156,65 @@ int main() {
 			if (tick % 25 == 0) {
 //				start = tick;
 				buf = cam->LockBuffer();
-//			for (uint i = 0; i < height; i++) {
-//				lcd->SetRegion(Lcd::Rect(0, i, 160, 1));
-//				lcd->FillGrayscalePixel(buf + cam->GetW() * i, 160);
-//			}
+				for (uint i = 0; i < height; i++) {
+					lcd->SetRegion(Lcd::Rect(0, i, 160, 1));
+					lcd->FillGrayscalePixel(buf + cam->GetW() * i, 160);
+				}
 				process();
+				if(irState != comfirm)
+					ir_target = NULL;
 				char out[20] = { };
 				Beacon* ptr = NULL;
-				if (same) {
-					send_coord(PkgType::sameTarget);
-					lcd->SetRegion(Lcd::Rect(0, 60, 160, 15));
-					writer->WriteString("sameTarget");
-					ptr = ir_target;
-					lcd->SetRegion(Lcd::Rect(0, 15, 160, 15));
-					sprintf(out, "%d , %d", ptr->center.first,
-							ptr->center.second);
-					writer->WriteBuffer(out, 20);
-				}
-//					display(*ir_target, Lcd::kGreen);
-				else {
+				lcd->SetRegion(Lcd::Rect(80, 0, 1, cam->GetH()));
+				lcd->FillColor(Lcd::kRed);
+				lcd->SetRegion(Lcd::Rect(130, 0, 1, cam->GetH()));
+				lcd->FillColor(Lcd::kRed);
+				lcd->SetRegion(Lcd::Rect(0, 20, 160, 1));
+				lcd->FillColor(Lcd::kRed);
+				if (check_near(o_target, ir_target)) {
+//					send_coord(PkgType::sameTarget);
+//					lcd->SetRegion(Lcd::Rect(0, 60, 160, 15));
+//					writer->WriteString("sameTarget");
+//					ptr = ir_target;
+//					lcd->SetRegion(Lcd::Rect(0, 15, 160, 15));
+//					sprintf(out, "%d , %d", ptr->center.first,
+//							ptr->center.second);
+//					writer->WriteBuffer(out, 20);
+					display(*ir_target, Lcd::kGreen);
+				} else {
 					if (ir_target != NULL) {
-//					display(*ir_target, Lcd::kRed);
-						send_coord(PkgType::irTarget);
-						ptr = ir_target;
-						lcd->SetRegion(Lcd::Rect(0, 15, 160, 15));
-						sprintf(out, "%d , %d", ptr->center.first,
-								ptr->center.second);
-						writer->WriteBuffer(out, 20);
+						display(*ir_target, Lcd::kRed);
+//						send_coord(PkgType::irTarget);
+//						ptr = ir_target;
+//						lcd->SetRegion(Lcd::Rect(0, 15, 160, 15));
+//						sprintf(out, "%d , %d", ptr->center.first,
+//								ptr->center.second);
+//						writer->WriteBuffer(out, 20);
+					}
+					else{
+//						lcd->SetRegion(Lcd::Rect(0, 15, 160, 15));
+//						writer->WriteString("no");
 					}
 					if (o_target != NULL) {
-//					display(*o_target, Lcd::kBlue);
-						send_coord(PkgType::oTarget);
-						ptr = o_target;
-						lcd->SetRegion(Lcd::Rect(0, 45, 160, 15));
-						sprintf(out, "%d , %d", ptr->center.first,
-								ptr->center.second);
-						writer->WriteBuffer(out, 20);
+						display(*o_target, Lcd::kBlue);
+//						send_coord(PkgType::oTarget);
+//						ptr = o_target;
+//						lcd->SetRegion(Lcd::Rect(0, 45, 160, 15));
+//						sprintf(out, "%d , %d", ptr->center.first,
+//								ptr->center.second);
+//						writer->WriteBuffer(out, 20);
+					}
+					else{
+//						lcd->SetRegion(Lcd::Rect(0, 45, 160, 15));
+//						writer->WriteString("no");
 					}
 				}
-				if (o_target == NULL && ir_target == NULL) {
-					lcd->SetRegion(Lcd::Rect(0, 15, 160, 15));
-					writer->WriteString("No");
-					lcd->SetRegion(Lcd::Rect(0, 45, 160, 15));
-										writer->WriteString("No");
-				}
+//				if (o_target == NULL && ir_target == NULL) {
+//					lcd->SetRegion(Lcd::Rect(0, 15, 160, 15));
+//					writer->WriteString("No");
+//					lcd->SetRegion(Lcd::Rect(0, 45, 160, 15));
+//					writer->WriteString("No");
+//				}
 				reset_recrod();
 				cam->UnlockBuffer();
 //				display_time(start);
