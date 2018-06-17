@@ -25,7 +25,7 @@ enum ir_state {
 	no = 0,
 	seen,
 	flash,
-	comfirm
+	checked
 };
 
 enum ptr_mode{
@@ -37,7 +37,7 @@ enum ptr_mode{
 };
 
 enum PkgType {
-	irTarget = 0, oTarget = 1, sameTarget = 2
+	irTarget = 0, oTarget = 1
 };
 
 struct BitConsts {

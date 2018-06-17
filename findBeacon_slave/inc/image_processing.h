@@ -16,11 +16,12 @@ using namespace libsc;
 using namespace libsc::k60;
 using namespace libbase::k60;
 
-uint16_t low_time = 0;
+uint32_t low_time = 0;
 bool timer = false;
+uint16_t max_size = 2300;
 
 const uint8_t size = 3;
-const uint8_t white = 210;
+const uint8_t white = 200;
 int8_t y_mask[3][3] = { { -1, 0, 1 }, { -2, 0, 2 }, { -1, 0, 1 } };
 int8_t x_mask[3][3] = { { -1, -2, -1 }, { 0, 0, 0 }, { 1, 2, 1 } };
 Beacon avoid_region(80, 130, 20, 100);
@@ -28,7 +29,7 @@ uint8_t min_area = 10;
 uint16_t near_dist = 10;
 uint8_t min_edge = 5;
 
-int16_t cal_sobel(uint16_t x, uint16_t y) {
+inline int16_t cal_sobel(uint16_t x, uint16_t y) {
 	int16_t x_mean = 0;
 	int16_t y_mean = 0;
 	y--;
@@ -46,7 +47,7 @@ int16_t cal_sobel(uint16_t x, uint16_t y) {
 	return abs(x_mean) + abs(y_mean);
 }
 
-uint8_t cal_mean(uint16_t x, uint16_t y) {
+inline uint8_t cal_mean(uint16_t x, uint16_t y) {
 	uint16_t mean = 0;
 	for (uint16_t i = y; i < height && i < y + size; i++) {
 		for (uint8_t z = 0; z < size; z++) {
@@ -110,8 +111,6 @@ Beacon check_beacon_edge(int mode) {
 		for (uint16_t x = x_start; x < x_bound; x += 2)
 			if (cal_sobel(x, y) > sobel_value) {
 				point p(x, y);
-//				lcd->SetRegion(Lcd::Rect(x, y, 1, 1));
-//				lcd->FillColor(Lcd::kBlue);
 				it = edges.begin();
 				for (; it != edges.end(); it++) {
 					if (check_near(*it, p)) {
@@ -143,33 +142,12 @@ Beacon check_beacon_edge(int mode) {
 			}
 		edges.sort(sort_y);
 	}
-	// for (uint16_t y = y_start; y < y_bound; y += 3) {
-	// 	for (uint16_t x = x_start; x < x_bound; x += 3) {
-	// 		if (cal_sobel(x, y) > sobel_value) {
-	// 			if (x < temp.left_x
-	// 					&& ((mode != 2 || x > temp.left_x - error1)
-	// 							|| temp.left_x == 1000))
-	// 				temp.left_x = x;
-	// 			else if (x > temp.right_x
-	// 					&& ((mode != 2 || x < temp.right_x + error1)
-	// 							|| temp.right_x == 0))
-	// 				temp.right_x = x;
-	// 			if (y < temp.upper_y
-	// 					&& ((mode != 2 || y > temp.upper_y - error1)
-	// 							|| temp.upper_y == 1000))
-	// 				temp.upper_y = y;
-	// 			else if (y > temp.lower_y
-	// 					&& ((mode != 2 || y < temp.lower_y + error1)
-	// 							|| temp.lower_y == 0))
-	// 				temp.lower_y = y;
-	// 			temp.count++;
-	// 		}
-	// 	}
-	// }
 	if (edges.size() < 20)
 		temp = Beacon(0, 0);
 	else
 		temp.calc();
+	if (temp.area > max_size)
+		temp.area = 0;
 	return temp;
 }
 
@@ -240,13 +218,6 @@ Beacon check_beacon_ir(uint16_t x, uint16_t y) {
 //	return false;
 //}
 
-void display(Beacon temp, uint16_t color) {
-	lcd->SetRegion(
-			Lcd::Rect(temp.left_x, temp.upper_y, temp.right_x - temp.left_x,
-					temp.lower_y - temp.upper_y));
-	lcd->FillColor(color);
-}
-
 void insert(Beacon t, ptr_mode m) {
 	Beacon** ptr = NULL;
 	switch (m) {
@@ -276,32 +247,33 @@ void insert(Beacon t, ptr_mode m) {
 //0 upper, 1 lower left, 2 lower right
 bool loop(uint8_t mode) {
 	Beacon temp;
-	uint16_t x;
+	uint16_t x_start;
 	uint16_t x_bound;
 	uint16_t y;
 	uint16_t y_bound;
 	switch (mode) {
 	case 0:
-		x = 0;
+		x_start = 0;
 		x_bound = width;
 		y = 0;
 		y_bound = avoid_region.upper_y;
 		break;
 	case 1:
-		x = 0;
+		x_start = 0;
 		x_bound = avoid_region.left_x;
 		y = avoid_region.upper_y;
 		y_bound = height;
 		break;
 	case 2:
-		x = avoid_region.left_x;
+		x_start = avoid_region.right_x;
 		x_bound = width;
 		y = avoid_region.upper_y;
 		y_bound = height;
 		break;
 	}
+
 	for (; y < y_bound; y += size) {
-		for (; x < x_bound; x += size) {
+		for (uint16_t x = x_start; x < x_bound; x += size) {
 			if (cal_mean(x, y) > white) {
 				temp = check_beacon_ir(x, y);
 				if (temp.area > min_area) {
@@ -320,14 +292,6 @@ bool check_near(Beacon* b1, Beacon* b2) {
 		return false;
 	return abs(b1->center.first - b2->center.first) < near_dist
 			&& abs(b1->center.second - b2->center.second) < near_dist;
-}
-
-inline bool check_within(std::pair<uint16_t, uint16_t> center) {
-	uint8_t error = 20;
-	if (center.first < avoid_region.left_x - 20
-			|| center.first > avoid_region.right_x + 20)
-		return false;
-	return true;
 }
 
 void process() {
@@ -349,7 +313,7 @@ void process() {
 				if (i == 0) {
 					timer = false;
 					if (irState == flash)
-						irState = comfirm;
+						irState = checked;
 				} else {
 					if (irState == seen)
 						irState = flash;
@@ -376,9 +340,6 @@ void process() {
 			}
 			temp = check_beacon_edge(0);
 		}
-		timer = false;
-		delete ir_record;
-		ir_record = NULL;
 	}
 	if (o_record != NULL) {		//ir_record must equal to NULL at this point
 		temp = check_beacon_edge(1);
@@ -400,7 +361,7 @@ void process() {
 			}
 		}
 	}
-	if (loop(0) || loop(1) || loop(2))
+	if (ir_target == NULL && (loop(0) || loop(1) || loop(2)))
 		return;
 }
 #endif /* INC_IMAGE_PROCESSING_H_ */
