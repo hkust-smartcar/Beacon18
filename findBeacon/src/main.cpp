@@ -16,6 +16,8 @@
 #include "libutil/misc.h"
 #include "config.h"
 #include "var.h"
+#include "camerafilter.h"
+#include "libsc/battery_meter.h"
 
 namespace libbase {
 namespace k60 {
@@ -67,7 +69,7 @@ enum rotate_state {
 	no, prepare, performing,turnleft,turnright,fastturnleft,fastturnright,turn180
 };
 enum state_ {
-	forward, chase, rotation, out, keep,avoid
+	forward, chase, rotation, out, keep,avoid,chase_grey
 };
 
 void send(state_ action, uint8_t &state) {
@@ -81,9 +83,14 @@ void send(state_ action, uint8_t &state) {
 	}
 }
 
+
+
+
 int main() {
 	System::Init();
-
+	BatteryMeter::Config batterycon;
+	batterycon.voltage_ratio=0.4;
+	BatteryMeter battery(batterycon);
 	Led Led0(init_led(0));
 	led0 = &Led0;
 	Led Led1(init_led(1));
@@ -134,6 +141,7 @@ int main() {
 	const int value_forward_right = 140;
 	const int value_turn_left_right = 100;//if x value is smaller than the range of it,it will turn left /////////need tune
 	const int value_need_fast_turn=40;//if y value is larger than the range of it,it will need fast turn/////need tune
+	int speeddiff=0;
 	/////////////////For Dubug////////////////////
 	uint8_t state = 100;
 	bool run = false;
@@ -145,36 +153,42 @@ int main() {
 
 //	////////////////Main loop////////////////////////
 	while (1) {
-
+			char data[20];
 
 		if (tick != System::Time() ) {
 			tick = System::Time();
 
 			////////////////////PID///////////////////////
 			if (tick % 10 == 0) {
+				lcd_.SetRegion(libsc::Lcd::Rect(0,100,60,20));
+				sprintf(data, "en1:%d ",encoder1->GetCount());
+				writer_.WriteString(data);
+				lcd_.SetRegion(libsc::Lcd::Rect(61,100,59,20));
+				sprintf(data, "en2:%d ",encoder2->GetCount());
+				writer_.WriteString(data);
 				encoder1->Update();
 				encoder2->Update();
 				SetPower(GetMotorPower(0) + L_pid.Calc(encoder1->GetCount()), 0);
 				SetPower(GetMotorPower(1) + R_pid.Calc(-encoder2->GetCount()), 1);
 			}
-			////////////////////////////////////////new
 
-			if (tick - ir_target2.received_time < 100) {
-								onptr = &ir_target2.target;
-
-							} else {
-								onptr=nullptr;
-			}
-			if (tick - o_target.received_time < 100) {
-								notonptr = &o_target.target;
-
-							} else {
-
-								notonptr=nullptr;
-			}
 			////////////////////////////////////////////////
 			if (tick % 15 == 0) {
-				char data[20];
+				////////////////////////////////////////new
+
+							if (tick - ir_target2.received_time < 200) {
+												onptr = &ir_target2.target;
+
+											} else {
+												onptr=nullptr;
+							}
+							if (tick - o_target.received_time < 200) {
+												notonptr = &o_target.target;
+
+											} else {
+
+												notonptr=nullptr;
+							}
 
 				///////////////decision making///////////////
 				buf = cam->LockBuffer();
@@ -184,6 +198,7 @@ int main() {
 				process(seen);
 				////////////////////////////////////////////find a obstacle and u need to avoid
 				if (notonptr !=nullptr&&(*notonptr)->center.first>value_forward_left&&(*notonptr)->center.first<value_forward_right){
+					speeddiff=turningspeed((*notonptr)->center.first,(*notonptr)->center.second,105,30);
 
 					action =  avoid;
 					if((*notonptr)->center.first>value_turn_left_right &&(*notonptr)->center.second>value_need_fast_turn){
@@ -212,55 +227,59 @@ int main() {
 					presbeadir=0;
 					const int close_y=30;//when y is larger than it no need to turn ,but need to prepare to rotate /////////need tune
 					const int grey_midline =80; /////////need tune
-					lcd_.SetRegion(libsc::Lcd::Rect(0,60,60,20));
-					sprintf(data, "_y:%d ",close_y);
-					writer_.WriteString(data);
-					lcd_.SetRegion(libsc::Lcd::Rect(61,60,59,20));
-					sprintf(data, "mid:%d ",grey_midline);
-					writer_.WriteString(data);
+//					lcd_.SetRegion(libsc::Lcd::Rect(0,60,60,20));
+//					sprintf(data, "_y:%d ",close_y);
+//					writer_.WriteString(data);
+//					lcd_.SetRegion(libsc::Lcd::Rect(61,60,59,20));
+//					sprintf(data, "mid:%d ",grey_midline);
+//					writer_.WriteString(data);
 // 					Dir_pid.SetSetpoint(target_x);
-					if ((*onptr)->center.second > close_y && rotate == no)
-						rotate = prepare;
+//					if ((*onptr)->center.second > close_y && rotate == no)
+//						rotate = prepare;
 					if (!seen)
 						seen = true;
 					if (not_find_time)
 						not_find_time = 0;
-					if (rotate == performing
-							&& (*onptr)->center.first > grey_midline) {
-						action = keep;
-					} else {
-						rotate = no;
-						action = chase;
-					}
+//					if (rotate == performing
+//							&& (*onptr)->center.first > grey_midline) {
+//						action = keep;
+//					} else {
+//						rotate = no;
+//						action = chase_grey;
+//					}
+					rotate = no;
+					action = chase_grey;
 				}else
 				//////////////////////////////////////////
-				if (ir_target != NULL&&onptr ==nullptr) //target find
-				{
-// 					char data[20];
-// 					sprintf(data, "I:%d,%d\n", target->center.first,
-// 							target->area);
-// 					bt.SendStr(data);
-					presbeadir=0;
-					if (ir_target->area > max_area)
-						max_area = (ir_target->area + max_area) / 2;
-					target_x = target_slope * max_area + target_intercept;
-					if (target_x > 320)
-						target_x = 320;
-// 					Dir_pid.SetSetpoint(target_x);
-					if (ir_target->area > near_area && rotate == no)
-						rotate = prepare;
-					if (!seen)
-						seen = true;
-					if (not_find_time)
-						not_find_time = 0;
-					if (rotate == performing
-							&& ir_target->center.first > target_x) {
-						action = keep;
-					} else {
-						rotate = no;
-						action = chase;
-					}
-				} else if (rotate == performing) { //target not find and rotating
+//				if (ir_target != NULL&&onptr ==nullptr) //target find
+//				{
+//// 					char data[20];
+//// 					sprintf(data, "I:%d,%d\n", target->center.first,
+//// 							target->area);
+//// 					bt.SendStr(data);
+//					presbeadir=0;
+//					if (ir_target->area > max_area)
+//						max_area = (ir_target->area + max_area) / 2;
+//					target_x = target_slope * max_area + target_intercept;
+//					if (target_x > 320)
+//						target_x = 320;
+//// 					Dir_pid.SetSetpoint(target_x);
+//					if (ir_target->area > near_area && rotate == no)
+//						rotate = prepare;
+//					if (!seen)
+//						seen = true;
+//					if (not_find_time)
+//						not_find_time = 0;
+//					if (rotate == performing
+//							&& ir_target->center.first > target_x) {
+//						action = keep;
+//					} else {
+//						rotate = no;
+//						action = chase;
+//					}
+//				}
+//				else
+					if (rotate == performing) { //target not find and rotating
 					if(presbeadir!=0){
 						switch(presbeadir){
 						action=avoid;
@@ -322,20 +341,20 @@ int main() {
 				case avoid:
 					switch(rotate){
 					case turnleft: /////////need tune
-						L_pid.SetSetpoint(30);
-						R_pid.SetSetpoint(20);
-						break;
-					case turnright: /////////need tune
-						L_pid.SetSetpoint(20);
+						L_pid.SetSetpoint(30-speeddiff);
 						R_pid.SetSetpoint(30);
 						break;
+					case turnright: /////////need tune
+						L_pid.SetSetpoint(30);
+						R_pid.SetSetpoint(30-speeddiff);
+						break;
 					case fastturnleft: /////////need tune
-						L_pid.SetSetpoint(50);
-						R_pid.SetSetpoint(20);
+						L_pid.SetSetpoint(50-speeddiff-10);
+						R_pid.SetSetpoint(50);
 						break;
 					case fastturnright: /////////need tune
-						L_pid.SetSetpoint(20);
-						R_pid.SetSetpoint(50);
+						L_pid.SetSetpoint(50);
+						R_pid.SetSetpoint(50-speeddiff-10);
 						break;
 					case turn180: /////////need tune
 						break;
@@ -343,15 +362,44 @@ int main() {
 						break;
 					}
 					break;
+					case chase_grey:
+						int diff_grey;
+						diff_grey = Dir_pid.output(110, (*onptr)->center.first);
+						L_pid.SetSetpoint(chasing_speed - diff_grey);
+						R_pid.SetSetpoint(chasing_speed + diff_grey);
+					break;
 				}
 				send(action, state);
 				cam->UnlockBuffer();
 		lcd_.SetRegion(libsc::Lcd::Rect(0,0,60,20));
-		sprintf(data, "rot:%d ",rotate);
-		writer_.WriteString(data);
+//		sprintf(data, "batt:%lf ",battery.GetVoltage());
+		if(rotate==3||rotate==5){writer_.WriteString("left");}else
+		if(rotate==4||rotate==6){writer_.WriteString("right");}else{
+			writer_.WriteString("no dir");
+		}
+
 		lcd_.SetRegion(libsc::Lcd::Rect(61,0,59,20));
-		sprintf(data, "act:%d ",action);
-		writer_.WriteString(data);
+		switch(action){
+		case 0:writer_.WriteString("forw");
+		break;
+		case 1:writer_.WriteString("chase");
+		break;
+		case 2:writer_.WriteString("rotate");
+		break;
+		case 3:writer_.WriteString("out");
+		break;
+		case 4:writer_.WriteString("keep");
+		break;
+		case 5:writer_.WriteString("avoid");
+		break;
+		case 6:writer_.WriteString("chase_g");
+		break;
+		default:writer_.WriteString("no act");
+		break;
+		}
+//		sprintf(data, "act:%d ",action);
+//		writer_.WriteString(data);
+
 		if(notonptr!=nullptr){
 			lcd_.SetRegion(libsc::Lcd::Rect(0,20,60,20));
 			sprintf(data, "noton:%d ",1);
@@ -361,6 +409,13 @@ int main() {
 			writer_.WriteString(data);
 			lcd_.SetRegion(libsc::Lcd::Rect(61,80,59,20));
 			sprintf(data, "y:%d ",(*notonptr)->center.second);
+			writer_.WriteString(data);
+			lcd_.SetRegion(libsc::Lcd::Rect(60,40,60,20));
+			if(rotate==5||rotate==6){
+				sprintf(data, "sd:%d ",speeddiff-10);
+			}else{
+			sprintf(data, "sd:%d ",speeddiff);
+			}
 			writer_.WriteString(data);
 		}else{
 		lcd_.SetRegion(libsc::Lcd::Rect(0,20,60,20));
@@ -384,12 +439,13 @@ int main() {
 			lcd_.SetRegion(libsc::Lcd::Rect(0,40,60,20));
 			sprintf(data, "ir:%d ",1);
 			writer_.WriteString(data);
-			lcd_.SetRegion(libsc::Lcd::Rect(0,100,60,20));
-			sprintf(data, "ir_x:%d ",(*onptr)->center.first);
-			writer_.WriteString(data);
-			lcd_.SetRegion(libsc::Lcd::Rect(61,100,59,20));
-			sprintf(data, "ir_y:%d ",(*onptr)->center.second);
-			writer_.WriteString(data);
+//			lcd_.SetRegion(libsc::Lcd::Rect(0,100,60,20));
+//			sprintf(data, "ir_x:%d ",(ir_target)->center.first);
+//			writer_.WriteString(data);
+//			lcd_.SetRegion(libsc::Lcd::Rect(61,100,59,20));
+//			sprintf(data, "ir_y:%d ",(ir_target)->center.second);
+//			writer_.WriteString(data);
+
 		}else{
 			lcd_.SetRegion(libsc::Lcd::Rect(0,40,60,20));
 			sprintf(data, "ir:%d ",0);
