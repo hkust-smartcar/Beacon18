@@ -125,19 +125,29 @@ int main() {
 	int finding_time = 0;
 	rotate_state rotate = no;
 	state_ action = forward;
+	int presbeadir = 0 ; //0:no need ,1:left ,2:right
 	uint16_t target_x = target_intercept;
 	uint32_t max_area = 0;
+	Beacon** onptr = NULL;////////beacon is on
+	Beacon** notonptr = NULL;///////beacon is not on
+	const int value_forward_left = 30;
+	const int value_forward_right = 140;
+	const int value_turn_left_right = 100;//if x value is smaller than the range of it,it will turn left /////////need tune
+	const int value_need_fast_turn=40;//if y value is larger than the range of it,it will need fast turn/////need tune
 	/////////////////For Dubug////////////////////
 	uint8_t state = 100;
 	bool run = false;
 	bool restart = false;
 	JyMcuBt106 bt_(init_bt(run));
 	bt = &bt_;
-	JyMcuBt106 comm(init_comm());
+	JyMcuBt106 comm_(init_comm());
+	comm = &comm_;
 
 //	////////////////Main loop////////////////////////
 	while (1) {
-		if (tick != System::Time() && run) {
+
+
+		if (tick != System::Time() ) {
 			tick = System::Time();
 
 			////////////////////PID///////////////////////
@@ -148,16 +158,15 @@ int main() {
 				SetPower(GetMotorPower(1) + R_pid.Calc(-encoder2->GetCount()), 1);
 			}
 			////////////////////////////////////////new
-			Beacon* onptr = NULL;////////beacon is on
-			Beacon* notonptr = NULL;///////beacon is not on
-			if (tick - ir_target2.received_time < 40) {
-								onptr = ir_target2.target;
+
+			if (tick - ir_target2.received_time < 100) {
+								onptr = &ir_target2.target;
 
 							} else {
 								onptr=nullptr;
 			}
-			if (tick - o_target.received_time < 40) {
-								notonptr = o_target.target;
+			if (tick - o_target.received_time < 100) {
+								notonptr = &o_target.target;
 
 							} else {
 
@@ -165,6 +174,8 @@ int main() {
 			}
 			////////////////////////////////////////////////
 			if (tick % 15 == 0) {
+				char data[20];
+
 				///////////////decision making///////////////
 				buf = cam->LockBuffer();
 				////////////init value///////////////////////
@@ -172,40 +183,50 @@ int main() {
 				///////////////process image/////////////////
 				process(seen);
 				////////////////////////////////////////////find a obstacle and u need to avoid
-				if (notonptr !=nullptr){
+				if (notonptr !=nullptr&&(*notonptr)->center.first>value_forward_left&&(*notonptr)->center.first<value_forward_right){
 
-					const int value_turn_left = 30;//if x value is smaller than the range of it,it will turn left /////////need tune
-					const int value_turn_right = 60;//if x value is larger than the range of it,it will turn right/////////need tune
-					const int value_need_fast_turn=60;//if y value is larger than the range of it,it will need fast turn/////need tune
 					action =  avoid;
-					if(notonptr->center.first<value_turn_left&&notonptr->center.second>value_need_fast_turn){
+					if((*notonptr)->center.first>value_turn_left_right &&(*notonptr)->center.second>value_need_fast_turn){
 						rotate=fastturnleft;
+						if(seen){
+							presbeadir=2;
+						}
 					}
-					if(notonptr->center.first<=value_turn_right&&notonptr->center.second>value_need_fast_turn){
-						rotate=turnright;
+					if((*notonptr)->center.first<=value_turn_left_right&&(*notonptr)->center.second>value_need_fast_turn){
+						rotate=fastturnright;
+						if(seen){
+							presbeadir=1;
+						}
 					}
-					if(notonptr->center.first<value_turn_left&&notonptr->center.second<=value_need_fast_turn){
-						rotate=fastturnleft;
+					if((*notonptr)->center.first>value_turn_left_right&&(*notonptr)->center.second<=value_need_fast_turn){
+
+						rotate=turnleft;
 					}
-					if(notonptr->center.first<=value_turn_right&&notonptr->center.second<=value_need_fast_turn){
+					if((*notonptr)->center.first<=value_turn_left_right&&(*notonptr)->center.second<=value_need_fast_turn){
 						rotate=turnright;
 					}
 
 				}else
 				/////////////////////////////////////////
 				if (ir_target != NULL&&onptr !=nullptr){
-					const int close_y=60;//when y is larger than it no need to turn ,but need to prepare to rotate /////////need tune
-					const int grey_midline =60; /////////need tune
-
+					presbeadir=0;
+					const int close_y=30;//when y is larger than it no need to turn ,but need to prepare to rotate /////////need tune
+					const int grey_midline =80; /////////need tune
+					lcd_.SetRegion(libsc::Lcd::Rect(0,60,60,20));
+					sprintf(data, "_y:%d ",close_y);
+					writer_.WriteString(data);
+					lcd_.SetRegion(libsc::Lcd::Rect(61,60,59,20));
+					sprintf(data, "mid:%d ",grey_midline);
+					writer_.WriteString(data);
 // 					Dir_pid.SetSetpoint(target_x);
-					if (onptr->center.second > close_y && rotate == no)
+					if ((*onptr)->center.second > close_y && rotate == no)
 						rotate = prepare;
 					if (!seen)
 						seen = true;
 					if (not_find_time)
 						not_find_time = 0;
 					if (rotate == performing
-							&& onptr->center.first > grey_midline) {
+							&& (*onptr)->center.first > grey_midline) {
 						action = keep;
 					} else {
 						rotate = no;
@@ -219,7 +240,7 @@ int main() {
 // 					sprintf(data, "I:%d,%d\n", target->center.first,
 // 							target->area);
 // 					bt.SendStr(data);
-
+					presbeadir=0;
 					if (ir_target->area > max_area)
 						max_area = (ir_target->area + max_area) / 2;
 					target_x = target_slope * max_area + target_intercept;
@@ -240,6 +261,17 @@ int main() {
 						action = chase;
 					}
 				} else if (rotate == performing) { //target not find and rotating
+					if(presbeadir!=0){
+						switch(presbeadir){
+						action=avoid;
+						case 1:
+							rotate=turnleft;
+							break;
+						case 2:
+							rotate=turnright;
+							break;
+						}
+					}else
 					if (System::Time() - not_find_time > 800)
 						action = rotation;
 				} else if (seen) { //target not find but have seen target before
@@ -290,12 +322,20 @@ int main() {
 				case avoid:
 					switch(rotate){
 					case turnleft: /////////need tune
+						L_pid.SetSetpoint(30);
+						R_pid.SetSetpoint(20);
 						break;
 					case turnright: /////////need tune
+						L_pid.SetSetpoint(20);
+						R_pid.SetSetpoint(30);
 						break;
 					case fastturnleft: /////////need tune
+						L_pid.SetSetpoint(50);
+						R_pid.SetSetpoint(20);
 						break;
 					case fastturnright: /////////need tune
+						L_pid.SetSetpoint(20);
+						R_pid.SetSetpoint(50);
 						break;
 					case turn180: /////////need tune
 						break;
@@ -306,8 +346,58 @@ int main() {
 				}
 				send(action, state);
 				cam->UnlockBuffer();
+		lcd_.SetRegion(libsc::Lcd::Rect(0,0,60,20));
+		sprintf(data, "rot:%d ",rotate);
+		writer_.WriteString(data);
+		lcd_.SetRegion(libsc::Lcd::Rect(61,0,59,20));
+		sprintf(data, "act:%d ",action);
+		writer_.WriteString(data);
+		if(notonptr!=nullptr){
+			lcd_.SetRegion(libsc::Lcd::Rect(0,20,60,20));
+			sprintf(data, "noton:%d ",1);
+			writer_.WriteString(data);
+			lcd_.SetRegion(libsc::Lcd::Rect(0,80,60,20));
+			sprintf(data, "x:%d ",(*notonptr)->center.first);
+			writer_.WriteString(data);
+			lcd_.SetRegion(libsc::Lcd::Rect(61,80,59,20));
+			sprintf(data, "y:%d ",(*notonptr)->center.second);
+			writer_.WriteString(data);
+		}else{
+		lcd_.SetRegion(libsc::Lcd::Rect(0,20,60,20));
+		sprintf(data, "noton:%d ",0);
+		writer_.WriteString(data);}
+		if(onptr!=nullptr){
+			lcd_.SetRegion(libsc::Lcd::Rect(61,20,59,20));
+			sprintf(data, "on:%d ",1);
+			writer_.WriteString(data);
+			lcd_.SetRegion(libsc::Lcd::Rect(0,80,60,20));
+			sprintf(data, "x:%d ",(*onptr)->center.first);
+			writer_.WriteString(data);
+			lcd_.SetRegion(libsc::Lcd::Rect(61,80,59,20));
+			sprintf(data, "y:%d ",(*onptr)->center.second);
+			writer_.WriteString(data);
+		}else{
+			lcd_.SetRegion(libsc::Lcd::Rect(61,20,59,20));
+			sprintf(data, "on:%d ",0);
+			writer_.WriteString(data);}
+		if(ir_target!=nullptr){
+			lcd_.SetRegion(libsc::Lcd::Rect(0,40,60,20));
+			sprintf(data, "ir:%d ",1);
+			writer_.WriteString(data);
+			lcd_.SetRegion(libsc::Lcd::Rect(0,100,60,20));
+			sprintf(data, "ir_x:%d ",(*onptr)->center.first);
+			writer_.WriteString(data);
+			lcd_.SetRegion(libsc::Lcd::Rect(61,100,59,20));
+			sprintf(data, "ir_y:%d ",(*onptr)->center.second);
+			writer_.WriteString(data);
+		}else{
+			lcd_.SetRegion(libsc::Lcd::Rect(0,40,60,20));
+			sprintf(data, "ir:%d ",0);
+			writer_.WriteString(data);}
+
 			}
 		}
+
 	}
 
 	return 0;
