@@ -268,6 +268,21 @@ bool turnadegree(const int degree,const int speed,libsc::Mpu6050 & mpu,libsc::St
 return true;
 
 }
+int turningspeed(int beax,int beay,int carmid,int maxspeed){//maxspeed = maxspeed different
+	if((carmid-beax)==0||(beax-carmid)==0){
+		float result = maxspeed;
+		return result;}else
+	if((carmid-beax)>0){
+		float result = maxspeed/7*beay/(carmid-beax);
+		if(result>maxspeed){result = maxspeed;}
+		if(result<maxspeed/3){result =maxspeed/3;}
+		return result;}else{
+		float result = maxspeed/7*beay/(beax-carmid);
+		if(result>maxspeed){result = maxspeed;}
+		if(result<maxspeed/3){result = maxspeed/3;}
+		return result;}
+
+}
 void onedtotwod(bool oriarray[],bool outputarray[][camwidth],int width,int height){
 	for(int y=0;y<height;y++){
 		for(int x=0;x<width;x++){
