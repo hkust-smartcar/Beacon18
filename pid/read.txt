@@ -1,4 +1,6 @@
- 	 float L_kp = 4;
+#include "speed_pid.h"
+	
+	float L_kp = 4;
  float L_ki = 0.2;
  float L_kd = 0;
  float R_kp = 4;
