@@ -1,0 +1,22 @@
+ 	const float speedInclude = 7;
+ const float speedIgnore = 100;
+  
+  ////init
+  
+  SpeedPid<int, int> L_pid(0, L_kp, L_ki, L_kd);
+	L_pid.SetOutputBound(-500, 500);
+	L_pid.SetEDiffInclude(speedInclude);
+	L_pid.SetEDiffIgnore(speedIgnore);
+	SpeedPid<int, int> R_pid(0, R_kp, R_ki, R_kd);
+	R_pid.SetOutputBound(-500, 500);
+	R_pid.SetEDiffInclude(speedInclude);
+	R_pid.SetEDiffIgnore(speedIgnore);
+  
+  
+  //change speed
+   					L_pid.SetChnageSpeed(true,L_out_speed);
+ 					R_pid.SetChnageSpeed(true,R_out_speed);
+  
+  
+  
+  
