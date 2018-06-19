@@ -103,9 +103,8 @@ public:
 	Uint GetH() const {
 		return m_h;
 	}
-
-private:
 	void RegSet(uint8_t reg_addr, uint16_t value);
+private:
 
 	void InitDma();
 

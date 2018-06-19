@@ -28,6 +28,11 @@ enum ir_state {
 	checked
 };
 
+struct regression_line {
+	float slope;
+	float intercept;
+};
+
 enum ptr_mode{
 	o = 0,
 	oRecord,

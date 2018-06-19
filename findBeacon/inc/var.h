@@ -27,7 +27,6 @@ using namespace libbase::k60;
 struct BeaconPackage{
 	Beacon* target = NULL;
 	uint16_t received_time = 0;
-	bool same = false;
 };
 
 const Byte* buf = NULL;

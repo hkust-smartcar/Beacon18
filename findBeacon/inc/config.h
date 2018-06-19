@@ -66,7 +66,7 @@ JyMcuBt106::Config init_bt(bool& run) {
 }
 
 enum PkgType {
-	irTarget = 0, oTarget = 1, sameTarget = 2
+	irTarget = 0, oTarget = 1
 };
 struct BitConsts {
 	uint8_t kSTART = 0xF0;
@@ -81,8 +81,6 @@ inline void BuildBufferPackage() {
 	uint8_t y = *(it++);
 	BeaconPackage* ptr = NULL;
 	switch (type) {
-	case PkgType::sameTarget:
-		ir_target2.same = true;
 	case PkgType::irTarget:
 		ptr = &ir_target2;
 		break;

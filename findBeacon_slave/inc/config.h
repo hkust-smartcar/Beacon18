@@ -64,7 +64,7 @@ JyMcuBt106::Config init_bt(bool& run, bool& comfirm) {
 
 JyMcuBt106::Config init_comm(bool& run) {
 	JyMcuBt106::Config config;
-	config.baud_rate = libbase::k60::Uart::Config::BaudRate::k4800;
+	config.baud_rate = libbase::k60::Uart::Config::BaudRate::k9600;
 	config.id = 2;
 	config.rx_isr = [&run](const Byte *data, const size_t size) {
 		if(data[0] == 's') {

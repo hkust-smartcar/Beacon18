@@ -63,12 +63,6 @@ inline void display_num(PkgType t) {
 	char out[20] = { };
 	Beacon* ptr = NULL;
 	switch (t) {
-	case sameTarget:
-		lcd->SetRegion(Lcd::Rect(0, 60, 160, 15));
-		writer->WriteString("sameTarget");
-		lcd->SetRegion(Lcd::Rect(0, 15, 160, 15));
-		ptr = ir_target;
-		break;
 	case irTarget:
 		ptr = ir_target;
 		lcd->SetRegion(Lcd::Rect(0, 15, 160, 15));

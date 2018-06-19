@@ -20,6 +20,7 @@
 #include "var.h"
 #include "config.h"
 #include "debug.h"
+#include <libsc/button.h>
 
 namespace libbase {
 namespace k60 {
@@ -73,8 +74,14 @@ void send_coord(uint8_t type) {
 	comm->SendBuffer(buffer, 5);
 }
 
+enum working_mode {
+	image = 0, word
+};
+
+const working_mode m = word;
 int main() {
 	System::Init();
+
 	Led Led0(init_led(0));
 	led0 = &Led0;
 	Led Led1(init_led(1));
@@ -98,44 +105,92 @@ int main() {
 	int start = 0;
 	uint32_t tick = System::Time();
 	cam->Start();
+//	Button::Config b_config;
+//	b_config.id = 0;
+//	Button b1(b_config);
+//	bool down_timer = false;
+//	uint16_t down_time = 0;
+//	while (!cam->IsAvailable())
+//		;
+//	buf = cam->LockBuffer();
+//	display_greyscale_image();
+//	while (true) {
+//		if(b1.IsUp() && !down_timer)
+//			continue;
+//		if (b1.IsDown()) {
+//			if (!down_timer) {
+//				down_timer = true;
+//				down_time = System::Time();
+//			}
+//		} else if (down_timer && System::Time() - down_time > 500) {
+//			break;
+//		} else {
+//			cam->RegSet(0x0C, 0x03);
+//			cam->UnlockBuffer();
+//			System::DelayMs(300);
+//			buf = cam->LockBuffer();
+//			display_greyscale_image();
+//			down_timer = false;
+//		}
+//	}
+
 	irState = no;
-	//	lcd->SetRegion(Lcd::Rect(0, 0, 160, 15));
-	//	writer->WriteString("ir target");
-	//	lcd->SetRegion(Lcd::Rect(0, 30, 160, 15));
-	//	writer->WriteString("o target");
+	if (m == word) {
+		lcd->SetRegion(Lcd::Rect(0, 0, 160, 15));
+		writer->WriteString("ir target");
+		lcd->SetRegion(Lcd::Rect(0, 30, 160, 15));
+		writer->WriteString("o target");
+	}
+
 	while (1) {
 		if (tick != System::Time()) {
 			tick = System::Time();
-			if (tick % 25 == 0) {
+			if (tick % 40 == 0) {
 				start = tick;
 				buf = cam->LockBuffer();
-				display_greyscale_image();
+				if (m == image) {
+					display_greyscale_image();
+					show_avoid_region();
+				}
 				process();
-				//				show_avoid_region();
 				Beacon *ir_target_mask = NULL;
 				if (irState == checked)
 					ir_target_mask = ir_target;
-				//					lcd->SetRegion(Lcd::Rect(0, 60, 160, 15));
-				//					lcd->FillColor(Lcd::kWhite);
+				if (m == word) {
+					lcd->SetRegion(Lcd::Rect(0, 60, 160, 15));
+					lcd->FillColor(Lcd::kWhite);
+				}
 				if (ir_target_mask != NULL) {
 					send_coord(PkgType::irTarget);
-					//						display_num(PkgType::irTarget);
-					//						display(*ir_target_mask, Lcd::kRed);
+					if (m == word)
+						display_num(PkgType::irTarget);
+					else if (m == image)
+						display(*ir_target_mask, Lcd::kRed);
+					led0->SetEnable(true);
 				} else {
-					//						lcd->SetRegion(Lcd::Rect(0, 15, 160, 15));
-					//						writer->WriteString("no");
+					if (m == word) {
+						lcd->SetRegion(Lcd::Rect(0, 15, 160, 15));
+						writer->WriteString("no");
+					}
+					led0->SetEnable(false);
 				}
 				if (o_target != NULL) {
 					send_coord(PkgType::oTarget);
-					//						display(*o_target, Lcd::kBlue);
-					//						display_num(PkgType::oTarget);
+					if (m == word)
+						display_num(PkgType::oTarget);
+					else if (m == image)
+						display(*o_target, Lcd::kBlue);
+					led1->SetEnable(true);
 				} else {
-					//						lcd->SetRegion(Lcd::Rect(0, 45, 160, 15));
-					//						writer->WriteString("no");
+					if (m == word) {
+						lcd->SetRegion(Lcd::Rect(0, 45, 160, 15));
+						writer->WriteString("no");
+					}
+					led1->SetEnable(false);
 				}
 				reset_recrod();
 				cam->UnlockBuffer();
-				//				display_time(start);
+				display_time(start);
 			}
 		}
 	}

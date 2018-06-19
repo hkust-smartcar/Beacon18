@@ -17,8 +17,10 @@ using namespace libsc::k60;
 using namespace libbase::k60;
 
 uint32_t low_time = 0;
-bool timer = false;
-uint16_t max_size = 2300;
+uint32_t high_time = 0;
+bool low_timer = false;
+bool high_timer = false;
+uint16_t max_size = 5000;
 
 const uint8_t size = 3;
 const uint8_t white = 200;
@@ -26,7 +28,7 @@ int8_t y_mask[3][3] = { { -1, 0, 1 }, { -2, 0, 2 }, { -1, 0, 1 } };
 int8_t x_mask[3][3] = { { -1, -2, -1 }, { 0, 0, 0 }, { 1, 2, 1 } };
 Beacon avoid_region(80, 130, 20, 100);
 uint8_t min_area = 10;
-uint16_t near_dist = 10;
+uint16_t near_dist = 15;
 uint8_t min_edge = 5;
 
 inline int16_t cal_sobel(uint16_t x, uint16_t y) {
@@ -77,7 +79,7 @@ bool sort_y(const point& first, const point& second) {
 Beacon check_beacon_edge(int mode) {
 	Beacon temp;
 	Beacon* ptr = NULL;
-	uint8_t error = 10;
+	int8_t error = 10;
 	switch (mode) {
 	case 0:
 		ptr = ir_record;
@@ -90,10 +92,13 @@ Beacon check_beacon_edge(int mode) {
 		error = 0;
 		break;
 	}
-	int16_t x_start = ptr->left_x - error;
-	int16_t x_bound = ptr->right_x + error;
-	int16_t y_start = ptr->upper_y - error;
-	int16_t y_bound = ptr->lower_y + error;
+	int16_t x_start = (int) ptr->left_x - error;
+	int16_t x_bound = (int) ptr->right_x + error;
+	int16_t y_start = (int) ptr->upper_y - error;
+	int16_t y_bound = (int) ptr->lower_y + error;
+	std::list<point> edges;
+	auto it = edges.begin();
+
 	if (mode < 2) {
 		if (x_start < 0)
 			x_start = 0;
@@ -104,22 +109,70 @@ Beacon check_beacon_edge(int mode) {
 		if (y_bound > height)
 			y_bound = height;
 	}
-	std::list<point> edges;
-	auto it = edges.begin();
-	auto rit = edges.rbegin();
-	for (uint16_t y = y_start; y < y_bound; y += 2)
-		for (uint16_t x = x_start; x < x_bound; x += 2)
-			if (cal_sobel(x, y) > sobel_value) {
-				point p(x, y);
-				it = edges.begin();
-				for (; it != edges.end(); it++) {
-					if (check_near(*it, p)) {
-						p.count++;
-						it->count++;
-					}
+//		int16_t x_start2 = 0;
+//		int16_t x_bound2 = 0;
+//		int16_t y_start2 = 0;
+//		int16_t y_bound2 = 0;
+//		for (uint8_t r = 0; r < 2; r++) {
+//			switch (r) {
+//			case 0:	//upper
+//				x_start2 = x_start;
+//				x_bound2 = x_bound;
+//				y_start2 = y_start;
+//				y_bound2 = y_start + (y_bound - y_start) * 0.3f;
+//				break;
+//			case 1:	//lower
+//				x_start2 = x_start;
+//				x_bound2 = x_bound;
+//				y_start2 = y_bound - (y_bound - y_start) * 0.3f;
+//				y_bound2 = y_bound;
+//				break;
+//			case 2:	//left
+//				x_start2 = x_start;
+//				x_bound2 = x_start + (x_bound - x_start) * 0.3f;
+//				y_start2 = y_start + (y_bound - y_start) * 0.3f;
+//				y_bound2 = y_bound - (y_bound - y_start) * 0.3f;
+//				break;
+//			case 3:	//right
+//				x_start2 = x_bound - (x_bound - x_start) * 0.3f;
+//				x_bound2 = x_bound;
+//				y_start2 = y_start + (y_bound - y_start) * 0.3f;
+//				y_bound2 = y_bound - (y_bound - y_start) * 0.3f;
+//				break;
+//			}
+//			lcd->SetRegion(
+//					Lcd::Rect(x_start2, y_start2, x_bound2 - x_start2,
+//							y_bound2 - y_start2));
+//			lcd->FillColor(Lcd::kGreen);
+//			for (uint8_t y = y_start2; y < y_bound2; y += 2)
+//				for (uint8_t x = x_start2; x < x_bound2; x += 2)
+//					if (cal_sobel(x, y) > sobel_value) {
+//						point p(x, y);
+//						lcd->SetRegion(Lcd::Rect(x, y, 1, 1));
+//						lcd->FillColor(Lcd::kRed);
+//						it = edges.begin();
+//						for (; it != edges.end(); it++)
+//							if (check_near(*it, p)) {
+//								p.count++;
+//								it->count++;
+//							}
+//						edges.push_back(p);
+//					}
+//		}
+//	} else {
+		for (uint16_t y = y_start; y < y_bound; y += 3)
+			for (uint16_t x = x_start; x < x_bound; x += 3)
+				if (cal_sobel(x, y) > sobel_value) {
+					point p(x, y);
+					it = edges.begin();
+					for (; it != edges.end(); it++)
+						if (check_near(*it, p)) {
+							p.count++;
+							it->count++;
+						}
+					edges.push_back(p);
 				}
-				edges.push_back(p);
-			}
+//	}
 	edges.sort(sort_x);
 	for (int a = 0; a < 2; a++) {
 		it = edges.begin();
@@ -131,7 +184,7 @@ Beacon check_beacon_edge(int mode) {
 					temp.upper_y = it->y;
 				break;
 			}
-		rit = edges.rbegin();
+		auto rit = edges.rbegin();
 		for (; rit != edges.rend(); ++rit)
 			if (rit->count > min_edge) {
 				if (a == 0)
@@ -142,12 +195,10 @@ Beacon check_beacon_edge(int mode) {
 			}
 		edges.sort(sort_y);
 	}
-	if (edges.size() < 20)
+	temp.calc();
+
+	if (edges.size() < 5 || temp.area > max_size)
 		temp = Beacon(0, 0);
-	else
-		temp.calc();
-	if (temp.area > max_size)
-		temp.area = 0;
 	return temp;
 }
 
@@ -279,6 +330,7 @@ bool loop(uint8_t mode) {
 				if (temp.area > min_area) {
 					insert(temp, ptr_mode::ir_Target);
 					irState = seen;
+					low_timer = false;
 					return true;
 				}
 			}
@@ -287,22 +339,131 @@ bool loop(uint8_t mode) {
 	return false;
 }
 
-bool check_near(Beacon* b1, Beacon* b2) {
-	if (b1 == NULL || b2 == NULL)
-		return false;
-	return abs(b1->center.first - b2->center.first) < near_dist
-			&& abs(b1->center.second - b2->center.second) < near_dist;
+// bool check_near(Beacon* b1, Beacon* b2) {
+// 	if (b1 == NULL || b2 == NULL)
+// 		return false;
+// 	return abs(b1->center.first - b2->center.first) < near_dist
+// 			&& abs(b1->center.second - b2->center.second) < near_dist;
+// }
+
+bool check_same(Beacon t) {
+	Beacon temp = check_beacon_ir(t.center.first, t.center.second);
+	if (temp.area > min_area) {
+		insert(temp, ptr_mode::ir_Target);
+		irState = seen;
+		low_timer = false;
+		if (!high_timer) {
+			high_time = System::Time();
+			high_timer = true;
+		}
+		return true;
+	}
+	return false;
+}
+
+enum dir {
+	h = 0, v
+};
+
+bool search_line(uint &x, uint &y, dir d) {
+	int m_y = y;
+	for (int a = 0; a < 2; a++) {
+		uint error = 0;
+		int m_x = x;
+		while (error < 10) {
+			if (cal_sobel(m_x, m_y) > sobel_value) {
+				x = m_x;
+				y = m_y;
+				return true;
+			} else {
+				error++;
+				if (a)
+					m_x++;
+				else
+					m_x--;
+				if (m_x < 0 || m_x >= width)
+					break;
+			}
+		}
+	}
+	return false;
+}
+
+std::list<regression_line> find_boarder(bool start_check) {
+	std::list<regression_line> lines;
+	std::list<std::pair<int16_t, int16_t>> line;
+	uint y = height - 3;
+	uint moving_y = y;
+	bool find = false;
+	const uint8_t error = 5;
+	uint8_t error_count = 0;
+	uint x = start_check ? 80 : 2;
+	uint x_bound = width;
+	for (; x < x_bound; x++) {	//lower bound
+		if (cal_sobel(x, y) > sobel_value) {
+			line.push_back(std::make_pair(x, y));
+			lcd->SetRegion(Lcd::Rect(x, y, 1, 1));
+			lcd->FillColor(Lcd::kRed);
+			moving_y = y - 1;
+			uint m_x = x;
+			while (true) {
+				if (search_line(m_x, moving_y, dir::v)) {
+					line.push_back(std::make_pair(m_x, moving_y));
+					lcd->SetRegion(Lcd::Rect(m_x, moving_y, 1, 1));
+					lcd->FillColor(Lcd::kRed);
+					if (line.size() >= 25) {
+						find = true;
+						break;
+					}
+					moving_y--;
+				} else if (++error_count > error)
+					break;
+			}
+			if (find) {
+				regression_line output;
+				int mean = 0;
+				int y_mean = 0;
+				for (auto it = line.begin(); it != line.end(); it++) {
+					mean += (*it).first;
+					y_mean += (*it).second;
+				}
+				mean /= line.size();
+				y_mean /= line.size();
+				int Sx = 0;
+				for (auto it = line.begin(); it != line.end(); it++)
+					Sx += pow((*it).first - mean, 2);
+				int Sxy = 0;
+				for (auto it = line.begin(); it != line.end(); it++)
+					Sxy += ((*it).first - mean) * ((*it).second - y_mean);
+				output.slope = Sx == 0 ? 0 : (float) Sxy / Sx;
+				output.intercept = y_mean - output.slope * mean;
+				for (int y = moving_y; y > 0; y--) {
+					int x2 = (y - output.intercept) / output.slope;
+					lcd->SetRegion(Lcd::Rect(x2, y, 1, 1));
+					lcd->FillColor(Lcd::kRed);
+				}
+				lines.push_back(output);
+			}
+			line.clear();
+			error_count = 0;
+		}
+	}
+	return lines;
 }
 
 void process() {
+
+//	find_boarder();
 	Beacon temp;
-	if (timer && System::Time() - low_time > 100) {
+	if ((low_timer && System::Time() - low_time > 500)
+			|| (high_timer && System::Time() - high_time > 500)) {
 		if (ir_record != NULL) {
 			delete ir_record;
 			ir_record = NULL;
 		}
 		irState = no;
-		timer = false;
+		low_timer = false;
+		high_timer = false;
 	}
 
 	if (ir_record != NULL) {
@@ -311,57 +472,52 @@ void process() {
 		for (int i = 0; i < 2; i++) {
 			if (temp.area > min_area) {	// 0 for ir scan, 1 for edge scan
 				if (i == 0) {
-					timer = false;
 					if (irState == flash)
 						irState = checked;
+					low_timer = false;
+					if (!high_timer) {
+						high_time = System::Time();
+						high_timer = true;
+					}
 				} else {
 					if (irState == seen)
 						irState = flash;
-					if (!timer) {
+					high_timer = false;
+					if (!low_timer) {
 						low_time = System::Time();
-						timer = true;
+						low_timer = true;
 					}
 				}
-				insert(temp, ptr_mode::ir_Target);
-				if (o_record != NULL) {		//check o_record
-					temp = check_beacon_edge(1);
-					if (temp.area
-							> min_area /* && check_within(temp.center)*/) {
-						insert(temp, ptr_mode::o_Target);
-						return;		//ir and o both find -> return
-					}
-				}
-				temp = check_beacon_edge(2);	//check the avoid region
-				if (temp.area > min_area) {
-					insert(temp, ptr_mode::o_Target);
-					return;			//ir and o both find -> return
-				}
-				break;
-			}
-			temp = check_beacon_edge(0);
-		}
-	}
-	if (o_record != NULL) {		//ir_record must equal to NULL at this point
-		temp = check_beacon_edge(1);
-		if (temp.area > min_area /*&& check_within(temp.center)*/)
-			insert(temp, ptr_mode::o_Target);	//only o is find -> continue
-		else {
-			delete o_record;
-			o_record = NULL;
-		}
-	} else {
-		temp = check_beacon_edge(2);	//check the avoid region
-		if (temp.area > min_area) {
-			insert(temp, ptr_mode::o_Target);
-			temp = check_beacon_ir(o_target->center.first,
-					o_target->center.second);//check if that beacon is also a target or not
-			if (temp.area > min_area) {
 				insert(temp, ptr_mode::ir_Target);
 				return;
 			}
+			temp = check_beacon_edge(0);
+		}
+		if (!low_timer) {
+			low_time = System::Time();
+			low_timer = true;
 		}
 	}
-	if (ir_target == NULL && (loop(0) || loop(1) || loop(2)))
+	if (o_record != NULL) {		//ir not find
+		temp = check_beacon_edge(1);
+		if (temp.area > min_area) {
+			if (check_same(temp)) {
+				delete o_record;
+				o_record = NULL;
+			} else
+				insert(temp, ptr_mode::o_Target);
+			return;
+		}
+		delete o_record;
+		o_record = NULL;
+	}
+	temp = check_beacon_edge(2);	//check the avoid region
+	if (temp.area > min_area) {
+		if (!check_same(temp))
+			insert(temp, ptr_mode::o_Target);
+		return;
+	}
+	if (loop(0) || loop(1) || loop(2))
 		return;
 }
 #endif /* INC_IMAGE_PROCESSING_H_ */

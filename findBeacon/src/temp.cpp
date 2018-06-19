@@ -89,7 +89,6 @@ void send(state_ action, uint8_t &state) {
 
 int main() {
 	System::Init();
-
 	Led Led0(init_led(0));
 	led0 = &Led0;
 	Led Led1(init_led(1));
@@ -254,10 +253,6 @@ int main() {
 					sprintf(out, "%d , %d", ptr->center.first,
 							ptr->center.second);
 					writer->WriteBuffer(out, 20);
-					if (ir_target2.same) {
-						lcd->SetRegion(Lcd::Rect(0, 60, 160, 15));
-						writer->WriteString("Same");
-					}
 				} else {
 					lcd->SetRegion(Lcd::Rect(0, 15, 160, 15));
 					writer->WriteString("no");
@@ -269,7 +264,7 @@ int main() {
 							ptr->center.second);
 					writer->WriteBuffer(out, 20);
 				} else {
-					lcd->SetRegion(Lcd::Rect(0, 15, 160, 15));
+					lcd->SetRegion(Lcd::Rect(0, 45, 160, 15));
 					writer->WriteString("no");
 				}
 			}
