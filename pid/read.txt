@@ -6,6 +6,26 @@
  float R_kp = 4;
  float R_ki = 0.2;
  float R_kd = 0;
+ 
+  //lower
+ const int chasing_speed = 70;
+ const int finding_speed = 50;
+ const int rotate_speed = 50;
+ const int rotate_speed2 = 50;
+ const int L_out_speed = 70;
+ const int R_out_speed = 41;
+ const int L_Rcircle_speed = 70;
+ const int R_Rcircle_speed = 31;
+
+ //higher
+// const int chasing_speed = 100;
+// const int finding_speed = 70;
+// const int rotate_speed = 70;
+// const int rotate_speed2 = 120;
+// const int L_out_speed = 100;
+// const int R_out_speed = 58;
+// const int L_Rcircle_speed = 100;
+// const int R_Rcircle_speed = 44;
 	
 	const float speedInclude = 7;
  const float speedIgnore = 100;
