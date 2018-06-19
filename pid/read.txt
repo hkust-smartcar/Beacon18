@@ -1,4 +1,11 @@
- 	const float speedInclude = 7;
+ 	 float L_kp = 4;
+ float L_ki = 0.2;
+ float L_kd = 0;
+ float R_kp = 4;
+ float R_ki = 0.2;
+ float R_kd = 0;
+	
+	const float speedInclude = 7;
  const float speedIgnore = 100;
   
   ////init
