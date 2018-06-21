@@ -75,10 +75,10 @@ void send_coord(uint8_t type) {
 }
 
 enum working_mode {
-	image = 0, word
+	image = 0, word, close
 };
 
-const working_mode m = word;
+const working_mode m = close;
 int main() {
 	System::Init();
 
@@ -96,43 +96,46 @@ int main() {
 	cam = &cam_;
 	width = cam->GetW();
 	height = cam->GetH();
-	bool run = false;
 	bool comfirm = false;
-	JyMcuBt106 bt_(init_bt(run, comfirm));
+	JyMcuBt106 bt_(init_bt(comfirm));
 	bt = &bt_;
-	JyMcuBt106 comm_(init_comm(run));
+	JyMcuBt106 comm_(init_comm());
 	comm = &comm_;
 	int start = 0;
 	uint32_t tick = System::Time();
 	cam->Start();
-//	Button::Config b_config;
-//	b_config.id = 0;
-//	Button b1(b_config);
-//	bool down_timer = false;
-//	uint16_t down_time = 0;
-//	while (!cam->IsAvailable())
-//		;
-//	buf = cam->LockBuffer();
-//	display_greyscale_image();
-//	while (true) {
-//		if(b1.IsUp() && !down_timer)
-//			continue;
-//		if (b1.IsDown()) {
-//			if (!down_timer) {
-//				down_timer = true;
-//				down_time = System::Time();
-//			}
-//		} else if (down_timer && System::Time() - down_time > 500) {
-//			break;
-//		} else {
-//			cam->RegSet(0x0C, 0x03);
-//			cam->UnlockBuffer();
-//			System::DelayMs(300);
-//			buf = cam->LockBuffer();
-//			display_greyscale_image();
-//			down_timer = false;
-//		}
-//	}
+	Button::Config b_config;
+	b_config.id = 0;
+	b_config.is_active_low = true;
+	Button b1(b_config);
+	bool down_timer = false;
+	uint16_t down_time = 0;
+	while (!cam->IsAvailable())
+		;
+	buf = cam->LockBuffer();
+	display_greyscale_image();
+	while (true) {
+		if (b1.IsUp() && !down_timer)
+			continue;
+		if (b1.IsDown()) {
+			if (!down_timer) {
+				down_timer = true;
+				down_time = System::Time();
+			}
+		} else if (down_timer && System::Time() - down_time > 500) {
+			break;
+		} else {
+			cam->RegSet(0x0C, 0x03);
+			cam->UnlockBuffer();
+			System::DelayMs(300);
+			buf = cam->LockBuffer();
+			display_greyscale_image();
+			down_timer = false;
+		}
+	}
+	cam->UnlockBuffer();
+	lcd->SetRegion(Lcd::Rect(0, 0, 160, 128));
+	lcd->Clear(Lcd::kWhite);
 
 	irState = no;
 	if (m == word) {
@@ -145,7 +148,7 @@ int main() {
 	while (1) {
 		if (tick != System::Time()) {
 			tick = System::Time();
-			if (tick % 40 == 0) {
+			if (tick % 20 == 0 && run) {
 				start = tick;
 				buf = cam->LockBuffer();
 				if (m == image) {
@@ -154,7 +157,7 @@ int main() {
 				}
 				process();
 				Beacon *ir_target_mask = NULL;
-				if (irState == checked)
+				if (irState == checked && System::Time() - find_time > 100)
 					ir_target_mask = ir_target;
 				if (m == word) {
 					lcd->SetRegion(Lcd::Rect(0, 60, 160, 15));

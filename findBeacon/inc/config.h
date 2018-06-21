@@ -9,7 +9,7 @@
 #define INC_CONFIG_H_
 #include "var.h"
 #include <list>
-
+#include "libbase/k60/vectors.h"
 
 Led::Config init_led(uint16_t id) {
 	Led::Config led_config;
@@ -37,13 +37,6 @@ LcdTypewriter::Config init_writer() {
 	return writer_config;
 }
 
-Pit::Config init_pid_loop(){
-	Pit::Config pitConfig;
-	pitConfig.channel = 0;
-	pitConfig.count = 50000 * 10;
-	pitConfig.isr = &pid_cycle;
-	Pit pit(pitConfig);
-}
 
 Ov7725::Config init_cam() {
 	Ov7725::Config cam_config;
@@ -66,9 +59,10 @@ JyMcuBt106::Config init_bt() {
 
 JyMcuBt106::Config init_comm() {
 	JyMcuBt106::Config config;
-	config.baud_rate = libbase::k60::Uart::Config::BaudRate::k4800;
+	config.baud_rate = libbase::k60::Uart::Config::BaudRate::k9600;
 	config.id = 2;
 	config.rx_isr = &comm_listener;
+	// NVIC_SetPriority(UART5_RX_TX_IRQn, __BASE_IRQ_PRIORITY - 3);
 	return config;
 }
 

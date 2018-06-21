@@ -26,9 +26,9 @@ const uint8_t size = 3;
 const uint8_t white = 200;
 int8_t y_mask[3][3] = { { -1, 0, 1 }, { -2, 0, 2 }, { -1, 0, 1 } };
 int8_t x_mask[3][3] = { { -1, -2, -1 }, { 0, 0, 0 }, { 1, 2, 1 } };
-Beacon avoid_region(80, 130, 20, 100);
+Beacon avoid_region(60, 130, 0, 110);
 uint8_t min_area = 10;
-uint16_t near_dist = 15;
+uint16_t near_dist = 20;
 uint8_t min_edge = 5;
 
 inline int16_t cal_sobel(uint16_t x, uint16_t y) {
@@ -79,7 +79,7 @@ bool sort_y(const point& first, const point& second) {
 Beacon check_beacon_edge(int mode) {
 	Beacon temp;
 	Beacon* ptr = NULL;
-	int8_t error = 10;
+	int8_t error = 15;
 	switch (mode) {
 	case 0:
 		ptr = ir_record;
@@ -196,7 +196,6 @@ Beacon check_beacon_edge(int mode) {
 		edges.sort(sort_y);
 	}
 	temp.calc();
-
 	if (edges.size() < 5 || temp.area > max_size)
 		temp = Beacon(0, 0);
 	return temp;
@@ -455,8 +454,8 @@ void process() {
 
 //	find_boarder();
 	Beacon temp;
-	if ((low_timer && System::Time() - low_time > 500)
-			|| (high_timer && System::Time() - high_time > 500)) {
+	if ((low_timer && System::Time() - low_time > 300)
+			|| (high_timer && System::Time() - high_time > 300)) {
 		if (ir_record != NULL) {
 			delete ir_record;
 			ir_record = NULL;
@@ -472,8 +471,10 @@ void process() {
 		for (int i = 0; i < 2; i++) {
 			if (temp.area > min_area) {	// 0 for ir scan, 1 for edge scan
 				if (i == 0) {
-					if (irState == flash)
+					if (irState == flash){
+						find_time = System::Time();
 						irState = checked;
+					}
 					low_timer = false;
 					if (!high_timer) {
 						high_time = System::Time();

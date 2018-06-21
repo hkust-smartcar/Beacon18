@@ -41,8 +41,6 @@ inline void show_avoid_region() {
 	lcd->FillColor(Lcd::kRed);
 	lcd->SetRegion(Lcd::Rect(130, 0, 1, cam->GetH()));
 	lcd->FillColor(Lcd::kRed);
-	lcd->SetRegion(Lcd::Rect(0, 20, 160, 1));
-	lcd->FillColor(Lcd::kRed);
 }
 
 inline void display_greyscale_image() {

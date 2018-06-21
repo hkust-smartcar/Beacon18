@@ -59,6 +59,7 @@ struct point {
 	}
 };
 
+bool run = false;
 const Byte* buf = NULL;
 Beacon* ir_record = NULL;
 Beacon* o_record = NULL;
@@ -76,6 +77,7 @@ JyMcuBt106* comm = NULL;
 
 uint16_t sobel_value = 140;
 ir_state irState = no;
+uint32_t find_time = 0;
 
 
 #endif /* INC_VAR_H_ */

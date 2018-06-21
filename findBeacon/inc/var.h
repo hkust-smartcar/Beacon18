@@ -28,7 +28,7 @@ using namespace libsc::k60;
 using namespace libbase::k60;
 using namespace libutil;
 
-struct BeaconPackage{
+struct BeaconPackage {
 	Beacon* target = NULL;
 	uint16_t received_time = 0;
 };
@@ -41,6 +41,14 @@ struct BitConsts {
 	uint8_t kEND = 0xFF;
 };
 
+enum rotate_state {
+	no, prepare, performing
+};
+enum state_ {
+	forward, chase, rotation, out, keep,avoid
+};
+
+state_ action = forward;
 bool run = false;
 const Byte* buf = NULL;
 Beacon* ir_target = NULL;
@@ -70,11 +78,11 @@ IncrementalPidController<int, int>* R_pid = NULL;
 PID* Dir_pid = NULL;
 Pit* pit = NULL;
 
-void SetPower(int speed,int id){
+void SetPower(int speed, int id) {
 	bool direction = (speed > 0);
-	int power = (speed > 0?speed:-speed);
-	power = libutil::Clamp<int>(0,power,600);
-	switch(id){
+	int power = (speed > 0 ? speed : -speed);
+	power = libutil::Clamp<int>(0, power, 600);
+	switch (id) {
 	case 0:
 		L_motor->SetPower(power);
 		L_motor->SetClockwise(direction);
@@ -85,13 +93,15 @@ void SetPower(int speed,int id){
 	}
 }
 
-int GetMotorPower(int id){
-	switch(id){
+int GetMotorPower(int id) {
+	switch (id) {
 	case 0:
-		return L_motor->IsClockwise() ? L_motor->GetPower() : -L_motor->GetPower();//true is forward
+		return L_motor->IsClockwise() ?
+				L_motor->GetPower() : -L_motor->GetPower(); //true is forward
 		break;
 	case 1:
-		return R_motor->IsClockwise() ? -R_motor->GetPower() : R_motor->GetPower();//false is forward
+		return R_motor->IsClockwise() ?
+				-R_motor->GetPower() : R_motor->GetPower(); //false is forward
 		break;
 	}
 	return 0;
@@ -121,40 +131,42 @@ inline void BuildBufferPackage() {
 
 }
 
-void pid_cycle(Pit*){
-		encoder1->Update();
-		encoder2->Update();
-		SetPower(GetMotorPower(0) + L_pid->Calc(encoder1->GetCount()), 0);
-		SetPower(GetMotorPower(1) + R_pid->Calc(-encoder2->GetCount()), 1);
+// void pid_cycle(Pit*){
+// 		encoder1->Update();
+// 		encoder2->Update();
+// 		SetPower(GetMotorPower(0) + L_pid->Calc(encoder1->GetCount()), 0);
+// 		SetPower(GetMotorPower(1) + R_pid->Calc(-encoder2->GetCount()), 1);
+// }
+
+bool comm_listener(const Byte *data, const size_t size) {
+	BitConsts a;
+	if (data[0] == a.kSTART)
+		buffer.clear();
+	else if (data[0] == a.kEND)
+		BuildBufferPackage();
+	else
+		buffer.push_back(data[0]);
+	return true;
 }
 
-bool comm_listener(const Byte *data, const size_t size){
-BitConsts a;
-				if(data[0] == a.kSTART)
-				buffer.clear();
-				else if(data[0] == a.kEND)
-				BuildBufferPackage();
-				else
-				buffer.push_back(data[0]);
-				return true;
-}
-
-bool bt_listener(const Byte *data, const size_t size){
-	if (data[0] == 's')
-		{
-			run = true;
-			led0->SetEnable(1);
-			comm->SendStrLiteral("s");
-		}
-		if (data[0] == 'S')
-		{
-			run = false;
-			led0->SetEnable(0);
-			L_motor->SetPower(0);
-			R_motor->SetPower(0);
-			comm->SendStrLiteral("s");
-		}
-		return true;
+bool bt_listener(const Byte *data, const size_t size) {
+	if (data[0] == 's') {
+		run = true;
+		led0->SetEnable(1);
+		comm->SendStrLiteral("s");
+		L_pid->SetSetpoint(30);
+		R_pid->SetSetpoint(30);
+		// pit->SetEnable(true);
+	}
+	if (data[0] == 'S') {
+		run = false;
+		led0->SetEnable(0);
+		L_motor->SetPower(0);
+		R_motor->SetPower(0);
+		// pit->SetEnable(false);
+		comm->SendStrLiteral("S");
+	}
+	return true;
 }
 
 #endif /* INC_VAR_H_ */

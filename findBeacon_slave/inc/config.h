@@ -36,12 +36,12 @@ MT9V034::Config init_cam() {
 	return cam_config;
 }
 
-JyMcuBt106::Config init_bt(bool& run, bool& comfirm) {
+JyMcuBt106::Config init_bt(bool& comfirm) {
 	JyMcuBt106::Config config;
 	config.baud_rate = libbase::k60::Uart::Config::BaudRate::k115200;
 	config.id = 0;
 	config.tx_buf_size = 1;
-	config.rx_isr = [&run,&comfirm](const Byte *data, const size_t size) {
+	config.rx_isr = [&comfirm](const Byte *data, const size_t size) {
 		if(data[0] =='c') {
 			led0->Switch();
 			run = true;
@@ -62,15 +62,17 @@ JyMcuBt106::Config init_bt(bool& run, bool& comfirm) {
 	return config;
 }
 
-JyMcuBt106::Config init_comm(bool& run) {
+JyMcuBt106::Config init_comm() {
 	JyMcuBt106::Config config;
 	config.baud_rate = libbase::k60::Uart::Config::BaudRate::k9600;
 	config.id = 2;
-	config.rx_isr = [&run](const Byte *data, const size_t size) {
+	config.rx_isr = [](const Byte *data, const size_t size) {
 		if(data[0] == 's') {
-			run = !run;
-			led0->Switch();
+			run = true;
+//			led0->Switch();
 		}
+		if(data[0] == 'S')
+			run =false;
 		return true;
 	};
 	return config;
