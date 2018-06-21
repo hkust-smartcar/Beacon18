@@ -172,8 +172,8 @@ int main() {
 //						continue;
 //					}
 				} else {
-					L_pid->SetSetpoint(0);
-					R_pid->SetSetpoint(0);
+					L_pid->SetSetpoint(finding_speed);
+					R_pid->SetSetpoint(finding_speed);
 				}
 			}
 		}
