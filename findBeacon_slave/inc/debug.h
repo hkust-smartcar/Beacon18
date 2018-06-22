@@ -7,6 +7,7 @@
 
 #ifndef INC_DEBUG_H_
 #define INC_DEBUG_H_
+#include "var.h"
 
 void send_image(bool comfirm) {
 	int size = cam->GetH() * cam->GetW();

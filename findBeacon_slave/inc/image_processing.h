@@ -11,6 +11,7 @@
 #include "var.h"
 #include <list>
 #include "math.h"
+#include "helper.h"
 
 using namespace libsc;
 using namespace libsc::k60;
@@ -75,19 +76,41 @@ bool sort_y(const point& first, const point& second) {
 	return first.y < second.y;
 }
 
+bool check_valid(std::list<point> edges, std::list<point>::iterator it){
+	uint8_t count = 0;
+	for(auto it2 = edges.begin() ; it2 != edges.end();it2++){
+		if(check_near(*it,*it2) && it != it2)
+			count++;
+		if(count == min_edge)
+			return true;
+	}
+return false;
+}
+
+bool check_valid2(std::list<point> edges, std::list<point>::reverse_iterator it){
+	uint8_t count = 0;
+	for(auto it2 = edges.rbegin() ; it2 != edges.rend();it2++){
+		if(check_near(*it,*it2) && it != it2)
+			count++;
+		if(count == min_edge)
+			return true;
+	}
+return false;
+}
+
 // 0 = beacon, 1 = check o_recrod, 2 = avoid
-Beacon check_beacon_edge(int mode) {
+Beacon check_beacon_edge(scan_mode mode) {
 	Beacon temp;
 	Beacon* ptr = NULL;
 	int8_t error = 15;
 	switch (mode) {
-	case 0:
+	case beacon:
 		ptr = ir_record;
 		break;
-	case 1:
+	case check_record:
 		ptr = o_record;
 		break;
-	case 2:
+	case avoid:
 		ptr = &avoid_region;
 		error = 0;
 		break;
@@ -97,7 +120,6 @@ Beacon check_beacon_edge(int mode) {
 	int16_t y_start = (int) ptr->upper_y - error;
 	int16_t y_bound = (int) ptr->lower_y + error;
 	std::list<point> edges;
-	auto it = edges.begin();
 
 	if (mode < 2) {
 		if (x_start < 0)
@@ -160,33 +182,25 @@ Beacon check_beacon_edge(int mode) {
 //					}
 //		}
 //	} else {
-		for (uint16_t y = y_start; y < y_bound; y += 3)
-			for (uint16_t x = x_start; x < x_bound; x += 3)
-				if (cal_sobel(x, y) > sobel_value) {
-					point p(x, y);
-					it = edges.begin();
-					for (; it != edges.end(); it++)
-						if (check_near(*it, p)) {
-							p.count++;
-							it->count++;
-						}
+		for (uint8_t y = y_start; y < y_bound; y += 3)
+			for (uint8_t x = x_start; x < x_bound; x += 3)
+				if (cal_sobel(x, y) > sobel_value){
+					point p(x,y);
 					edges.push_back(p);
 				}
 //	}
 	edges.sort(sort_x);
 	for (int a = 0; a < 2; a++) {
-		it = edges.begin();
-		for (; it != edges.end(); it++)
-			if (it->count > min_edge) {
+		for (auto it = edges.begin(); it != edges.end(); it++)
+			if (check_valid(edges,it)) {
 				if (a == 0)
 					temp.left_x = it->x;
 				else
 					temp.upper_y = it->y;
 				break;
 			}
-		auto rit = edges.rbegin();
-		for (; rit != edges.rend(); ++rit)
-			if (rit->count > min_edge) {
+		for (auto rit = edges.rbegin(); rit != edges.rend(); ++rit)
+			if (check_valid2(edges,rit)) {
 				if (a == 0)
 					temp.right_x = rit->x;
 				else
@@ -253,68 +267,26 @@ Beacon check_beacon_ir(uint16_t x, uint16_t y) {
 	return temp;
 }
 
-//bool check_skip(uint16_t x, uint16_t y) {
-//	if (ir_target == NULL)
-//		return false;
-//	uint8_t error = 0;
-//	if (x < ir_target->right_x + error && y < ir_target->lower_y + error
-//			&& y
-//					> (ir_target->upper_y - error < 0 ?
-//							0 : ir_target->upper_y - error)
-//			&& x
-//					> (ir_target->left_x - error < 0 ?
-//							0 : ir_target->left_x - error))
-//		return true;
-//	return false;
-//}
-
-void insert(Beacon t, ptr_mode m) {
-	Beacon** ptr = NULL;
-	switch (m) {
-	case o:
-		ptr = &o_target;
-		break;
-	case oRecord:
-		ptr = &o_record;
-		break;
-	case irRecord:
-		ptr = &ir_record;
-		break;
-	case ir_Target:
-		ptr = &ir_target;
-		break;
-	case o_Target:
-		ptr = &o_target;
-		break;
-	}
-	if (*ptr != NULL) {
-		delete *ptr;
-		*ptr = NULL;
-	}
-	*ptr = new Beacon(t);
-}
-
-//0 upper, 1 lower left, 2 lower right
-bool loop(uint8_t mode) {
+bool loop(loop_mode mode) {
 	Beacon temp;
 	uint16_t x_start;
 	uint16_t x_bound;
 	uint16_t y;
 	uint16_t y_bound;
 	switch (mode) {
-	case 0:
+	case upper:
 		x_start = 0;
 		x_bound = width;
 		y = 0;
 		y_bound = avoid_region.upper_y;
 		break;
-	case 1:
+	case lower_left:
 		x_start = 0;
 		x_bound = avoid_region.left_x;
 		y = avoid_region.upper_y;
 		y_bound = height;
 		break;
-	case 2:
+	case lower_right:
 		x_start = avoid_region.right_x;
 		x_bound = width;
 		y = avoid_region.upper_y;
@@ -338,13 +310,6 @@ bool loop(uint8_t mode) {
 	return false;
 }
 
-// bool check_near(Beacon* b1, Beacon* b2) {
-// 	if (b1 == NULL || b2 == NULL)
-// 		return false;
-// 	return abs(b1->center.first - b2->center.first) < near_dist
-// 			&& abs(b1->center.second - b2->center.second) < near_dist;
-// }
-
 bool check_same(Beacon t) {
 	Beacon temp = check_beacon_ir(t.center.first, t.center.second);
 	if (temp.area > min_area) {
@@ -359,10 +324,6 @@ bool check_same(Beacon t) {
 	}
 	return false;
 }
-
-enum dir {
-	h = 0, v
-};
 
 bool search_line(uint &x, uint &y, dir d) {
 	int m_y = y;
@@ -492,7 +453,7 @@ void process() {
 				insert(temp, ptr_mode::ir_Target);
 				return;
 			}
-			temp = check_beacon_edge(0);
+			temp = check_beacon_edge(scan_mode::beacon);
 		}
 		if (!low_timer) {
 			low_time = System::Time();
@@ -500,7 +461,7 @@ void process() {
 		}
 	}
 	if (o_record != NULL) {		//ir not find
-		temp = check_beacon_edge(1);
+		temp = check_beacon_edge(scan_mode::check_record);
 		if (temp.area > min_area) {
 			if (check_same(temp)) {
 				delete o_record;
@@ -512,13 +473,13 @@ void process() {
 		delete o_record;
 		o_record = NULL;
 	}
-	temp = check_beacon_edge(2);	//check the avoid region
+	temp = check_beacon_edge(scan_mode::avoid);	//check the avoid region
 	if (temp.area > min_area) {
 		if (!check_same(temp))
 			insert(temp, ptr_mode::o_Target);
 		return;
 	}
-	if (loop(0) || loop(1) || loop(2))
+	if (loop(loop_mode::upper) || loop(loop_mode::lower_left) || loop(loop_mode::lower_right))
 		return;
 }
 #endif /* INC_IMAGE_PROCESSING_H_ */

@@ -28,9 +28,20 @@ enum ir_state {
 	checked
 };
 
-struct regression_line {
-	float slope;
-	float intercept;
+enum loop_mode {
+	upper,
+	lower_left,
+	lower_right
+};
+
+enum dir {
+	h = 0, v
+};
+
+enum scan_mode{
+	beacon,
+	check_record,
+	avoid
 };
 
 enum ptr_mode{
@@ -45,6 +56,11 @@ enum PkgType {
 	irTarget = 0, oTarget = 1
 };
 
+struct regression_line {
+	float slope;
+	float intercept;
+};
+
 struct BitConsts {
 	uint8_t kSTART = 0xF0;
 	uint8_t kEND = 0xFF;
@@ -53,9 +69,8 @@ struct BitConsts {
 struct point {
 	uint8_t x;
 	uint8_t y;
-	uint8_t count;
 	point(uint8_t m_x, uint8_t m_y) :
-			x(m_x), y(m_y), count(0) {
+			x(m_x), y(m_y){
 	}
 };
 

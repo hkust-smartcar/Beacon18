@@ -8,6 +8,7 @@
 #ifndef INC_CONFIG_H_
 #define INC_CONFIG_H_
 #include "var.h"
+#include "helper.h"
 
 Led::Config init_led(uint16_t id) {
 	Led::Config led_config;
@@ -66,15 +67,7 @@ JyMcuBt106::Config init_comm() {
 	JyMcuBt106::Config config;
 	config.baud_rate = libbase::k60::Uart::Config::BaudRate::k9600;
 	config.id = 2;
-	config.rx_isr = [](const Byte *data, const size_t size) {
-		if(data[0] == 's') {
-			run = true;
-//			led0->Switch();
-		}
-		if(data[0] == 'S')
-			run =false;
-		return true;
-	};
+	config.rx_isr = &comm_listener;
 	return config;
 }
 #endif /* INC_CONFIG_H_ */
