@@ -37,13 +37,6 @@ inline void display_time(int start) {
 	writer->WriteBuffer(data, 20);
 }
 
-inline void show_avoid_region() {
-	lcd->SetRegion(Lcd::Rect(80, 0, 1, cam->GetH()));
-	lcd->FillColor(Lcd::kRed);
-	lcd->SetRegion(Lcd::Rect(130, 0, 1, cam->GetH()));
-	lcd->FillColor(Lcd::kRed);
-}
-
 inline void display_greyscale_image() {
 	for (uint i = 0; i < height; i++) {
 		lcd->SetRegion(Lcd::Rect(0, i, 160, 1));

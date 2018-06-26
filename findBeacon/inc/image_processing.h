@@ -165,9 +165,11 @@ inline bool check_near(const Beacon b1, const Beacon b2) {
 	return abs(b1.center.first - b2.center.first) < near_dist && abs(b1.center.second - b2.center.second) < near_dist;
 }
 
-inline bool process(bool seen) {
-	//////check for beacon with the last recorded pos/////////
+inline void process(bool seen) {
+	buf = cam->LockBuffer();
+	ir_target = NULL;
 	uint8_t beacon_count = 0;
+	//////check for beacon with the last recorded pos/////////
 	if (seen) {
 		uint16_t temp_pos = (width * last_beacon.second) / 8
 				+ last_beacon.first / 8;
@@ -175,7 +177,8 @@ inline bool process(bool seen) {
 		scan(temp_pos, temp_bit_pos, beacon_count, 1);
 		if (beacons[0].count > 50) {
 			ir_target = beacons;
-			return true;
+			cam->UnlockBuffer();
+			return;
 		} else
 			beacon_count = 0;
 	}
@@ -190,11 +193,11 @@ inline bool process(bool seen) {
 				++pos;
 			}
 			if (!GET_BIT(buf[pos], bit_pos)) {
+				if (beacon_count == max_beacon)
+					break;
 				if (beacon_count && skip(pos, bit_pos, beacon_count))
 					continue;
 				scan(pos, bit_pos, beacon_count, 0);
-				if (beacon_count == max_beacon)
-					return false;
 			}
 		}
 		zero = !zero;
@@ -214,19 +217,18 @@ inline bool process(bool seen) {
 					if (++count[std::distance(center_record.begin(), it)]
 							> min_frame) {
 						ir_target = &(*it);
-						last_beacon.first = ir_target->center.first;
-						last_beacon.second = ir_target->center.second;
+						last_beacon = ir_target->center;
 						frame_count = 0;
+						break;
 					}
-					break;
 				}
 			}
 			if (!add) {
-				center_record.emplace_back(beacons[i]);
+				center_record.push_back(beacons[i]);
 				count[center_record.size() - 1] = 1;
 			}
 		}
 	}
-	return false;
+	cam->UnlockBuffer();
 }
 #endif /* INC_IMAGE_PROCESSING_H_ */

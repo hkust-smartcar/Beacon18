@@ -8,6 +8,7 @@
 #ifndef INC_CONFIG_H_
 #define INC_CONFIG_H_
 #include "var.h"
+#include "function.h"
 #include <list>
 #include "libbase/k60/vectors.h"
 
@@ -52,7 +53,7 @@ Ov7725::Config init_cam() {
 JyMcuBt106::Config init_bt() {
 	JyMcuBt106::Config config;
 	config.baud_rate = libbase::k60::Uart::Config::BaudRate::k115200;
-	config.id = 1;
+	config.id = 0;
 	config.rx_isr = &bt_listener;
 	return config;
 }

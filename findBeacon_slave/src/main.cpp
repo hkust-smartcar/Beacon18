@@ -12,7 +12,7 @@
 #include <string>
 #include <libbase/k60/mcg.h>
 #include <libsc/system.h>
-//#include "libsc/joystick.h"
+#include "libsc/joystick.h"
 #include "libsc/battery_meter.h"
 //#include "libbase/k60/pit.h"
 #include "libbase/misc_utils_c.h"
@@ -39,46 +39,7 @@ using namespace libsc;
 using namespace libsc::k60;
 using namespace libbase::k60;
 
-inline void reset_recrod() {
-	if (ir_target != NULL) {
-		insert(*ir_target, ptr_mode::irRecord);
-		delete ir_target;
-		ir_target = NULL;
-	}
-
-	if (o_target != NULL) {
-		insert(*o_target, ptr_mode::oRecord);
-		delete o_target;
-		o_target = NULL;
-	}
-}
-
-void send_coord(uint8_t type) {
-	BitConsts a;
-	uint8_t buffer[5];
-	buffer[0] = a.kSTART;
-	Beacon *ptr = NULL;
-	switch (type) {
-	case PkgType::irTarget:
-		buffer[1] = PkgType::irTarget;
-		ptr = ir_target;
-		break;
-	case PkgType::oTarget:
-		buffer[1] = PkgType::oTarget;
-		ptr = o_target;
-		break;
-	}
-	buffer[2] = (uint8_t) ptr->center.first;
-	buffer[3] = ptr->center.second;
-	buffer[4] = a.kEND;
-	comm->SendBuffer(buffer, 5);
-}
-
-enum working_mode {
-	image = 0, word, close
-};
-
-const working_mode m = close;
+working_mode m = close;
 int main() {
 	System::Init();
 
@@ -104,10 +65,14 @@ int main() {
 	int start = 0;
 	uint32_t tick = System::Time();
 	cam->Start();
-	Button::Config b_config;
-	b_config.id = 0;
-	b_config.is_active_low = true;
-	Button b1(b_config);
+	Joystick::Config j_config;
+	j_config.id = 0;
+	j_config.is_active_low = true;
+//	j_config.dispatcher =[](const uint8_t id, const Joystick::State which){
+//		char data[20] = {};
+//		sprintf(data,"%d",20);
+//	};
+	Joystick joyStick(j_config);
 	bool down_timer = false;
 	uint16_t down_time = 0;
 	while (!cam->IsAvailable())
@@ -115,9 +80,9 @@ int main() {
 	buf = cam->LockBuffer();
 	display_greyscale_image();
 	while (true) {
-		if (b1.IsUp() && !down_timer)
+		if (joyStick.GetState() == Joystick::State::kIdle && !down_timer)
 			continue;
-		if (b1.IsDown()) {
+		if (joyStick.GetState() == Joystick::State::kSelect) {
 			if (!down_timer) {
 				down_timer = true;
 				down_time = System::Time();
@@ -146,9 +111,9 @@ int main() {
 	}
 
 	while (1) {
-		if (tick != System::Time()) {
+		if (tick != System::Time() && run) {
 			tick = System::Time();
-			if (tick % 20 == 0 && run) {
+			if (tick % 20 == 0 ) {
 				start = tick;
 				buf = cam->LockBuffer();
 				if (m == image) {

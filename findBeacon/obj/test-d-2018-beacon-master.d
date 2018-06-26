@@ -1,4 +1,4 @@
-obj/main-d-2018-beacon-slave.o: src/main.cpp \
+obj/test-d-2018-beacon-master.o: src/test.cpp \
  C:\Users\Sheldon\git\libsccc\inc/libbase/k60/mcg.h \
  C:\Users\Sheldon\git\libsccc\inc/libbase/k60/mcg_c.h \
  C:\Users\Sheldon\git\libsccc\inc/libsc/system.h \
@@ -25,16 +25,37 @@ obj/main-d-2018-beacon-slave.o: src/main.cpp \
  C:\Users\Sheldon\git\libsccc\inc/libbase/k60/spi_master_interface.h \
  C:\Users\Sheldon\git\libsccc\inc/libbase/k60/spi_master.h \
  C:\Users\Sheldon\git\libsccc\inc/libsc/config.h \
- C:\Users\Sheldon\git\libsccc\inc/libsc/k60/config/2018_beacon_slave.h \
+ C:\Users\Sheldon\git\libsccc\inc/libsc/k60/config/2018_beacon_master.h \
  C:\Users\Sheldon\git\libsccc\inc/libsc/lcd.h \
  C:\Users\Sheldon\git\libsccc\inc/libsc/led.h \
  C:\Users\Sheldon\git\libsccc\inc/libsc/k60/jy_mcu_bt_106.h \
  C:\Users\Sheldon\git\libsccc\inc/libbase/k60/uart.h \
  C:\Users\Sheldon\git\libsccc\inc/libsc/k60/uart_device.h \
- C:\Users\Sheldon\git\libsccc\inc/libsc/lcd_typewriter.h inc/MT9V034.h \
+ C:\Users\Sheldon\git\libsccc\inc/libsc/lcd_typewriter.h \
+ C:\Users\Sheldon\git\libsccc\inc/libsc/k60/ov7725.h \
  C:\Users\Sheldon\git\libsccc\inc/libbase/k60/gpio_array.h \
+ C:\Users\Sheldon\git\libsccc\inc/libsc/k60/ov7725_configurator.h \
  C:\Users\Sheldon\git\libsccc\inc/libbase/k60/soft_sccb_master.h \
  C:\Users\Sheldon\git\libsccc\inc/libbase/k60/soft_i2c_master.h \
  C:\Users\Sheldon\git\libsccc\inc/libbase/k60/i2c_master_interface.h \
- inc/helper.h inc/var.h inc/config.h inc/debug.h \
- C:\Users\Sheldon\git\libsccc\inc/libsc/button.h
+ C:\Users\Sheldon\git\libsccc\inc/libsc/dir_encoder.h \
+ C:\Users\Sheldon\git\libsccc\inc/libsc/encoder.h \
+ C:\Users\Sheldon\git\libsccc\inc/libbase/pinout_macros.h \
+ C:\Users\Sheldon\git\libsccc\inc/libbase/k60/soft_quad_decoder.h \
+ C:\Users\Sheldon\git\libsccc\inc/libbase/k60/quad_decoder_interface.h \
+ C:\Users\Sheldon\git\libsccc\inc/libbase/k60/ftm_quad_decoder.h \
+ C:\Users\Sheldon\git\libsccc\inc/libsc/alternate_motor.h \
+ C:\Users\Sheldon\git\libsccc\inc/libbase/k60/ftm_pwm.h \
+ C:\Users\Sheldon\git\libsccc\inc/libbase/k60/pwm.h \
+ C:\Users\Sheldon\git\libsccc\inc/libsc/motor.h \
+ C:\Users\Sheldon\git\libsccc\inc/libutil/incremental_pid_controller.h \
+ C:\Users\Sheldon\git\libsccc\inc/libutil/pid_controller.h \
+ C:\Users\Sheldon\git\libsccc\inc/libutil/pid_controller.tcc \
+ C:\Users\Sheldon\git\libsccc\inc/libutil/misc.h \
+ C:\Users\Sheldon\git\libsccc\inc/libutil/incremental_pid_controller.tcc \
+ inc/pid.h C:\Users\Sheldon\git\libsccc\inc/libbase/k60/pit.h \
+ inc/config.h inc/function.h \
+ C:\Users\Sheldon\git\libsccc\inc/libbase/k60/vectors.h \
+ C:\Users\Sheldon\git\libsccc\inc/libbase/k60/hardware.h \
+ C:\Users\Sheldon\git\libsccc\inc/libbase/k60/cmsis/mk60f15.h \
+ C:\Users\Sheldon\git\libsccc\inc/libbase/cmsis/core_cm4.h inc/var.h

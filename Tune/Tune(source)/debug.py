@@ -5,7 +5,6 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 import matplotlib.animation as animation
 import tkinter as tk
-import struct
 from ctypes import c_uint8
 import time
 import sys

@@ -56,6 +56,10 @@ enum PkgType {
 	irTarget = 0, oTarget = 1
 };
 
+enum working_mode {
+	image = 0, word, close
+};
+
 struct regression_line {
 	float slope;
 	float intercept;
@@ -90,7 +94,7 @@ MT9V034* cam = NULL;
 JyMcuBt106* bt = NULL;
 JyMcuBt106* comm = NULL;
 
-uint16_t sobel_value = 140;
+const uint16_t sobel_value = 140;
 ir_state irState = no;
 uint32_t find_time = 0;
 

@@ -30,7 +30,7 @@ using namespace libutil;
 
 struct BeaconPackage {
 	Beacon* target = NULL;
-	uint16_t received_time = 0;
+	uint32_t received_time = 0;
 };
 
 enum PkgType {
@@ -48,7 +48,33 @@ enum state_ {
 	forward, chase, rotation, out, keep,avoid
 };
 
-state_ action = forward;
+int chasing_speed = 50;
+int finding_speed = 30;
+int rotate_speed = 50;
+int L_out_speed = 50;
+int R_out_speed = 50;
+
+float L_kp = 2.5;
+float L_ki = 0.02;
+float L_kd = 0;
+float R_kp = 2.5;
+float R_ki = 0.02;
+float R_kd = 0;
+float Dir_kp = 0.5;
+float Dir_ki = 0.0;
+float Dir_kd = 0.05;
+float avoid_kp = 0.5;
+float avoid_ki = 0.0;
+float avoid_kd = 0.05;
+
+//////////////algo parm///////////////////
+const float target_slope = 0.009855697800993502;
+const float target_intercept = 172.55532972120778;
+const float target_slope2 = -1.4209145956223272;
+const float target_intercept2 = 98.18294250176507;
+
+int16_t target_x = 0;
+state_ action = keep;
 bool run = false;
 const Byte* buf = NULL;
 Beacon* ir_target = NULL;
@@ -61,6 +87,8 @@ const uint16_t height = 240;
 const uint16_t numOfPixel = 9600;
 uint8_t contrast = 0x40;
 uint8_t brightness = 0x00;
+uint32_t max_area = 0;
+uint32_t near_area = 3000;
 Led* led0 = NULL;
 Led* led1 = NULL;
 St7735r* lcd = NULL;
@@ -76,97 +104,6 @@ BatteryMeter* bMeter = NULL;
 IncrementalPidController<int, int>* L_pid = NULL;
 IncrementalPidController<int, int>* R_pid = NULL;
 PID* Dir_pid = NULL;
-Pit* pit = NULL;
-
-void SetPower(int speed, int id) {
-	bool direction = (speed > 0);
-	int power = (speed > 0 ? speed : -speed);
-	power = libutil::Clamp<int>(0, power, 600);
-	switch (id) {
-	case 0:
-		L_motor->SetPower(power);
-		L_motor->SetClockwise(direction);
-		break;
-	case 1:
-		R_motor->SetPower(power);
-		R_motor->SetClockwise(!direction);
-	}
-}
-
-int GetMotorPower(int id) {
-	switch (id) {
-	case 0:
-		return L_motor->IsClockwise() ?
-				L_motor->GetPower() : -L_motor->GetPower(); //true is forward
-		break;
-	case 1:
-		return R_motor->IsClockwise() ?
-				-R_motor->GetPower() : R_motor->GetPower(); //false is forward
-		break;
-	}
-	return 0;
-}
-
-std::list<uint8_t> buffer;
-
-inline void BuildBufferPackage() {
-	auto it = buffer.begin();
-	uint8_t type = *(it++);
-	uint8_t x = *(it++);
-	uint8_t y = *(it++);
-	BeaconPackage* ptr = NULL;
-	switch (type) {
-	case PkgType::irTarget:
-		ptr = &ir_target2;
-		break;
-	case PkgType::oTarget:
-		ptr = &o_target;
-		break;
-	}
-	if (ptr->target == NULL)
-		ptr->target = new Beacon();
-	ptr->target->center.first = x;
-	ptr->target->center.second = y;
-	ptr->received_time = System::Time();
-
-}
-
-// void pid_cycle(Pit*){
-// 		encoder1->Update();
-// 		encoder2->Update();
-// 		SetPower(GetMotorPower(0) + L_pid->Calc(encoder1->GetCount()), 0);
-// 		SetPower(GetMotorPower(1) + R_pid->Calc(-encoder2->GetCount()), 1);
-// }
-
-bool comm_listener(const Byte *data, const size_t size) {
-	BitConsts a;
-	if (data[0] == a.kSTART)
-		buffer.clear();
-	else if (data[0] == a.kEND)
-		BuildBufferPackage();
-	else
-		buffer.push_back(data[0]);
-	return true;
-}
-
-bool bt_listener(const Byte *data, const size_t size) {
-	if (data[0] == 's') {
-		run = true;
-		led0->SetEnable(1);
-		comm->SendStrLiteral("s");
-		L_pid->SetSetpoint(30);
-		R_pid->SetSetpoint(30);
-		// pit->SetEnable(true);
-	}
-	if (data[0] == 'S') {
-		run = false;
-		led0->SetEnable(0);
-		L_motor->SetPower(0);
-		R_motor->SetPower(0);
-		// pit->SetEnable(false);
-		comm->SendStrLiteral("S");
-	}
-	return true;
-}
+PID* avoid_pid = NULL;
 
 #endif /* INC_VAR_H_ */

@@ -40,7 +40,7 @@ MT9V034::Config init_cam() {
 JyMcuBt106::Config init_bt(bool& comfirm) {
 	JyMcuBt106::Config config;
 	config.baud_rate = libbase::k60::Uart::Config::BaudRate::k115200;
-	config.id = 0;
+	config.id = 2;
 	config.tx_buf_size = 1;
 	config.rx_isr = [&comfirm](const Byte *data, const size_t size) {
 		if(data[0] =='c') {
@@ -66,7 +66,7 @@ JyMcuBt106::Config init_bt(bool& comfirm) {
 JyMcuBt106::Config init_comm() {
 	JyMcuBt106::Config config;
 	config.baud_rate = libbase::k60::Uart::Config::BaudRate::k9600;
-	config.id = 2;
+	config.id = 0;
 	config.rx_isr = &comm_listener;
 	return config;
 }

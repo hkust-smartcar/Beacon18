@@ -51,6 +51,7 @@ public:
 		lower_y = y;
 		count = 0;
 		density = 0;
+		area = 0;
 	}
 
 	void calc() {

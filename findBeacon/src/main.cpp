@@ -53,11 +53,7 @@
 //const float target_slope = 0.009855697800993502;
 //const float target_intercept = 172.55532972120778;
 //////////////speed//////////////////////
-//const int chasing_speed = 100;
-//const int finding_speed = 50;
-//const int rotate_speed = 120;
-//const int L_out_speed = 120;
-//const int R_out_speed = 70;
+
 //
 //void send(uint8_t &state) {
 //	if (action == keep)
