@@ -5,7 +5,7 @@
 void SetPower(int speed, int id) {
 	bool direction = (speed > 0);
 	int power = (speed > 0 ? speed : -speed);
-	power = libutil::Clamp<int>(0, power, 600);
+	power = libutil::Clamp<int>(0, power, 1000);
 	switch (id) {
 	case 0:
 		L_motor->SetPower(power);
@@ -83,25 +83,42 @@ bool bt_listener(const Byte *data, const size_t size) {
 	return true;
 }
 
+inline void send_data() {
+	char data[20];
+	sprintf(data, "I:%d,%d\n", ir_target->center.first, ir_target->area);
+	bt->SendStr(data);
+}
+
 void FSM() {
 	int diff;
 	std::pair<uint16_t, uint16_t> p;
+	int speed;
+	char data[20];
 	switch (action) {
 	case forward:
 		L_pid->SetSetpoint(finding_speed);
 		R_pid->SetSetpoint(finding_speed);
+		break;
+	case backward:
+		L_pid->SetSetpoint(-finding_speed);
+		R_pid->SetSetpoint(-finding_speed);
 		break;
 	case rotation:
 		L_pid->SetSetpoint(rotate_speed);
 		R_pid->SetSetpoint(-rotate_speed);
 		break;
 	case chase:
-		diff = target_slope * max_area + target_intercept;
-		if (diff > 320)
-			diff = 320;
-		diff = Dir_pid->output(diff, ir_target->center.first);
+		diff = Dir_pid->output(target_x, ir_target->center.first);
+		sprintf(data, "I:%d,%d\n", diff, 0);
+		bt->SendStr(data);
 		L_pid->SetSetpoint(chasing_speed - diff);
 		R_pid->SetSetpoint(chasing_speed + diff);
+		break;
+	case stop:
+		L_pid->SetSetpoint(0);
+		R_pid->SetSetpoint(0);
+		sprintf(data, "I:%d,%d\n", 0, 0);
+		bt->SendStr(data);
 		break;
 	case out:
 		L_pid->SetSetpoint(L_out_speed);
@@ -109,6 +126,13 @@ void FSM() {
 		break;
 	case avoid:
 		p = o_target.target->center;
+		diff = target_slope2 * p.second + target_intercept2;
+		diff = avoid_pid->output(diff, p.first);
+		L_pid->SetSetpoint(chasing_speed - diff);
+		R_pid->SetSetpoint(chasing_speed + diff);
+		break;
+	case approach:
+		p = ir_target2.target->center;
 		diff = target_slope2 * p.second + target_intercept2;
 		diff = avoid_pid->output(diff, p.first);
 		L_pid->SetSetpoint(chasing_speed - diff);
@@ -130,17 +154,11 @@ inline void send(uint8_t &state) {
 	}
 }
 
-inline void display_bMeter(){
+inline void display_bMeter() {
 	lcd->SetRegion(Lcd::Rect(0, 0, 160, 15));
 	char data[20] = { };
 	sprintf(data, "%f", bMeter->GetVoltage());
 	writer->WriteBuffer(data, 20);
-}
-
-inline void send_data(){
-	char data[20];
-	sprintf(data, "I:%d,%d\n", ir_target->center.first, ir_target->area);
-	bt->SendStr(data);
 }
 
 #endif

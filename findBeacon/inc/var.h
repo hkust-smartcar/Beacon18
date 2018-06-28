@@ -45,14 +45,14 @@ enum rotate_state {
 	no, prepare, performing
 };
 enum state_ {
-	forward, chase, rotation, out, keep,avoid
+	forward, chase, rotation, out, keep,avoid, approach, backward, stop
 };
 
-int chasing_speed = 50;
-int finding_speed = 30;
-int rotate_speed = 50;
-int L_out_speed = 50;
-int R_out_speed = 50;
+int chasing_speed = 20;
+int finding_speed = 20;
+int rotate_speed = 20;
+int L_out_speed = 10;
+int R_out_speed = 30;
 
 float L_kp = 2.5;
 float L_ki = 0.02;
@@ -60,9 +60,9 @@ float L_kd = 0;
 float R_kp = 2.5;
 float R_ki = 0.02;
 float R_kd = 0;
-float Dir_kp = 0.5;
+float Dir_kp = 0.1;
 float Dir_ki = 0.0;
-float Dir_kd = 0.05;
+float Dir_kd = 0.01;
 float avoid_kp = 0.5;
 float avoid_ki = 0.0;
 float avoid_kd = 0.05;
@@ -88,7 +88,7 @@ const uint16_t numOfPixel = 9600;
 uint8_t contrast = 0x40;
 uint8_t brightness = 0x00;
 uint32_t max_area = 0;
-uint32_t near_area = 3000;
+uint32_t near_area = 4500;
 Led* led0 = NULL;
 Led* led1 = NULL;
 St7735r* lcd = NULL;

@@ -158,7 +158,7 @@ int main() {
 				}
 				reset_recrod();
 				cam->UnlockBuffer();
-				display_time(start);
+//				display_time(start);
 			}
 		}
 	}

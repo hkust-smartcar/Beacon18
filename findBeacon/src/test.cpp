@@ -46,6 +46,7 @@ using namespace libbase::k60;
 using namespace libutil;
 
 int main() {
+
 	System::Init();
 	Led Led0(init_led(0));
 	led0 = &Led0;
@@ -72,7 +73,7 @@ int main() {
 	cam->Start();
 	Joystick::Config j_config;
 	j_config.id = 0;
-	j_config.dispatcher =[](const uint8_t id, const Joystick::State which){
+	j_config.dispatcher = [](const uint8_t id, const Joystick::State which) {
 		char data[20] = {};
 		sprintf(data,"%d",20);
 	};
@@ -118,65 +119,72 @@ int main() {
 				encoder1->Update();
 				encoder2->Update();
 				int32_t reading1 = encoder1->GetCount() * 10;
-				int32_t reading2 = encoder2->GetCount() * 10 ;
-				reading1 = reading1 / (int)time_diff;
-				reading2 = reading2 / (int)time_diff;
+				int32_t reading2 = encoder2->GetCount() * 10;
+				reading1 = reading1 / (int) time_diff;
+				reading2 = reading2 / (int) time_diff;
 				SetPower(GetMotorPower(0) + L_pid->Calc(reading1), 0);
 				SetPower(GetMotorPower(1) + R_pid->Calc(-reading2), 1);
 				pid_time = System::Time();
 			}
 			if (tick % 15 == 0) {
 				///////////////decision making///////////////
-				if (tick - o_target.received_time < 50) {
-					ptr = o_target.target;
-					char data[20] = {};
-					lcd->SetRegion(Lcd::Rect(0,0,160,15));
-					sprintf(data,"%d : %d", ptr->center.first, ptr->center.second);
-					writer->WriteBuffer(data,20);
-				}
+//				if (tick - o_target.received_time < 50 && action != rotation) {
+//					action = avoid;
+//					FSM();
+//					continue;
+////					ptr = o_target.target;
+////					char data[20] = {};
+////					lcd->SetRegion(Lcd::Rect(0,0,160,15));
+////					sprintf(data,"%d : %d", ptr->center.first, ptr->center.second);
+////					writer->WriteBuffer(data,20);
+//				}
+//				if (tick - ir_target2.received_time < 50) {
+//					action = approach;
+//					FSM();
+//					continue;
+////					ptr = o_target.target;
+////					char data[20] = {};
+////					lcd->SetRegion(Lcd::Rect(0,0,160,15));
+////					sprintf(data,"%d : %d", ptr->center.first, ptr->center.second);
+////					writer->WriteBuffer(data,20);
+//				}
 				process(seen);
 				tick = System::Time();
-				if (ir_target != NULL) //target find
-				{
+				if(ir_target == NULL)
+				action = stop;
+				else if (ir_target != NULL) {	//target find
 					if (ir_target->area > max_area)
-						max_area = (ir_target->area + max_area) / 2;
-					if (ir_target->area > near_area && rotate == no)
-						rotate = prepare;
-					if (rotate == performing
-							&& ir_target->center.first > target_x) {
-						action = keep;
-					} else {
-						rotate = no;
-						action = chase;
-					}
+					max_area = (ir_target->area + max_area) / 2;
+					target_x = target_slope * max_area + target_intercept;
+					if (target_x > 320)
+					target_x = 320;
+					if (action == rotation
+							&& ir_target->center.first > target_x)
+					action = keep;
+					else
+					action = chase;
 					seen = true;
 					not_find_time = 0;
-				} else if (rotate == performing) { //target not find and rotating
-					if (tick - not_find_time > 800)
-						action = rotation;
 				} else if (seen) { //target not find but have seen target before
 					if (not_find_time == 0) {
 						not_find_time = tick;
 						action = keep;
 					} else if (tick - not_find_time > 75) { //target lost for more than 75 ms
-						if (rotate == prepare) {
-							rotate = performing;
-							action = out;
-						} else
-							action = rotation;
-						max_area = 0;
+						action = backward;
 						seen = false;
 						Dir_pid->reset();
 					}
+				} else if(action == backward && tick - not_find_time < 300) {
+
 				} else { //target not find and have not seen target before
 					if (finding_time == 0)
-						finding_time = tick;
-					else if (tick - finding_time > 1000) //change to rotate after going foward for 1000ms
-						action = rotation;
+					finding_time = tick;
+					else if (tick - finding_time > 1000)//change to rotate after going foward for 1000ms
+					action = rotation;
 					else
-						action = forward;
+					action = forward;
 				}
-//				FSM();
+				FSM();
 				send(state);
 			}
 		}
@@ -184,6 +192,4 @@ int main() {
 
 	return 0;
 }
-
-
 
