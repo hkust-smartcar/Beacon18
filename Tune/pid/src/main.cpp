@@ -18,15 +18,13 @@
 //#include "libsc/joystick.h"
 #include "libsc/st7735r.h"
 #include "libsc/battery_meter.h"
-#include "libutil\incremental_pid_controller.h"
 #include "libbase/k60/pit.h"
 #include "libsc/lcd_typewriter.h"
 #include <libsc/k60/ov7725.h>
 #include "libsc/alternate_motor.h"
 #include "motor_util.h"
 #include <list>
-#include <string>
-#include <iostream>
+#include "pid.h"
 
 namespace libbase {
 namespace k60 {
@@ -62,15 +60,15 @@ bool move[4] = { }; //up,down,left,right
 
 AlternateMotor* L_motor = NULL;
 AlternateMotor* R_motor = NULL;
-IncrementalPidController<int, int>* L_pid = NULL;
-IncrementalPidController<int, int>* R_pid = NULL;
+PID* L_pid = NULL;
+PID* R_pid = NULL;
 LcdTypewriter* writer = NULL;
 St7735r* lcd = NULL;
 std::list<uint8_t> buffer;
 uint32_t recorded_time = 0;
 JyMcuBt106* bt = NULL;
 
-void sendInt(int i){
+void sendInt(int i) {
 	Byte out[5];
 	out[0] = i < 0 ? 1 : 0;
 	i = abs(i);
@@ -78,7 +76,7 @@ void sendInt(int i){
 	out[2] = (i >> 16) & 0xFF;
 	out[3] = (i >> 8) & 0xFF;
 	out[4] = i & 0xFF;
-	bt->SendBuffer(out,5);
+	bt->SendBuffer(out, 5);
 }
 
 inline void BuildBufferPackage() {
@@ -91,15 +89,15 @@ inline void BuildBufferPackage() {
 		for (int i = 0; i < 4; i++)
 			temp[i] = *(it++);
 		memcpy(&val, temp, sizeof(float));
-		ptr->SetKp(val);
+		ptr->kP = val;
 		for (int i = 0; i < 4; i++)
 			temp[i] = *(it++);
 		memcpy(&val, temp, sizeof(float));
-		ptr->SetKi(val);
+		ptr->kI = val;
 		for (int i = 0; i < 4; i++)
 			temp[i] = *(it++);
 		memcpy(&val, temp, sizeof(float));
-		ptr->SetKd(val);
+		ptr->kD = val;
 		ptr = R_pid;
 	}
 	char data[20] = { };
@@ -108,15 +106,15 @@ inline void BuildBufferPackage() {
 	for (int z = 0; z < 2; z++) {
 		lcd->SetRegion(Lcd::Rect(0, y, 128, 15));
 		y += 15;
-		sprintf(data, "L_kp: %.4f", ptr->GetKp());
+		sprintf(data, "L_kp: %.4f", ptr->kP);
 		writer->WriteBuffer(data, 20);
 		lcd->SetRegion(Lcd::Rect(0, y, 128, 15));
 		y += 15;
-		sprintf(data, "L_ki: %.4f", ptr->GetKi());
+		sprintf(data, "L_ki: %.4f", ptr->kI);
 		writer->WriteBuffer(data, 20);
 		lcd->SetRegion(Lcd::Rect(0, y, 128, 15));
 		y += 15;
-		sprintf(data, "L_kd: %.4f", ptr->GetKd());
+		sprintf(data, "L_kd: %.4f", ptr->kD);
 		writer->WriteBuffer(data, 20);
 		ptr = R_pid;
 	}
@@ -126,10 +124,11 @@ inline void BuildBufferPackage() {
 	memcpy(&val2, temp, sizeof(int));
 	if (sign)
 		val2 = -val2;
-	L_pid->SetSetpoint(val2);
+	L_pid->settarget(val2);
+	L_pid->settarget(val2);
 	lcd->SetRegion(Lcd::Rect(0, y, 128, 15));
 	y += 15;
-	sprintf(data, "L_T: %d", L_pid->GetSetpoint());
+	sprintf(data, "L_T: %d", L_pid->getTarget());
 	writer->WriteBuffer(data, 20);
 	sign = *(it++);
 	for (int i = 0; i < 4; i++)
@@ -137,10 +136,11 @@ inline void BuildBufferPackage() {
 	memcpy(&val2, temp, sizeof(int));
 	if (sign)
 		val2 = -val2;
-	R_pid->SetSetpoint(val2);
+	R_pid->settarget(val2);
+	R_pid->settarget(val2);
 	lcd->SetRegion(Lcd::Rect(0, y, 128, 15));
 	y += 15;
-	sprintf(data, "R_T: %d", R_pid->GetSetpoint());
+	sprintf(data, "R_T: %d", R_pid->getTarget());
 	writer->WriteBuffer(data, 20);
 }
 
@@ -186,14 +186,12 @@ int main() {
 	encoder_config.id = 0;
 	DirEncoder encoder2(encoder_config);
 
-	IncrementalPidController<int, int> L_pid_(0, L_kp, L_ki, L_kd);
+	PID L_pid_(L_kp, L_ki, L_kd);
 	L_pid = &L_pid_;
-	L_pid->SetILimit(0);
-	L_pid->SetOutputBound(-1000, 1000);
-	IncrementalPidController<int, int> R_pid_(0, R_kp, R_ki, R_kd);
+	L_pid->errorSumBound = 10000;
+	PID R_pid_(R_kp, R_ki, R_kd);
 	R_pid = &R_pid_;
-	R_pid->SetILimit(0);
-	R_pid->SetOutputBound(-1000, 1000);
+	R_pid->errorSumBound = 10000;
 
 	JyMcuBt106::Config config;
 	config.baud_rate = libbase::k60::Uart::Config::BaudRate::k115200;
@@ -248,8 +246,8 @@ int main() {
 					led0.SetEnable(0);
 					L_motor->SetPower(0);
 					R_motor->SetPower(0);
-					L_pid->Reset();
-					R_pid->Reset();
+					L_pid->reset();
+					R_pid->reset();
 					return true;
 				}
 
@@ -278,36 +276,36 @@ int main() {
 			}
 			if (tick % 11 == 0) {
 				if (!(move[0] || move[1] || move[2] || move[3]) && !pid) {
-					L_pid->SetSetpoint(0);
-					R_pid->SetSetpoint(0);
+					L_pid->settarget(0);
+					R_pid->settarget(0);
 				} else if (move[0]) {	//forward
 					if (move[2]) {
-						L_pid->SetSetpoint(100);
-						R_pid->SetSetpoint(150);
+						L_pid->settarget(100);
+						R_pid->settarget(150);
 					} else if (move[3]) {
-						L_pid->SetSetpoint(150);
-						R_pid->SetSetpoint(100);
+						L_pid->settarget(150);
+						R_pid->settarget(100);
 					} else {
-						L_pid->SetSetpoint(100);
-						R_pid->SetSetpoint(100);
+						L_pid->settarget(100);
+						R_pid->settarget(100);
 					}
 				} else if (move[1]) {	//backward
 					if (move[2]) {
-						L_pid->SetSetpoint(-100);
-						R_pid->SetSetpoint(-150);
+						L_pid->settarget(-100);
+						R_pid->settarget(-150);
 					} else if (move[3]) {
-						L_pid->SetSetpoint(-150);
-						R_pid->SetSetpoint(-100);
+						L_pid->settarget(-150);
+						R_pid->settarget(-100);
 					} else {
-						L_pid->SetSetpoint(-100);
-						R_pid->SetSetpoint(-100);
+						L_pid->settarget(-100);
+						R_pid->settarget(-100);
 					}
 				} else if (move[2]) {
-					L_pid->SetSetpoint(-100);
-					R_pid->SetSetpoint(100);
+					L_pid->settarget(-100);
+					R_pid->settarget(100);
 				} else if (move[3]) {
-					L_pid->SetSetpoint(100);
-					R_pid->SetSetpoint(-100);
+					L_pid->settarget(100);
+					R_pid->settarget(-100);
 				}
 			}
 			if (tick % 10 == 0) {
@@ -318,8 +316,8 @@ int main() {
 				R_count = encoder2.GetCount() * 50;
 				L_count /= (int) time_diff;
 				R_count /= (int) time_diff;
-				SetPower(GetMotorPower(0) + L_pid->Calc(L_count), 0);
-				SetPower(GetMotorPower(1) + R_pid->Calc(-R_count), 1);
+				SetPower(L_pid->output(L_count), 0);
+				SetPower(R_pid->output(-R_count), 1);
 				pid_time = System::Time();
 			}
 		}
