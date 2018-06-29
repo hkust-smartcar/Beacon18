@@ -25,6 +25,8 @@
 #include "libsc/alternate_motor.h"
 #include "motor_util.h"
 #include <list>
+#include <string>
+#include <iostream>
 
 namespace libbase {
 namespace k60 {
@@ -49,12 +51,14 @@ struct BitConsts {
 	uint8_t kEND = 0xFF;
 };
 
-float L_kp = 0;
-float L_ki = 0;
-float L_kd = 0;
-float R_kp = 0;
-float R_ki = 0;
-float R_kd = 0;
+float L_kp = 1;
+float L_ki = 0.01;
+float L_kd = 1;
+float R_kp = 1;
+float R_ki = 0.01;
+float R_kd = 1;
+
+bool move[4] = { }; //up,down,left,right
 
 AlternateMotor* L_motor = NULL;
 AlternateMotor* R_motor = NULL;
@@ -63,6 +67,19 @@ IncrementalPidController<int, int>* R_pid = NULL;
 LcdTypewriter* writer = NULL;
 St7735r* lcd = NULL;
 std::list<uint8_t> buffer;
+uint32_t recorded_time = 0;
+JyMcuBt106* bt = NULL;
+
+void sendInt(int i){
+	Byte out[5];
+	out[0] = i < 0 ? 1 : 0;
+	i = abs(i);
+	out[1] = (i >> 24) & 0xFF;
+	out[2] = (i >> 16) & 0xFF;
+	out[3] = (i >> 8) & 0xFF;
+	out[4] = i & 0xFF;
+	bt->SendBuffer(out,5);
+}
 
 inline void BuildBufferPackage() {
 	auto it = buffer.begin();
@@ -181,15 +198,31 @@ int main() {
 	JyMcuBt106::Config config;
 	config.baud_rate = libbase::k60::Uart::Config::BaudRate::k115200;
 	config.id = 0;
-	JyMcuBt106 bt(config);
+	JyMcuBt106 bt_(config);
+	bt = &bt_;
 	bool receiving = false;
-	bt.SetRxIsr(
-			[&encoder1,&encoder2,&writer,&led0,&g_start,&led1,&bt,&receiving](const Byte *data, const size_t size) {
+	bool move_re = false;
+	bool stop_re = false;
+	bool pid = false;
+	bt->SetRxIsr(
+			[&move_re,&stop_re,&writer,&led0,&g_start,&led1,&receiving,&pid](const Byte *data, const size_t size) {
 				BitConsts a;
+				if(move_re) {
+					move[ data[0] - '0'] = true;
+					pid = false;
+					move_re = false;
+					return true;
+				}
+				if(stop_re) {
+					move[data[0] - '0'] = false;
+					stop_re = false;
+					return true;
+				}
 				if(receiving) {
 					if (data[0] == a.kEND) {
 						BuildBufferPackage();
 						receiving = false;
+						pid = true;
 					}
 					else
 					buffer.push_back(data[0]);
@@ -200,18 +233,19 @@ int main() {
 					receiving =true;
 					return true;
 				}
+				if(data[0] == 'm')
+				move_re = true;
+				if(data[0] == 'p')
+				stop_re = true;
+
 				if(data[0] =='s') {
 					led0.SetEnable(1);
 					g_start = true;
-					encoder1.Update();
-					encoder2.Update();
 					return true;
 				}
 				if(data[0]=='S') {
 					g_start = false;
 					led0.SetEnable(0);
-					L_pid->SetSetpoint(0);
-					R_pid->SetSetpoint(0);
 					L_motor->SetPower(0);
 					R_motor->SetPower(0);
 					L_pid->Reset();
@@ -233,39 +267,59 @@ int main() {
 	uint32_t pid_time = System::Time();
 
 	while (1) {
-		if (tick != System::Time()) {
+		if (tick != System::Time() && g_start) {
 			tick = System::Time();
-			if (tick % 30 == 0 && g_start) {
-				Byte out[12];
+			if (tick % 15 == 0) {
 				BitConsts a;
-				int temp = abs(L_count);
-				out[0] = a.kSTART;
-				out[1] = L_count < 0 ? 1 : 0;
-				out[2] = (temp >> 24) & 0xFF;
-				out[3] = (temp >> 16) & 0xFF;
-				out[4] = (temp >> 8) & 0xFF;
-				out[5] = temp & 0xFF;
-				temp = abs(R_count);
-				out[6] = R_count < 0 ? 1 : 0;
-				out[7] = (temp >> 24) & 0xFF;
-				out[8] = (temp >> 16) & 0xFF;
-				out[9] = (temp >> 8) & 0xFF;
-				out[10] = temp & 0xFF;
-				out[11] = a.kEND;
-				bt.SendBuffer(out, 12);
+				bt->SendBuffer(&a.kSTART, 1);
+				sendInt(L_count);
+				sendInt(-R_count);
+				bt->SendBuffer(&a.kEND, 1);
 			}
-			if (tick % 10 == 0 && g_start) {
+			if (tick % 11 == 0) {
+				if (!(move[0] || move[1] || move[2] || move[3]) && !pid) {
+					L_pid->SetSetpoint(0);
+					R_pid->SetSetpoint(0);
+				} else if (move[0]) {	//forward
+					if (move[2]) {
+						L_pid->SetSetpoint(100);
+						R_pid->SetSetpoint(150);
+					} else if (move[3]) {
+						L_pid->SetSetpoint(150);
+						R_pid->SetSetpoint(100);
+					} else {
+						L_pid->SetSetpoint(100);
+						R_pid->SetSetpoint(100);
+					}
+				} else if (move[1]) {	//backward
+					if (move[2]) {
+						L_pid->SetSetpoint(-100);
+						R_pid->SetSetpoint(-150);
+					} else if (move[3]) {
+						L_pid->SetSetpoint(-150);
+						R_pid->SetSetpoint(-100);
+					} else {
+						L_pid->SetSetpoint(-100);
+						R_pid->SetSetpoint(-100);
+					}
+				} else if (move[2]) {
+					L_pid->SetSetpoint(-100);
+					R_pid->SetSetpoint(100);
+				} else if (move[3]) {
+					L_pid->SetSetpoint(100);
+					R_pid->SetSetpoint(-100);
+				}
+			}
+			if (tick % 10 == 0) {
 				uint32_t time_diff = tick - pid_time;
 				encoder1.Update();
 				encoder2.Update();
-				L_count = encoder1.GetCount();
-				R_count = encoder2.GetCount();
-				int32_t reading1 = L_count * 10;
-				int32_t reading2 = R_count * 10;
-				reading1 = reading1 / (int) time_diff;
-				reading2 = reading2 / (int) time_diff;
-//				SetPower(GetMotorPower(0) + L_pid.Calc(reading1), 0);
-//				SetPower(GetMotorPower(1) + R_pid.Calc(-reading2), 1);
+				L_count = encoder1.GetCount() * 50;
+				R_count = encoder2.GetCount() * 50;
+				L_count /= (int) time_diff;
+				R_count /= (int) time_diff;
+				SetPower(GetMotorPower(0) + L_pid->Calc(L_count), 0);
+				SetPower(GetMotorPower(1) + R_pid->Calc(-R_count), 1);
 				pid_time = System::Time();
 			}
 		}
