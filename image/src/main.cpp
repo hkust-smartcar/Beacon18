@@ -79,7 +79,7 @@ int main() {
 
 	JyMcuBt106::Config config;
 	config.baud_rate = libbase::k60::Uart::Config::BaudRate::k115200;
-	config.id = 1;
+	config.id = 0;
 	config.tx_buf_size = 2; //change this to 1 if working with large image size
 	JyMcuBt106 bt(config);
 //	config.id = 0;

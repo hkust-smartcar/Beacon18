@@ -28,8 +28,7 @@ obj/MT9V034-d-2018-beacon-slave.o: src/MT9V034.cpp \
  C:\Users\Sheldon\git\libsccc\inc/libbase/k60/vectors.h \
  C:\Users\Sheldon\git\libsccc\inc/libsc/config.h \
  C:\Users\Sheldon\git\libsccc\inc/libsc/k60/config/2018_beacon_slave.h \
- C:\Users\Sheldon\git\libsccc\inc/libsc/k60/MT9V034.h \
- C:\Users\Sheldon\git\libsccc\inc/libbase/helper.h \
+ inc/MT9V034.h C:\Users\Sheldon\git\libsccc\inc/libbase/helper.h \
  C:\Users\Sheldon\git\libsccc\inc/libbase/k60/soft_sccb_master.h \
  C:\Users\Sheldon\git\libsccc\inc/libbase/k60/soft_i2c_master.h \
  C:\Users\Sheldon\git\libsccc\inc/libbase/k60/i2c_master_interface.h \

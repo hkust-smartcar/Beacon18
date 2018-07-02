@@ -26,7 +26,7 @@
 #include "libbase/k60/vectors.h"
 
 #include "libsc/config.h"
-#include "libsc/k60/MT9V034.h"
+#include "MT9V034.h"
 #include "libsc/system.h"
 #include "libutil/misc.h"
 

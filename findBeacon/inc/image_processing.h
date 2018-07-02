@@ -10,22 +10,23 @@
 
 #include <list>
 #include "var.h"
+#include "assert.h"
 
 //////////////algo parm///////////////////
-const uint8_t x_range = 5;
-const uint8_t y_range = 35;
-const uint16_t min_size = 30;
-const uint8_t error = 10;
-const uint16_t critical_density = 45;
+uint8_t x_range = 5;
+uint8_t y_range = 35;
+const uint16_t min_size = 50;
+const uint8_t error = 30;
+const uint16_t critical_density = 30;
 const uint8_t max_beacon = 10;
-std::pair<uint16_t, uint16_t> last_beacon;
 const uint8_t frame = 10;
 const uint8_t min_frame = 3;
 const uint8_t near_dist = 40;
+const uint32_t timeout = 50;
 uint8_t frame_count = 0;
-uint8_t count[20] = { };
-std::list<Beacon> center_record;
+std::list<Record> center_record;
 Beacon beacons[max_beacon];
+uint8_t beacon_count = 0;
 
 int16_t getX(uint16_t m_pos, int8_t m_bit_pos) {
 	int16_t x = (m_pos + 1) * 8 % width - m_bit_pos - 1;
@@ -39,26 +40,21 @@ int16_t getY(uint16_t m_pos) {
 	return y;
 }
 
-inline bool skip(uint16_t m_pos, int8_t m_bit_pos, const uint8_t beacon_count) {
+int8_t skip(uint16_t m_pos, int8_t m_bit_pos) {
 	int16_t x = getX(m_pos, m_bit_pos);
 	int16_t y = getY(m_pos);
 	for (uint8_t i = 0; i < beacon_count; i++) {
 		if (x < beacons[i].right_x + error && y < beacons[i].lower_y + error
-				&& y
-						> (beacons[i].upper_y - error < 0 ?
-								0 : beacons[i].upper_y - error)
-				&& x
-						> (beacons[i].left_x - error < 0 ?
-								0 : beacons[i].left_x - error)) {
-			return true;
+				&& y > beacons[i].upper_y - error
+				&& x > beacons[i].left_x - error) {
+			return i;
 		}
 	}
-	return false;
+	return -1;
 }
 
 // 1 = upper left, 2 = upper right , 3 = lower left, 4 = lower right
-void sub_scan(uint16_t m_pos, int8_t m_bit_pos,
-		const uint8_t beacon_count, int dir) {
+void sub_scan(uint16_t m_pos, int8_t m_bit_pos, int dir) {
 	Beacon *current = beacons + beacon_count;
 	switch (dir) {
 	case 2:
@@ -134,58 +130,63 @@ void sub_scan(uint16_t m_pos, int8_t m_bit_pos,
 	}
 }
 
-inline void check_target(uint8_t &beacon_count) {
+inline void check_target() {
 	if (beacons[beacon_count].count > min_size
 			&& beacons[beacon_count].density > critical_density)
 		beacon_count++;
 }
 
-inline void scan(uint16_t m_pos, int8_t m_bit_pos,
-		uint8_t &beacon_count, int mode) {
+inline void scan(uint16_t m_pos, int8_t m_bit_pos, int mode) {
 
 	int16_t x = getX(m_pos, m_bit_pos);
 	int16_t y = getY(m_pos);
 	beacons[beacon_count].init(x, y);
 
 	//scan lower left
-	sub_scan(m_pos, m_bit_pos, beacon_count, 3);
+	sub_scan(m_pos, m_bit_pos, 3);
 	//scan lower right
-	sub_scan( m_pos, m_bit_pos, beacon_count, 4);
+	sub_scan(m_pos, m_bit_pos, 4);
 
 	if (mode == 1) {
-		sub_scan( m_pos, m_bit_pos, beacon_count, 1);
-		sub_scan(m_pos, m_bit_pos, beacon_count, 2);
+		sub_scan(m_pos, m_bit_pos, 1);
+		sub_scan(m_pos, m_bit_pos, 2);
 	}
 
 	beacons[beacon_count].calc();
-	check_target(beacon_count);
+//	beacon_count++;
+	check_target();
 }
 
-inline bool check_near(const Beacon b1, const Beacon b2) {
-	return abs(b1.center.first - b2.center.first) < near_dist && abs(b1.center.second - b2.center.second) < near_dist;
+inline bool check_near(const std::pair<uint16_t, uint16_t> b1,
+		const std::pair<uint16_t, uint16_t> b2) {
+	return abs(b1.first - b2.first) < near_dist
+			&& abs(b1.second - b2.second) < near_dist;
 }
 
-inline void process(bool seen) {
+inline void process() {
 	buf = cam->LockBuffer();
 	ir_target = NULL;
-	uint8_t beacon_count = 0;
+	beacon_count = 0;
 	//////check for beacon with the last recorded pos/////////
 	if (seen) {
+		x_range = 30;
+		y_range = 5;
 		uint16_t temp_pos = (width * last_beacon.second) / 8
 				+ last_beacon.first / 8;
 		uint16_t temp_bit_pos = 8 - (last_beacon.first % 8 + 1);
-		scan(temp_pos, temp_bit_pos, beacon_count, 1);
-		if (beacons[0].count > 50) {
+		scan(temp_pos, temp_bit_pos, 1);
+		if (beacon_count == 1)
 			ir_target = beacons;
-			cam->UnlockBuffer();
-			return;
-		} else
-			beacon_count = 0;
+		cam->UnlockBuffer();
+		return;
 	}
-	uint16_t pos = 0;
-	int8_t bit_pos = 8;
+
 	bool zero = true;
-	for (uint16_t y = 0; y < height; y++) {
+	uint16_t pos = 0;
+	int8_t bit_pos = 9;
+	x_range = 10;
+	y_range = 20;
+	for (uint16_t y = 0; y < height; y += 2) {
 		for (uint16_t x = zero ? 0 : 1; x < width; x += 2) {
 			bit_pos -= 2;
 			if (bit_pos < 0) {
@@ -193,14 +194,27 @@ inline void process(bool seen) {
 				++pos;
 			}
 			if (!GET_BIT(buf[pos], bit_pos)) {
-				if (beacon_count == max_beacon)
-					break;
-				if (beacon_count && skip(pos, bit_pos, beacon_count))
+				int8_t i = skip(pos, bit_pos);
+				if (i != -1) {
+					uint16_t target_pos = beacons[i].right_x + error;
+					if ((zero && target_pos % 2 != 0)
+							|| (!zero && target_pos % 2 == 0))
+						target_pos++;
+					x = target_pos >= width ? width - 1 : target_pos;
+					pos = (width * y) / 8 + x / 8;
+					bit_pos = 8 - (x % 8 + 1);
 					continue;
-				scan(pos, bit_pos, beacon_count, 0);
+				}
+				scan(pos, bit_pos, 0);
+				if (beacon_count == max_beacon
+						|| System::Time() - tick > timeout) {
+					cam->UnlockBuffer();
+					return;
+				}
 			}
 		}
 		zero = !zero;
+		pos += width / 8;
 	}
 	if (beacon_count) { //have possible beacon but not met requirement
 		if (frame_count == 0 || frame_count == frame) {
@@ -211,22 +225,18 @@ inline void process(bool seen) {
 		for (int i = 0; i < beacon_count; i++) {
 			bool add = false;
 			for (auto it = center_record.begin(); it != center_record.end();
-					++it) {
-				if (check_near(*it, beacons[i])) {
+					++it)
+				if (check_near(it->record.center, beacons[i].center)) {
 					add = true;
-					if (++count[std::distance(center_record.begin(), it)]
-							> min_frame) {
-						ir_target = &(*it);
-						last_beacon = ir_target->center;
+					if (++it->count > min_frame) {
+						ir_target = &it->record;
 						frame_count = 0;
-						break;
+						cam->UnlockBuffer();
+						return;
 					}
 				}
-			}
-			if (!add) {
-				center_record.push_back(beacons[i]);
-				count[center_record.size() - 1] = 1;
-			}
+			if (!add)
+				center_record.push_back(Record(beacons[i]));
 		}
 	}
 	cam->UnlockBuffer();

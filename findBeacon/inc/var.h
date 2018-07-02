@@ -33,6 +33,14 @@ struct BeaconPackage {
 	uint32_t received_time = 0;
 };
 
+struct Record {
+	Beacon record;
+	uint8_t count = 0;
+	Record(Beacon record_) :
+			record(record_), count(1) {
+	}
+};
+
 enum PkgType {
 	irTarget = 0, oTarget = 1
 };
@@ -45,27 +53,35 @@ enum rotate_state {
 	no, prepare, performing
 };
 enum state_ {
-	forward, chase, rotation, out, keep,avoid, approach, backward, stop
+	forward, chase, rotation, out, keep, avoid, approach, backward, stop
 };
 
-int chasing_speed = 20;
-int finding_speed = 20;
-int rotate_speed = 20;
+int chasing_speed = 200;
+int finding_speed = 200;
+int rotate_speed = 100;
 int L_out_speed = 10;
 int R_out_speed = 30;
 
-float L_kp = 2.5;
-float L_ki = 0.02;
-float L_kd = 0;
-float R_kp = 2.5;
-float R_ki = 0.02;
-float R_kd = 0;
-float Dir_kp = 0.1;
+float L_kp = 3;
+float L_ki = 0.015;
+float L_kd = 0.2;
+float R_kp = 4.4;
+float R_ki = 0.015;
+float R_kd = 0.2;
+
+float Dir_kp = 0.3;
 float Dir_ki = 0.0;
-float Dir_kd = 0.01;
+float Dir_kd = 0.0;
+
 float avoid_kp = 0.5;
 float avoid_ki = 0.0;
 float avoid_kd = 0.05;
+
+//Debug
+bool move_re = false;
+bool stop_re = false;
+bool move[4] = { }; //up,down,left,right
+
 
 //////////////algo parm///////////////////
 const float target_slope = 0.009855697800993502;
@@ -76,11 +92,14 @@ const float target_intercept2 = 98.18294250176507;
 int16_t target_x = 0;
 state_ action = keep;
 bool run = false;
+bool seen = false;
+uint32_t tick = 0;
 const Byte* buf = NULL;
 Beacon* ir_target = NULL;
 Beacon* ir_record = NULL;
 BeaconPackage o_target;
 BeaconPackage ir_target2;
+std::pair<uint16_t, uint16_t> last_beacon;
 
 const uint16_t width = 320;
 const uint16_t height = 240;
@@ -101,8 +120,10 @@ AlternateMotor *R_motor = NULL;
 DirEncoder* encoder1 = NULL;
 DirEncoder* encoder2 = NULL;
 BatteryMeter* bMeter = NULL;
-IncrementalPidController<int, int>* L_pid = NULL;
-IncrementalPidController<int, int>* R_pid = NULL;
+//IncrementalPidController<int, int>* L_pid = NULL;
+//IncrementalPidController<int, int>* R_pid = NULL;
+PID* L_pid = NULL;
+PID* R_pid = NULL;
 PID* Dir_pid = NULL;
 PID* avoid_pid = NULL;
 

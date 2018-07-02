@@ -46,7 +46,6 @@ using namespace libbase::k60;
 using namespace libutil;
 
 int main() {
-
 	System::Init();
 	Led Led0(init_led(0));
 	led0 = &Led0;
@@ -79,117 +78,129 @@ int main() {
 	};
 	Joystick joyStick(j_config);
 	//////////////////PID init////////////////////
-	IncrementalPidController<int, int> L_pid_(0, L_kp, L_ki, L_kd);
+	PID L_pid_(L_kp, L_ki, L_kd, 1000, -1000);
 	L_pid = &L_pid_;
-	L_pid->SetILimit(0);
-	L_pid->SetOutputBound(-1000, 1000);
-	IncrementalPidController<int, int> R_pid_(0, R_kp, R_ki, R_kd);
+	L_pid->errorSumBound = 10000;
+	PID R_pid_(R_kp, R_ki, R_kd, 1000, -1000);
 	R_pid = &R_pid_;
-	R_pid->SetILimit(0);
-	R_pid->SetOutputBound(-1000, 1000);
-	PID Dir_pid_(Dir_kp, Dir_ki, Dir_kd);
+	R_pid->errorSumBound = 10000;
+
+	PID Dir_pid_(Dir_kp, Dir_ki, Dir_kd, 500, -500);
 	Dir_pid = &Dir_pid_;
 	Dir_pid->errorSumBound = 10000;
-	PID avoid_pid_(avoid_kp, avoid_ki, avoid_kd);
+	PID avoid_pid_(avoid_kp, avoid_ki, avoid_kd, 100, -100);
 	avoid_pid = &avoid_pid_;
 	avoid_pid->errorSumBound = 10000;
 
 	////////////////Variable init/////////////////
-	uint32_t tick = System::Time();
+	tick = System::Time();
 	uint32_t not_find_time = 0;
-	bool seen = false;
 	int finding_time = 0;
 	rotate_state rotate = no;
 	Beacon *ptr = NULL;
+	uint32_t pid_time = System::Time();
+	uint32_t process_time = System::Time();
+	int L_count = 0;
+	int R_count = 0;
 	/////////////////For Dubug////////////////////
 	uint8_t state = 100;
-	uint32_t pid_time = System::Time();
 	JyMcuBt106 bt_(init_bt());
 	bt = &bt_;
 	JyMcuBt106 comm_(init_comm());
 	comm = &comm_;
 	display_bMeter();
+
+	reset_pid();
+
 //	////////////////Main loop////////////////////////
 	while (1) {
 		if (tick != System::Time() && run) {
 			tick = System::Time();
-			////////////////////PID///////////////////////
-			if (tick % 10 == 0) {
+			if (tick - pid_time >= 10) {
 				uint32_t time_diff = tick - pid_time;
 				encoder1->Update();
 				encoder2->Update();
-				int32_t reading1 = encoder1->GetCount() * 10;
-				int32_t reading2 = encoder2->GetCount() * 10;
-				reading1 = reading1 / (int) time_diff;
-				reading2 = reading2 / (int) time_diff;
-				SetPower(GetMotorPower(0) + L_pid->Calc(reading1), 0);
-				SetPower(GetMotorPower(1) + R_pid->Calc(-reading2), 1);
+				L_count = encoder1->GetCount() * 50 / (int) time_diff;
+				R_count = encoder2->GetCount() * 50 / (int) time_diff;
+				SetPower(L_pid->output(L_count), 0);
+				SetPower(R_pid->output(-R_count), 1);
 				pid_time = System::Time();
 			}
-			if (tick % 15 == 0) {
+//			if (tick - ir_target2.received_time < 100) {
+//				BitConsts a;
+//				bt->SendBuffer(&a.kSTART, 1);
+//				sendInt(ir_target2.target->center.first);
+//				sendInt(ir_target2.target->center.second);
+//				bt->SendBuffer(&a.kEND, 1);
+//			}
+			if (tick - process_time >= 25) {
+				process_time = tick;
 				///////////////decision making///////////////
-//				if (tick - o_target.received_time < 50 && action != rotation) {
-//					action = avoid;
-//					FSM();
-//					continue;
-////					ptr = o_target.target;
-////					char data[20] = {};
-////					lcd->SetRegion(Lcd::Rect(0,0,160,15));
-////					sprintf(data,"%d : %d", ptr->center.first, ptr->center.second);
-////					writer->WriteBuffer(data,20);
-//				}
-//				if (tick - ir_target2.received_time < 50) {
-//					action = approach;
-//					FSM();
-//					continue;
-////					ptr = o_target.target;
-////					char data[20] = {};
-////					lcd->SetRegion(Lcd::Rect(0,0,160,15));
-////					sprintf(data,"%d : %d", ptr->center.first, ptr->center.second);
-////					writer->WriteBuffer(data,20);
-//				}
-				process(seen);
+				//				if (tick - o_target.received_time < 50 && action != rotation) {
+				//					action = avoid;
+				//					FSM();
+				//					continue;
+				////					ptr = o_target.target;
+				////					char data[20] = {};
+				////					lcd->SetRegion(Lcd::Rect(0,0,160,15));
+				////					sprintf(data,"%d : %d", ptr->center.first, ptr->center.second);
+				////					writer->WriteBuffer(data,20);
+				//				}
+				//				if (tick - ir_target2.received_time < 50) {
+				//					action = approach;
+				//					FSM();
+				//					continue;
+				////					ptr = o_target.target;
+				////					char data[20] = {};
+				////					lcd->SetRegion(Lcd::Rect(0,0,160,15));
+				////					sprintf(data,"%d : %d", ptr->center.first, ptr->center.second);
+				////					writer->WriteBuffer(data,20);
+				//				}
+				process();
 				tick = System::Time();
-				if(ir_target == NULL)
-				action = stop;
-				else if (ir_target != NULL) {	//target find
+				if (ir_target != NULL) {	//target find
+					led0->SetEnable(1);
+					not_find_time = 0;
+					last_beacon = ir_target->center;
+					if (!seen) {
+						seen = true;
+						Dir_pid->reset();
+					}
 					if (ir_target->area > max_area)
-					max_area = (ir_target->area + max_area) / 2;
+						max_area = (ir_target->area + max_area) / 2;
 					target_x = target_slope * max_area + target_intercept;
 					if (target_x > 320)
-					target_x = 320;
+						target_x = 320;
 					if (action == rotation
 							&& ir_target->center.first > target_x)
-					action = keep;
+						action = keep;
 					else
-					action = chase;
-					seen = true;
-					not_find_time = 0;
+						action = chase;
 				} else if (seen) { //target not find but have seen target before
 					if (not_find_time == 0) {
 						not_find_time = tick;
 						action = keep;
-					} else if (tick - not_find_time > 75) { //target lost for more than 75 ms
-						action = backward;
+					} else if (tick - not_find_time > 400) { //target lost for more than 75 ms
+						//						action = backward;
+						led0->SetEnable(0);
 						seen = false;
-						Dir_pid->reset();
+						max_area = 0;
 					}
-				} else if(action == backward && tick - not_find_time < 300) {
-
 				} else { //target not find and have not seen target before
-					if (finding_time == 0)
-					finding_time = tick;
-					else if (tick - finding_time > 1000)//change to rotate after going foward for 1000ms
+					led0->SetEnable(0);
 					action = rotation;
-					else
-					action = forward;
+//					if (finding_time == 0)
+//						finding_time = tick;
+//					else if (tick - finding_time > 1000) //change to rotate after going foward for 1000ms
+//						action = rotation;
+//					else
+//						action = forward;
 				}
 				FSM();
-				send(state);
+				//	send (state);
 			}
 		}
 	}
-
 	return 0;
 }
 
