@@ -133,7 +133,7 @@ int main() {
 //				sendInt(ir_target2.target->center.second);
 //				bt->SendBuffer(&a.kEND, 1);
 //			}
-			if (tick - process_time >= 25) {
+			if (tick - process_time >= 30) {
 				process_time = tick;
 				///////////////decision making///////////////
 				//				if (tick - o_target.received_time < 50 && action != rotation) {
@@ -189,15 +189,14 @@ int main() {
 				} else { //target not find and have not seen target before
 					led0->SetEnable(0);
 					action = rotation;
-//					if (finding_time == 0)
-//						finding_time = tick;
-//					else if (tick - finding_time > 1000) //change to rotate after going foward for 1000ms
-//						action = rotation;
-//					else
-//						action = forward;
+					if (finding_time == 0)
+						finding_time = tick;
+					else if (tick - finding_time > 1000) //change to rotate after going foward for 1000ms
+						action = rotation;
+					else
+						action = forward;
 				}
 				FSM();
-				//	send (state);
 			}
 		}
 	}

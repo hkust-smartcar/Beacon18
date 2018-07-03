@@ -39,7 +39,7 @@ using namespace libsc;
 using namespace libsc::k60;
 using namespace libbase::k60;
 
-working_mode m = close;
+working_mode m = image;
 int main() {
 	System::Init();
 
@@ -83,7 +83,7 @@ int main() {
 	}
 
 	while (1) {
-		if (tick != System::Time() && run) {
+		if (tick != System::Time() /*&& run*/) {
 			tick = System::Time();
 			if (tick - start > 30) {
 				start = tick;

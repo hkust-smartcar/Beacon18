@@ -25,10 +25,6 @@ enum ir_state {
 	no = 0, seen, flash, checked
 };
 
-enum loop_mode {
-	upper, lower_left, lower_right
-};
-
 enum dir {
 	h = 0, v
 };

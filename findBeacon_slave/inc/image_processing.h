@@ -25,13 +25,14 @@ uint32_t not_find_time = 0;
 uint32_t full_screen_check = 0;
 const int8_t y_mask[3][3] = { { -1, 0, 1 }, { -2, 0, 2 }, { -1, 0, 1 } };
 const int8_t x_mask[3][3] = { { -1, -2, -1 }, { 0, 0, 0 }, { 1, 2, 1 } };
-Beacon avoid_region1(0, 25, 25, 120);	//left
-Beacon avoid_region2(165, 189, 25, 120);	//right
-Beacon avoid_region3(0, 189, 0, 25);	//up
-Beacon avoid_region4(avoid_region1.left_x, avoid_region1.right_x,
-		avoid_region3.upper_y, avoid_region3.lower_y + 20);
-Beacon avoid_region5(avoid_region2.left_x, avoid_region2.right_x,
-		avoid_region3.upper_y, avoid_region3.lower_y + 20);
+Beacon avoid_region_left(0, 25, 25, 120);	//left
+Beacon avoid_region_right(165, 189, 25, 120);	//right
+Beacon avoid_region_up(0, 189, 0, 25);	//up
+Beacon avoid_region4(avoid_region_left.left_x, avoid_region_left.right_x,
+		avoid_region_up.upper_y, avoid_region_up.lower_y + 20);
+Beacon avoid_region5(avoid_region_right.left_x, avoid_region_right.right_x,
+		avoid_region_up.upper_y, avoid_region_up.lower_y + 20);
+Beacon no_scan(65, 130, 80, 120);	//car head
 const uint16_t max_size = 5000;
 const uint8_t size = 3;
 const uint8_t white = 200;
@@ -40,19 +41,30 @@ const uint16_t near_dist = 20;
 const uint8_t min_edge = 5;
 
 inline void show_avoid_region() {
-	int len = avoid_region3.right_x - avoid_region3.left_x;
-	lcd->SetRegion(
-			Lcd::Rect(avoid_region2.right_x, avoid_region1.lower_y,
-					cam->GetW() - len, 1));
-	lcd->FillColor(Lcd::kRed);
-	lcd->SetRegion(
-			Lcd::Rect(avoid_region2.right_x, avoid_region1.lower_y, 1,
-					cam->GetH() - avoid_region1.lower_y));
-	lcd->FillColor(Lcd::kRed);
-	lcd->SetRegion(
-			Lcd::Rect(avoid_region3.left_x, avoid_region1.lower_y, 1,
-					cam->GetH() - avoid_region1.lower_y));
-	lcd->FillColor(Lcd::kRed);
+//	int len = avoid_region3.right_x - avoid_region3.left_x;
+//	lcd->SetRegion(
+//			Lcd::Rect(avoid_region2.right_x, avoid_region1.lower_y,
+//					cam->GetW() - len, 1));
+//	lcd->FillColor(Lcd::kRed);
+//	lcd->SetRegion(
+//			Lcd::Rect(avoid_region2.right_x, avoid_region1.lower_y, 1,
+//					cam->GetH() - avoid_region1.lower_y));
+//	lcd->FillColor(Lcd::kRed);
+//	lcd->SetRegion(
+//			Lcd::Rect(avoid_region3.left_x, avoid_region1.lower_y, 1,
+//					cam->GetH() - avoid_region1.lower_y));
+//	lcd->FillColor(Lcd::kRed);
+
+//	#car head
+//	int len = no_scan.right_x - no_scan.left_x;
+//	lcd->SetRegion(Lcd::Rect(no_scan.left_x, no_scan.upper_y, len, 1));
+//	lcd->FillColor(Lcd::kRed);
+//	len = no_scan.lower_y - no_scan.upper_y;
+//	lcd->SetRegion(Lcd::Rect(no_scan.left_x, no_scan.upper_y, 1, len));
+//	lcd->FillColor(Lcd::kRed);
+//	lcd->SetRegion(Lcd::Rect(no_scan.right_x, no_scan.upper_y, 1, len));
+//	lcd->FillColor(Lcd::kRed);
+
 }
 
 void timer_switch(bool s) {
@@ -133,9 +145,34 @@ inline bool check_valid2(std::list<point> edges,
 	return false;
 }
 
+void check_skip_area(uint16_t &y, uint16_t &y_bound, uint16_t &x_start,
+		uint16_t &x_bound, uint16_t i) {
+	switch (i) {
+	case 0:
+		y = 0;
+		y_bound = no_scan.upper_y;
+		x_start = 0;
+		x_bound = width;
+		break;
+	case 1:
+		y = no_scan.upper_y;
+		y_bound = height;
+		x_start = 0;
+		x_bound = no_scan.left_x;
+		break;
+	case 2:
+		y = no_scan.upper_y;
+		y_bound = height;
+		x_start = no_scan.right_x;
+		x_bound = width;
+		break;
+	}
+}
+
 void check_beacon_edge(Beacon& temp, scan_mode mode) {
 	Beacon* ptr = NULL;
 	int8_t error = 15;
+	std::list<point> edges;
 	switch (mode) {
 	case beacon:
 		ptr = ir_record;
@@ -144,15 +181,15 @@ void check_beacon_edge(Beacon& temp, scan_mode mode) {
 		ptr = o_record;
 		break;
 	case avoid1:
-		ptr = &avoid_region1;
+		ptr = &avoid_region_left;
 		error = 0;
 		break;
 	case avoid2:
-		ptr = &avoid_region2;
+		ptr = &avoid_region_right;
 		error = 0;
 		break;
 	case avoid3:
-		ptr = &avoid_region3;
+		ptr = &avoid_region_up;
 		error = 0;
 		break;
 	case avoid4:	//overlay left
@@ -163,83 +200,47 @@ void check_beacon_edge(Beacon& temp, scan_mode mode) {
 		ptr = &avoid_region5;
 		error = 0;
 		break;
-	case full_screen:	//overlay right
-		Beacon full_screen(0, width, 0, height);
-		ptr = &full_screen;
-		error = 0;
+	default:
 		break;
 	}
-	int16_t x_start = ptr->left_x < error ? 0 : ptr->left_x - error;
-	int16_t x_bound = ptr->right_x + error;
-	int16_t y_start = ptr->upper_y < error ? 0 : ptr->upper_y - error;
-	int16_t y_bound = ptr->lower_y + error;
-	std::list<point> edges;
+	if (mode != full_screen) {
+		int16_t x_start = ptr->left_x < error ? 0 : ptr->left_x - error;
+		int16_t x_bound = ptr->right_x + error;
+		int16_t y_start = ptr->upper_y < error ? 0 : ptr->upper_y - error;
+		int16_t y_bound = ptr->lower_y + error;
 
-	if (mode < 2) {
-		x_bound = x_bound > width ? width : x_bound;
-		y_bound = y_bound > height ? height : y_bound;
-	}
-//		int16_t x_start2 = 0;
-//		int16_t x_bound2 = 0;
-//		int16_t y_start2 = 0;
-//		int16_t y_bound2 = 0;
-//		for (uint8_t r = 0; r < 2; r++) {
-//			switch (r) {
-//			case 0:	//upper
-//				x_start2 = x_start;
-//				x_bound2 = x_bound;
-//				y_start2 = y_start;
-//				y_bound2 = y_start + (y_bound - y_start) * 0.3f;
-//				break;
-//			case 1:	//lower
-//				x_start2 = x_start;
-//				x_bound2 = x_bound;
-//				y_start2 = y_bound - (y_bound - y_start) * 0.3f;
-//				y_bound2 = y_bound;
-//				break;
-//			case 2:	//left
-//				x_start2 = x_start;
-//				x_bound2 = x_start + (x_bound - x_start) * 0.3f;
-//				y_start2 = y_start + (y_bound - y_start) * 0.3f;
-//				y_bound2 = y_bound - (y_bound - y_start) * 0.3f;
-//				break;
-//			case 3:	//right
-//				x_start2 = x_bound - (x_bound - x_start) * 0.3f;
-//				x_bound2 = x_bound;
-//				y_start2 = y_start + (y_bound - y_start) * 0.3f;
-//				y_bound2 = y_bound - (y_bound - y_start) * 0.3f;
-//				break;
-//			}
-//			lcd->SetRegion(
-//					Lcd::Rect(x_start2, y_start2, x_bound2 - x_start2,
-//							y_bound2 - y_start2));
-//			lcd->FillColor(Lcd::kGreen);
-//			for (uint8_t y = y_start2; y < y_bound2; y += 2)
-//				for (uint8_t x = x_start2; x < x_bound2; x += 2)
-//					if (cal_sobel(x, y) > sobel_value) {
-//						point p(x, y);
-//						lcd->SetRegion(Lcd::Rect(x, y, 1, 1));
-//						lcd->FillColor(Lcd::kRed);
-//						it = edges.begin();
-//						for (; it != edges.end(); it++)
-//							if (check_near(*it, p)) {
-//								p.count++;
-//								it->count++;
-//							}
-//						edges.push_back(p);
-//					}
-//		}
-//	} else {
-	for (uint8_t y = y_start; y < y_bound; y += 3) {
-		for (uint8_t x = x_start; x < x_bound; x += 3)
-			if (cal_sobel(x, y) > sobel_value) {
-				point p(x, y);
-				edges.push_back(p);
+		if (mode < 2) {
+			x_bound = x_bound > width ? width : x_bound;
+			y_bound = y_bound > height ? height : y_bound;
+		}
+		for (uint8_t y = y_start; y < y_bound; y += 3) {
+			for (uint8_t x = x_start; x < x_bound; x += 3)
+				if (cal_sobel(x, y) > sobel_value) {
+					point p(x, y);
+					edges.push_back(p);
+				}
+			if (edges.size() > 150)
+				break;
+		}
+	} else {
+		uint16_t x_start = 0;
+		uint16_t x_bound = 0;
+		uint16_t y_start = 0;
+		uint16_t y_bound = 0;
+		for (int i = 0; i < 3; i++) {
+			check_skip_area(y_start, y_bound, x_start, x_bound, i);
+			for (uint8_t y = y_start; y < y_bound; y += 3) {
+				for (uint8_t x = x_start; x < x_bound; x += 3)
+					if (cal_sobel(x, y) > sobel_value) {
+						point p(x, y);
+						edges.push_back(p);
+					}
+				if (edges.size() > 150)
+					break;
 			}
-		if (edges.size() > 150)
-			break;
+		}
 	}
-//	}
+
 	edges.sort(sort_x);
 	for (int a = 0; a < 2; a++) {
 		for (auto it = edges.begin(); it != edges.end(); it++)
@@ -315,60 +316,26 @@ void check_beacon_ir(Beacon& temp, uint16_t x, uint16_t y) {
 	temp.calc();
 }
 
-//bool loop(loop_mode mode) {
-//	Beacon temp;
-//	uint16_t x_start;
-//	uint16_t x_bound;
-//	uint16_t y;
-//	uint16_t y_bound;
-//	switch (mode) {
-//	case upper:
-//		x_start = 0;
-//		x_bound = width;
-//		y = 0;
-//		y_bound = 0;
-//		break;
-//	case lower_left:
-//		x_start = 0;
-//		x_bound = 0;
-//		y = 0;
-//		y_bound = height;
-//		break;
-//	case lower_right:
-//		x_start = 0;
-//		x_bound = width;
-//		y = 0;
-//		y_bound = height;
-//		break;
-//	}
-//
-//	for (; y < y_bound; y += size)
-//		for (uint16_t x = x_start; x < x_bound; x += size)
-//			if (cal_mean(x, y) > white) {
-//				check_beacon_ir(temp, x, y);
-//				if (temp.area > min_area) {
-//					insert(temp, ptr_mode::ir_Target);
-//					irState = seen;
-//					timer_switch(true);
-//					return true;
-//				}
-//			}
-//	return false;
-//}
-
 bool loop_full_screen() {
 	Beacon temp;
-	for (uint16_t y = 0; y < height; y += size)
-		for (uint16_t x = 0; x < width; x += size)
-			if (cal_mean(x, y) > white) {
-				check_beacon_ir(temp, x, y);
-				if (temp.area > min_area) {
-					insert(temp, ptr_mode::ir_Target);
-					irState = seen;
-					timer_switch(true);
-					return true;
+	uint16_t y;
+	uint16_t y_bound;
+	uint16_t x_start;
+	uint16_t x_bound;
+	for (int i = 0; i < 3; i++) {
+		check_skip_area(y, y_bound, x_start, x_bound, i);
+		for (; y < y_bound; y += size)
+			for (uint16_t x = x_start; x < x_bound; x += size)
+				if (cal_mean(x, y) > white) {
+					check_beacon_ir(temp, x, y);
+					if (temp.area > min_area) {
+						insert(temp, ptr_mode::ir_Target);
+						irState = seen;
+						timer_switch(true);
+						return true;
+					}
 				}
-			}
+	}
 	return false;
 }
 
@@ -550,7 +517,5 @@ void process() {
 			if (!check_same(temp))
 				insert(temp, ptr_mode::o_Target);
 	}
-//	if (loop(loop_mode::upper) || loop(loop_mode::lower_left) || loop(loop_mode::lower_right))
-//		return;
 }
 #endif /* INC_IMAGE_PROCESSING_H_ */
