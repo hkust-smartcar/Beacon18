@@ -18,14 +18,18 @@ public:
 		gpi_config.pin = pin;
 		gpi_config.interrupt = Pin::Config::Interrupt::kBoth;
 		gpi_config.isr = [this](Gpi *gpi) {
+			uint32_t time = System::Time();
 			if (!gpi->Get()) {
-				start_time = System::Time();    //low, ir recevied
-			} else if(System::Time() - start_time < 250) { //high, ir not recevied
-				uint32_t time = System::Time();
+				start_time = time;    //low, ir recevied
+			} else if(time - start_time < 250) { //high, ir not recevied
 				pulse_width = time - start_time;
 				state = (time - record.time < 120 && pulse_width > 20 && record.width > 20)?1:0;
-				record.time = System::Time();
+				record.time = time;
 				record.width = pulse_width;
+			}
+			else{
+				pulse_width = 0;
+				state = false;
 			}
 		};
 //		gpi_config.config.set(Pin::Config::ConfigBit::kPassiveFilter);

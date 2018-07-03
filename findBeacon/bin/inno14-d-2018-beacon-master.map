@@ -299,15 +299,15 @@ Discarded input sections
  .text          0x00000000        0x0 obj/ir-d-2018-beacon-master.o
  .data          0x00000000        0x0 obj/ir-d-2018-beacon-master.o
  .bss           0x00000000        0x0 obj/ir-d-2018-beacon-master.o
- .gnu.lto_.inline.59a90e3b
+ .gnu.lto_.inline.5fb715d7
                 0x00000000        0xf obj/ir-d-2018-beacon-master.o
- .gnu.lto_.symbol_nodes.59a90e3b
+ .gnu.lto_.symbol_nodes.5fb715d7
                 0x00000000        0xe obj/ir-d-2018-beacon-master.o
- .gnu.lto_.refs.59a90e3b
+ .gnu.lto_.refs.5fb715d7
                 0x00000000        0xf obj/ir-d-2018-beacon-master.o
- .gnu.lto_.decls.59a90e3b
+ .gnu.lto_.decls.5fb715d7
                 0x00000000       0x1b obj/ir-d-2018-beacon-master.o
- .gnu.lto_.symtab.59a90e3b
+ .gnu.lto_.symtab.5fb715d7
                 0x00000000        0x0 obj/ir-d-2018-beacon-master.o
  .gnu.lto_.opts
                 0x00000000       0xd7 obj/ir-d-2018-beacon-master.o
@@ -602,383 +602,383 @@ Discarded input sections
  .text          0x00000000        0x0 obj/test-d-2018-beacon-master.o
  .data          0x00000000        0x0 obj/test-d-2018-beacon-master.o
  .bss           0x00000000        0x0 obj/test-d-2018-beacon-master.o
- .gnu.lto_.inline.5a15712e
+ .gnu.lto_.inline.5fb7563a
                 0x00000000      0x599 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZSt7forwardIZ4mainEUlhN5libsc8Joystick5StateEE_EOT_RNSt16remove_referenceIS4_E4typeE.5a15712e
+ .gnu.lto__ZSt7forwardIZ4mainEUlhN5libsc8Joystick5StateEE_EOT_RNSt16remove_referenceIS4_E4typeE.5fb7563a
                 0x00000000      0x10b obj/test-d-2018-beacon-master.o
- .gnu.lto__ZSt4moveIRZ4mainEUlhN5libsc8Joystick5StateEE_EONSt16remove_referenceIT_E4typeEOS6_.5a15712e
+ .gnu.lto__ZSt4moveIRZ4mainEUlhN5libsc8Joystick5StateEE_EONSt16remove_referenceIT_E4typeEOS6_.5fb7563a
                 0x00000000      0x10c obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt14_Function_base13_Base_managerIZ4mainEUlhN5libsc8Joystick5StateEE_E21_M_not_empty_functionIS4_EEbRKT_.5a15712e
+ .gnu.lto__ZNSt14_Function_base13_Base_managerIZ4mainEUlhN5libsc8Joystick5StateEE_E21_M_not_empty_functionIS4_EEbRKT_.5fb7563a
                 0x00000000      0x108 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZZ4mainENKUlhN5libsc8Joystick5StateEE_clEhS1_.5a15712e
+ .gnu.lto__ZZ4mainENKUlhN5libsc8Joystick5StateEE_clEhS1_.5fb7563a
                 0x00000000      0x10c obj/test-d-2018-beacon-master.o
- .gnu.lto__ZnwjPv.5a15712e
+ .gnu.lto__ZnwjPv.5fb7563a
                 0x00000000      0x105 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZL20__gthread_key_deletei.5a15712e
+ .gnu.lto__ZL20__gthread_key_deletei.5fb7563a
                 0x00000000      0x122 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt9_Any_data9_M_accessEv.5a15712e
+ .gnu.lto__ZNSt9_Any_data9_M_accessEv.5fb7563a
                 0x00000000      0x131 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt9_Any_data9_M_accessIPZ4mainEUlhN5libsc8Joystick5StateEE_EERT_v.5a15712e
+ .gnu.lto__ZNSt9_Any_data9_M_accessIPZ4mainEUlhN5libsc8Joystick5StateEE_EERT_v.5fb7563a
                 0x00000000      0x11b obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt14_Function_base13_Base_managerIZ4mainEUlhN5libsc8Joystick5StateEE_E10_M_destroyERSt9_Any_dataSt17integral_constantIbLb0EE.5a15712e
+ .gnu.lto__ZNSt14_Function_base13_Base_managerIZ4mainEUlhN5libsc8Joystick5StateEE_E10_M_destroyERSt9_Any_dataSt17integral_constantIbLb0EE.5fb7563a
                 0x00000000      0x14c obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt14_Function_base13_Base_managerIZ4mainEUlhN5libsc8Joystick5StateEE_E15_M_init_functorERSt9_Any_dataOS4_St17integral_constantIbLb0EE.5a15712e
+ .gnu.lto__ZNSt14_Function_base13_Base_managerIZ4mainEUlhN5libsc8Joystick5StateEE_E15_M_init_functorERSt9_Any_dataOS4_St17integral_constantIbLb0EE.5fb7563a
                 0x00000000      0x16a obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt14_Function_base13_Base_managerIZ4mainEUlhN5libsc8Joystick5StateEE_E15_M_init_functorERSt9_Any_dataOS4_.5a15712e
+ .gnu.lto__ZNSt14_Function_base13_Base_managerIZ4mainEUlhN5libsc8Joystick5StateEE_E15_M_init_functorERSt9_Any_dataOS4_.5fb7563a
                 0x00000000      0x15b obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNKSt9_Any_data9_M_accessEv.5a15712e
+ .gnu.lto__ZNKSt9_Any_data9_M_accessEv.5fb7563a
                 0x00000000      0x133 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNKSt9_Any_data9_M_accessIPZ4mainEUlhN5libsc8Joystick5StateEE_EERKT_v.5a15712e
+ .gnu.lto__ZNKSt9_Any_data9_M_accessIPZ4mainEUlhN5libsc8Joystick5StateEE_EERKT_v.5fb7563a
                 0x00000000      0x11a obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt14_Function_base13_Base_managerIZ4mainEUlhN5libsc8Joystick5StateEE_E14_M_get_pointerERKSt9_Any_data.5a15712e
+ .gnu.lto__ZNSt14_Function_base13_Base_managerIZ4mainEUlhN5libsc8Joystick5StateEE_E14_M_get_pointerERKSt9_Any_data.5fb7563a
                 0x00000000      0x17f obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt14_Function_base13_Base_managerIZ4mainEUlhN5libsc8Joystick5StateEE_E8_M_cloneERSt9_Any_dataRKS6_St17integral_constantIbLb0EE.5a15712e
+ .gnu.lto__ZNSt14_Function_base13_Base_managerIZ4mainEUlhN5libsc8Joystick5StateEE_E8_M_cloneERSt9_Any_dataRKS6_St17integral_constantIbLb0EE.5fb7563a
                 0x00000000      0x198 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt14_Function_base13_Base_managerIZ4mainEUlhN5libsc8Joystick5StateEE_E10_M_managerERSt9_Any_dataRKS6_St18_Manager_operation.5a15712e
+ .gnu.lto__ZNSt14_Function_base13_Base_managerIZ4mainEUlhN5libsc8Joystick5StateEE_E10_M_managerERSt9_Any_dataRKS6_St18_Manager_operation.5fb7563a
                 0x00000000      0x27d obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt14_Function_baseC2Ev.5a15712e
+ .gnu.lto__ZNSt14_Function_baseC2Ev.5fb7563a
                 0x00000000      0x139 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt14_Function_baseD2Ev.5a15712e
+ .gnu.lto__ZNSt14_Function_baseD2Ev.5fb7563a
                 0x00000000      0x1e0 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZN6BeaconC2Ev.5a15712e
+ .gnu.lto__ZN6BeaconC2Ev.5fb7563a
                 0x00000000      0x11b obj/test-d-2018-beacon-master.o
- .gnu.lto__ZN6Beacon4initEtt.5a15712e
+ .gnu.lto__ZN6Beacon4initEtt.5fb7563a
                 0x00000000       0xd5 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZSt7forwardIiEOT_RNSt16remove_referenceIS0_E4typeE.5a15712e
+ .gnu.lto__ZSt7forwardIiEOT_RNSt16remove_referenceIS0_E4typeE.5fb7563a
                 0x00000000      0x10b obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt4pairIiiEC1IiivEEOT_OT0_.5a15712e
+ .gnu.lto__ZNSt4pairIiiEC1IiivEEOT_OT0_.5fb7563a
                 0x00000000      0x1ce obj/test-d-2018-beacon-master.o
- .gnu.lto__ZSt9make_pairIiiESt4pairINSt17__decay_and_stripIT_E6__typeENS1_IT0_E6__typeEEOS2_OS5_.5a15712e
+ .gnu.lto__ZSt9make_pairIiiESt4pairINSt17__decay_and_stripIT_E6__typeENS1_IT0_E6__typeEEOS2_OS5_.5fb7563a
                 0x00000000      0x171 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZN5libsc3Lcd4RectC2Ejjjj.5a15712e
+ .gnu.lto__ZN5libsc3Lcd4RectC2Ejjjj.5fb7563a
                 0x00000000      0x12a obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNK5libsc7Encoder8GetCountEv.5a15712e
+ .gnu.lto__ZNK5libsc7Encoder8GetCountEv.5fb7563a
                 0x00000000       0xf3 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNK5libsc5Motor8GetPowerEv.5a15712e
+ .gnu.lto__ZNK5libsc5Motor8GetPowerEv.5fb7563a
                 0x00000000       0xed obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNK5libsc5Motor11IsClockwiseEv.5a15712e
+ .gnu.lto__ZNK5libsc5Motor11IsClockwiseEv.5fb7563a
                 0x00000000       0xec obj/test-d-2018-beacon-master.o
- .gnu.lto__ZN3PIDC2ERKfS1_S1_ii.5a15712e
+ .gnu.lto__ZN3PIDC2ERKfS1_S1_ii.5fb7563a
                 0x00000000      0x180 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZN3PID9settargetEi.5a15712e
+ .gnu.lto__ZN3PID9settargetEi.5fb7563a
                 0x00000000       0x9a obj/test-d-2018-beacon-master.o
- .gnu.lto__ZN3PID5resetEv.5a15712e
+ .gnu.lto__ZN3PID5resetEv.5fb7563a
                 0x00000000      0x113 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZN3PID9accuErrorERKl.5a15712e
+ .gnu.lto__ZN3PID9accuErrorERKl.5fb7563a
                 0x00000000      0x202 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZN3PID6outputERKl.5a15712e
+ .gnu.lto__ZN3PID6outputERKl.5fb7563a
                 0x00000000      0x4a7 obj/test-d-2018-beacon-master.o
- .gnu.lto__Z4getXta.5a15712e
+ .gnu.lto__Z4getXta.5fb7563a
                 0x00000000      0x20e obj/test-d-2018-beacon-master.o
- .gnu.lto__Z4getYt.5a15712e
+ .gnu.lto__Z4getYt.5fb7563a
                 0x00000000      0x156 obj/test-d-2018-beacon-master.o
- .gnu.lto__Z4skipta.5a15712e
+ .gnu.lto__Z4skipta.5fb7563a
                 0x00000000      0x3de obj/test-d-2018-beacon-master.o
- .gnu.lto__Z8sub_scantai.5a15712e
+ .gnu.lto__Z8sub_scantai.5fb7563a
                 0x00000000      0xd28 obj/test-d-2018-beacon-master.o
- .gnu.lto__Z12check_targetv.5a15712e
+ .gnu.lto__Z12check_targetv.5fb7563a
                 0x00000000      0x21b obj/test-d-2018-beacon-master.o
- .gnu.lto__Z10check_nearSt4pairIttES0_.5a15712e
+ .gnu.lto__Z10check_nearSt4pairIttES0_.5fb7563a
                 0x00000000      0x277 obj/test-d-2018-beacon-master.o
- .gnu.lto__Z13GetMotorPoweri.5a15712e
+ .gnu.lto__Z13GetMotorPoweri.5fb7563a
                 0x00000000      0x39e obj/test-d-2018-beacon-master.o
- .gnu.lto__Z7sendInti.5a15712e
+ .gnu.lto__Z7sendInti.5fb7563a
                 0x00000000      0x2c6 obj/test-d-2018-beacon-master.o
- .gnu.lto__Z9reset_pidv.5a15712e
+ .gnu.lto__Z9reset_pidv.5fb7563a
                 0x00000000      0x175 obj/test-d-2018-beacon-master.o
- .gnu.lto__Z14display_bMeterv.5a15712e
+ .gnu.lto__Z14display_bMeterv.5fb7563a
                 0x00000000      0x2f8 obj/test-d-2018-beacon-master.o
- .gnu.lto__Z8init_ledt.5a15712e
+ .gnu.lto__Z8init_ledt.5fb7563a
                 0x00000000      0x146 obj/test-d-2018-beacon-master.o
- .gnu.lto__Z8init_lcdv.5a15712e
+ .gnu.lto__Z8init_lcdv.5fb7563a
                 0x00000000      0x139 obj/test-d-2018-beacon-master.o
- .gnu.lto__Z11init_bMeterv.5a15712e
+ .gnu.lto__Z11init_bMeterv.5fb7563a
                 0x00000000      0x123 obj/test-d-2018-beacon-master.o
- .gnu.lto__Z11init_writerv.5a15712e
+ .gnu.lto__Z11init_writerv.5fb7563a
                 0x00000000      0x147 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZN5libsc3k606Ov77256ConfigC2Ev.5a15712e
+ .gnu.lto__ZN5libsc3k606Ov77256ConfigC2Ev.5fb7563a
                 0x00000000      0x119 obj/test-d-2018-beacon-master.o
- .gnu.lto__Z8init_camv.5a15712e
+ .gnu.lto__Z8init_camv.5fb7563a
                 0x00000000      0x1b5 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt8functionIFbPKhjEED2Ev.5a15712e
+ .gnu.lto__ZNSt8functionIFbPKhjEED2Ev.5fb7563a
                 0x00000000      0x16a obj/test-d-2018-beacon-master.o
- .gnu.lto__ZN5libsc3k6010UartDevice6ConfigD2Ev.5a15712e
+ .gnu.lto__ZN5libsc3k6010UartDevice6ConfigD2Ev.5fb7563a
                 0x00000000      0x144 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZN5libsc5Motor6ConfigC2Ev.5a15712e
+ .gnu.lto__ZN5libsc5Motor6ConfigC2Ev.5fb7563a
                 0x00000000      0x103 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZN5libsc14AlternateMotor6ConfigC2Ev.5a15712e
+ .gnu.lto__ZN5libsc14AlternateMotor6ConfigC2Ev.5fb7563a
                 0x00000000      0x140 obj/test-d-2018-beacon-master.o
- .gnu.lto__Z10init_motori.5a15712e
+ .gnu.lto__Z10init_motori.5fb7563a
                 0x00000000      0x156 obj/test-d-2018-beacon-master.o
- .gnu.lto__Z12init_encoderi.5a15712e
+ .gnu.lto__Z12init_encoderi.5fb7563a
                 0x00000000      0x139 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZN7libbase3k603Mcg12GetMcgConfigEv.5a15712e
+ .gnu.lto__ZN7libbase3k603Mcg12GetMcgConfigEv.5fb7563a
                 0x00000000      0x115 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt8functionIFvhN5libsc8Joystick5StateEEED2Ev.5a15712e
+ .gnu.lto__ZNSt8functionIFvhN5libsc8Joystick5StateEEED2Ev.5fb7563a
                 0x00000000      0x16a obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt4pairIttEaSERKS0_.5a15712e
+ .gnu.lto__ZNSt4pairIttEaSERKS0_.5fb7563a
                 0x00000000      0x189 obj/test-d-2018-beacon-master.o
- .gnu.lto__Z3FSMv.5a15712e
+ .gnu.lto__Z3FSMv.5fb7563a
                 0x00000000      0xb9b obj/test-d-2018-beacon-master.o
- .gnu.lto__ZN6BeaconC2ERKS_.5a15712e
+ .gnu.lto__ZN6BeaconC2ERKS_.5fb7563a
                 0x00000000      0x1f4 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZN6RecordC2E6Beacon.5a15712e
+ .gnu.lto__ZN6RecordC2E6Beacon.5fb7563a
                 0x00000000      0x131 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt4pairIttEaSIiiEERS0_OS_IT_T0_E.5a15712e
+ .gnu.lto__ZNSt4pairIttEaSIiiEERS0_OS_IT_T0_E.5fb7563a
                 0x00000000      0x211 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZN6Beacon4calcEv.5a15712e
+ .gnu.lto__ZN6Beacon4calcEv.5fb7563a
                 0x00000000      0x3be obj/test-d-2018-beacon-master.o
- .gnu.lto__Z4scantai.5a15712e
+ .gnu.lto__Z4scantai.5fb7563a
                 0x00000000      0x2b3 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNKSt14_List_iteratorI6RecordEneERKS1_.5a15712e
+ .gnu.lto__ZNKSt14_List_iteratorI6RecordEneERKS1_.5fb7563a
                 0x00000000      0x160 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt14_List_iteratorI6RecordEppEv.5a15712e
+ .gnu.lto__ZNSt14_List_iteratorI6RecordEppEv.5fb7563a
                 0x00000000      0x171 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZSt4moveIR6RecordEONSt16remove_referenceIT_E4typeEOS3_.5a15712e
+ .gnu.lto__ZSt4moveIR6RecordEONSt16remove_referenceIT_E4typeEOS3_.5fb7563a
                 0x00000000      0x10c obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt14_List_iteratorIhEppEi.5a15712e
+ .gnu.lto__ZNSt14_List_iteratorIhEppEi.5fb7563a
                 0x00000000      0x1b6 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNKSt14_List_iteratorIhEdeEv.5a15712e
+ .gnu.lto__ZNKSt14_List_iteratorIhEdeEv.5fb7563a
                 0x00000000      0x15c obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt15binary_functionIPKhjbEC2Ev.5a15712e
+ .gnu.lto__ZNSt15binary_functionIPKhjbEC2Ev.5fb7563a
                 0x00000000      0x112 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt31_Maybe_unary_or_binary_functionIbIPKhjEEC2Ev.5a15712e
+ .gnu.lto__ZNSt31_Maybe_unary_or_binary_functionIbIPKhjEEC2Ev.5fb7563a
                 0x00000000      0x12e obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt8functionIFbPKhjEEC2Ev.5a15712e
+ .gnu.lto__ZNSt8functionIFbPKhjEEC2Ev.5fb7563a
                 0x00000000      0x18d obj/test-d-2018-beacon-master.o
- .gnu.lto__ZN5libsc3k6010UartDevice6ConfigC2Ev.5a15712e
+ .gnu.lto__ZN5libsc3k6010UartDevice6ConfigC2Ev.5fb7563a
                 0x00000000      0x175 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZSt7forwardIPFbPKhjEEOT_RNSt16remove_referenceIS4_E4typeE.5a15712e
+ .gnu.lto__ZSt7forwardIPFbPKhjEEOT_RNSt16remove_referenceIS4_E4typeE.5fb7563a
                 0x00000000      0x10b obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt15binary_functionIhN5libsc8Joystick5StateEvEC2Ev.5a15712e
+ .gnu.lto__ZNSt15binary_functionIhN5libsc8Joystick5StateEvEC2Ev.5fb7563a
                 0x00000000      0x112 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt31_Maybe_unary_or_binary_functionIvIhN5libsc8Joystick5StateEEEC2Ev.5a15712e
+ .gnu.lto__ZNSt31_Maybe_unary_or_binary_functionIvIhN5libsc8Joystick5StateEEEC2Ev.5fb7563a
                 0x00000000      0x12e obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt8functionIFvhN5libsc8Joystick5StateEEEC2Ev.5a15712e
+ .gnu.lto__ZNSt8functionIFvhN5libsc8Joystick5StateEEEC2Ev.5fb7563a
                 0x00000000      0x18d obj/test-d-2018-beacon-master.o
- .gnu.lto__ZN5libsc8Joystick6ConfigC2Ev.5a15712e
+ .gnu.lto__ZN5libsc8Joystick6ConfigC2Ev.5fb7563a
                 0x00000000      0x20b obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt10_List_baseI6RecordSaIS0_EE7_M_initEv.5a15712e
+ .gnu.lto__ZNSt10_List_baseI6RecordSaIS0_EE7_M_initEv.5fb7563a
                 0x00000000      0x160 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt14_List_iteratorI6RecordEC2EPNSt8__detail15_List_node_baseE.5a15712e
+ .gnu.lto__ZNSt14_List_iteratorI6RecordEC2EPNSt8__detail15_List_node_baseE.5fb7563a
                 0x00000000      0x13c obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt4listI6RecordSaIS0_EE5beginEv.5a15712e
+ .gnu.lto__ZNSt4listI6RecordSaIS0_EE5beginEv.5fb7563a
                 0x00000000      0x18d obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt4listI6RecordSaIS0_EE3endEv.5a15712e
+ .gnu.lto__ZNSt4listI6RecordSaIS0_EE3endEv.5fb7563a
                 0x00000000      0x18a obj/test-d-2018-beacon-master.o
- .gnu.lto__ZSt11__addressofI6RecordEPT_RS1_.5a15712e
+ .gnu.lto__ZSt11__addressofI6RecordEPT_RS1_.5fb7563a
                 0x00000000      0x10c obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNKSt14_List_iteratorI6RecordEptEv.5a15712e
+ .gnu.lto__ZNKSt14_List_iteratorI6RecordEptEv.5fb7563a
                 0x00000000      0x17b obj/test-d-2018-beacon-master.o
- .gnu.lto__ZSt7forwardI6RecordEOT_RNSt16remove_referenceIS1_E4typeE.5a15712e
+ .gnu.lto__ZSt7forwardI6RecordEOT_RNSt16remove_referenceIS1_E4typeE.5fb7563a
                 0x00000000      0x10b obj/test-d-2018-beacon-master.o
- .gnu.lto__ZSt3minIiERKT_S2_S2_.5a15712e
+ .gnu.lto__ZSt3minIiERKT_S2_S2_.5fb7563a
                 0x00000000      0x194 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZSt3maxIiERKT_S2_S2_.5a15712e
+ .gnu.lto__ZSt3maxIiERKT_S2_S2_.5fb7563a
                 0x00000000      0x195 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZN7libutil5ClampIiEET_RKS1_S3_S3_.5a15712e
+ .gnu.lto__ZN7libutil5ClampIiEET_RKS1_S3_S3_.5fb7563a
                 0x00000000      0x132 obj/test-d-2018-beacon-master.o
- .gnu.lto__Z8SetPowerii.5a15712e
+ .gnu.lto__Z8SetPowerii.5fb7563a
                 0x00000000      0x378 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt14_List_iteratorIhEC2EPNSt8__detail15_List_node_baseE.5a15712e
+ .gnu.lto__ZNSt14_List_iteratorIhEC2EPNSt8__detail15_List_node_baseE.5fb7563a
                 0x00000000      0x13c obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt4listIhSaIhEE5beginEv.5a15712e
+ .gnu.lto__ZNSt4listIhSaIhEE5beginEv.5fb7563a
                 0x00000000      0x18d obj/test-d-2018-beacon-master.o
- .gnu.lto__Z18BuildBufferPackagev.5a15712e
+ .gnu.lto__Z18BuildBufferPackagev.5fb7563a
                 0x00000000      0x403 obj/test-d-2018-beacon-master.o
- .gnu.lto__Z18BuildTargetPackagev.5a15712e
+ .gnu.lto__Z18BuildTargetPackagev.5fb7563a
                 0x00000000      0x7eb obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt10_List_baseIhSaIhEE7_M_initEv.5a15712e
+ .gnu.lto__ZNSt10_List_baseIhSaIhEE7_M_initEv.5fb7563a
                 0x00000000      0x160 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt4listIhSaIhEE3endEv.5a15712e
+ .gnu.lto__ZNSt4listIhSaIhEE3endEv.5fb7563a
                 0x00000000      0x18b obj/test-d-2018-beacon-master.o
- .gnu.lto__ZSt7forwardIRKhEOT_RNSt16remove_referenceIS2_E4typeE.5a15712e
+ .gnu.lto__ZSt7forwardIRKhEOT_RNSt16remove_referenceIS2_E4typeE.5fb7563a
                 0x00000000      0x10b obj/test-d-2018-beacon-master.o
- .gnu.lto__ZSt4moveIRPFbPKhjEEONSt16remove_referenceIT_E4typeEOS6_.5a15712e
+ .gnu.lto__ZSt4moveIRPFbPKhjEEONSt16remove_referenceIT_E4typeEOS6_.5fb7563a
                 0x00000000      0x10c obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt8functionIFvhN5libsc8Joystick5StateEEEC2IZ4mainEUlhS2_E_vEET_.5a15712e
+ .gnu.lto__ZNSt8functionIFvhN5libsc8Joystick5StateEEEC2IZ4mainEUlhS2_E_vEET_.5fb7563a
                 0x00000000      0x277 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt17_Function_handlerIFvhN5libsc8Joystick5StateEEZ4mainEUlhS2_E_E9_M_invokeERKSt9_Any_datahS2_.5a15712e
+ .gnu.lto__ZNSt17_Function_handlerIFvhN5libsc8Joystick5StateEEZ4mainEUlhS2_E_E9_M_invokeERKSt9_Any_datahS2_.5fb7563a
                 0x00000000      0x1c7 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt10_List_baseI6RecordSaIS0_EE21_M_get_Node_allocatorEv.5a15712e
+ .gnu.lto__ZNSt10_List_baseI6RecordSaIS0_EE21_M_get_Node_allocatorEv.5fb7563a
                 0x00000000      0x12e obj/test-d-2018-beacon-master.o
- .gnu.lto__ZN9__gnu_cxx13new_allocatorISt10_List_nodeI6RecordEE7destroyIS3_EEvPT_.5a15712e
+ .gnu.lto__ZN9__gnu_cxx13new_allocatorISt10_List_nodeI6RecordEE7destroyIS3_EEvPT_.5fb7563a
                 0x00000000       0xcb obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt10_List_baseIhSaIhEE21_M_get_Node_allocatorEv.5a15712e
+ .gnu.lto__ZNSt10_List_baseIhSaIhEE21_M_get_Node_allocatorEv.5fb7563a
                 0x00000000      0x12e obj/test-d-2018-beacon-master.o
- .gnu.lto__ZN9__gnu_cxx13new_allocatorISt10_List_nodeIhEE7destroyIS2_EEvPT_.5a15712e
+ .gnu.lto__ZN9__gnu_cxx13new_allocatorISt10_List_nodeIhEE7destroyIS2_EEvPT_.5fb7563a
                 0x00000000       0xcb obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt14_Function_base13_Base_managerIPFbPKhjEE21_M_not_empty_functionIS3_EEbRKPT_.5a15712e
+ .gnu.lto__ZNSt14_Function_base13_Base_managerIPFbPKhjEE21_M_not_empty_functionIS3_EEbRKPT_.5fb7563a
                 0x00000000      0x13d obj/test-d-2018-beacon-master.o
- .gnu.lto__ZSt7forwardIPKhEOT_RNSt16remove_referenceIS2_E4typeE.5a15712e
+ .gnu.lto__ZSt7forwardIPKhEOT_RNSt16remove_referenceIS2_E4typeE.5fb7563a
                 0x00000000      0x10b obj/test-d-2018-beacon-master.o
- .gnu.lto__ZSt7forwardIjEOT_RNSt16remove_referenceIS0_E4typeE.5a15712e
+ .gnu.lto__ZSt7forwardIjEOT_RNSt16remove_referenceIS0_E4typeE.5fb7563a
                 0x00000000      0x10b obj/test-d-2018-beacon-master.o
- .gnu.lto__ZSt4moveIRSt9_Any_dataEONSt16remove_referenceIT_E4typeEOS3_.5a15712e
+ .gnu.lto__ZSt4moveIRSt9_Any_dataEONSt16remove_referenceIT_E4typeEOS3_.5fb7563a
                 0x00000000      0x10c obj/test-d-2018-beacon-master.o
- .gnu.lto__ZSt4swapISt9_Any_dataEvRT_S2_.5a15712e
+ .gnu.lto__ZSt4swapISt9_Any_dataEvRT_S2_.5fb7563a
                 0x00000000      0x1ca obj/test-d-2018-beacon-master.o
- .gnu.lto__ZSt4moveIRPFbRSt9_Any_dataRKS0_St18_Manager_operationEEONSt16remove_referenceIT_E4typeEOS9_.5a15712e
+ .gnu.lto__ZSt4moveIRPFbRSt9_Any_dataRKS0_St18_Manager_operationEEONSt16remove_referenceIT_E4typeEOS9_.5fb7563a
                 0x00000000      0x10c obj/test-d-2018-beacon-master.o
- .gnu.lto__ZSt4swapIPFbRSt9_Any_dataRKS0_St18_Manager_operationEEvRT_S8_.5a15712e
+ .gnu.lto__ZSt4swapIPFbRSt9_Any_dataRKS0_St18_Manager_operationEEvRT_S8_.5fb7563a
                 0x00000000      0x204 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZSt4moveIRPFbRKSt9_Any_dataPKhjEEONSt16remove_referenceIT_E4typeEOS9_.5a15712e
+ .gnu.lto__ZSt4moveIRPFbRKSt9_Any_dataPKhjEEONSt16remove_referenceIT_E4typeEOS9_.5fb7563a
                 0x00000000      0x10c obj/test-d-2018-beacon-master.o
- .gnu.lto__ZSt4swapIPFbRKSt9_Any_dataPKhjEEvRT_S8_.5a15712e
+ .gnu.lto__ZSt4swapIPFbRKSt9_Any_dataPKhjEEvRT_S8_.5fb7563a
                 0x00000000      0x204 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt8functionIFbPKhjEE4swapERS3_.5a15712e
+ .gnu.lto__ZNSt8functionIFbPKhjEE4swapERS3_.5fb7563a
                 0x00000000      0x1e2 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZSt7forwardIhEOT_RNSt16remove_referenceIS0_E4typeE.5a15712e
+ .gnu.lto__ZSt7forwardIhEOT_RNSt16remove_referenceIS0_E4typeE.5fb7563a
                 0x00000000      0x10b obj/test-d-2018-beacon-master.o
- .gnu.lto__ZSt7forwardIN5libsc8Joystick5StateEEOT_RNSt16remove_referenceIS3_E4typeE.5a15712e
+ .gnu.lto__ZSt7forwardIN5libsc8Joystick5StateEEOT_RNSt16remove_referenceIS3_E4typeE.5fb7563a
                 0x00000000      0x10b obj/test-d-2018-beacon-master.o
- .gnu.lto__ZSt4moveIRPFvRKSt9_Any_datahN5libsc8Joystick5StateEEEONSt16remove_referenceIT_E4typeEOSA_.5a15712e
+ .gnu.lto__ZSt4moveIRPFvRKSt9_Any_datahN5libsc8Joystick5StateEEEONSt16remove_referenceIT_E4typeEOSA_.5fb7563a
                 0x00000000      0x10c obj/test-d-2018-beacon-master.o
- .gnu.lto__ZSt4swapIPFvRKSt9_Any_datahN5libsc8Joystick5StateEEEvRT_S9_.5a15712e
+ .gnu.lto__ZSt4swapIPFvRKSt9_Any_datahN5libsc8Joystick5StateEEEvRT_S9_.5fb7563a
                 0x00000000      0x204 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt8functionIFvhN5libsc8Joystick5StateEEE4swapERS4_.5a15712e
+ .gnu.lto__ZNSt8functionIFvhN5libsc8Joystick5StateEEE4swapERS4_.5fb7563a
                 0x00000000      0x1e2 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt8functionIFvhN5libsc8Joystick5StateEEEaSIZ4mainEUlhS2_E_EENSt9enable_ifIXsrSt6__and_IISt6__not_ISt7is_sameINSt5decayIT_E4typeES4_EESt5__or_IISt7is_voidIvESt14is_convertibleIDTclcl18__callable_functorcl7declvalIRSE_EEEcl7declvalIhEEcl7declvalIS2_EEEEvEEEEE5valueERS4_E4typeEOSC_.5a15712e
+ .gnu.lto__ZNSt8functionIFvhN5libsc8Joystick5StateEEEaSIZ4mainEUlhS2_E_EENSt9enable_ifIXsrSt6__and_IISt6__not_ISt7is_sameINSt5decayIT_E4typeES4_EESt5__or_IISt7is_voidIvESt14is_convertibleIDTclcl18__callable_functorcl7declvalIRSE_EEEcl7declvalIhEEcl7declvalIS2_EEEEvEEEEE5valueERS4_E4typeEOSC_.5fb7563a
                 0x00000000      0x1b6 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZN9__gnu_cxx13new_allocatorISt10_List_nodeI6RecordEED2Ev.5a15712e
+ .gnu.lto__ZN9__gnu_cxx13new_allocatorISt10_List_nodeI6RecordEED2Ev.5fb7563a
                 0x00000000      0x113 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSaISt10_List_nodeI6RecordEED2Ev.5a15712e
+ .gnu.lto__ZNSaISt10_List_nodeI6RecordEED2Ev.5fb7563a
                 0x00000000      0x132 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt10_List_baseI6RecordSaIS0_EE10_List_implD2Ev.5a15712e
+ .gnu.lto__ZNSt10_List_baseI6RecordSaIS0_EE10_List_implD2Ev.5fb7563a
                 0x00000000      0x133 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZN9__gnu_cxx13new_allocatorISt10_List_nodeI6RecordEE10deallocateEPS3_j.5a15712e
+ .gnu.lto__ZN9__gnu_cxx13new_allocatorISt10_List_nodeI6RecordEE10deallocateEPS3_j.5fb7563a
                 0x00000000       0xe5 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt10_List_baseI6RecordSaIS0_EE11_M_put_nodeEPSt10_List_nodeIS0_E.5a15712e
+ .gnu.lto__ZNSt10_List_baseI6RecordSaIS0_EE11_M_put_nodeEPSt10_List_nodeIS0_E.5fb7563a
                 0x00000000      0x13a obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt10_List_baseI6RecordSaIS0_EE8_M_clearEv.5a15712e
+ .gnu.lto__ZNSt10_List_baseI6RecordSaIS0_EE8_M_clearEv.5fb7563a
                 0x00000000      0x232 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt4listI6RecordSaIS0_EE5clearEv.5a15712e
+ .gnu.lto__ZNSt4listI6RecordSaIS0_EE5clearEv.5fb7563a
                 0x00000000      0x15f obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt10_List_baseI6RecordSaIS0_EED2Ev.5a15712e
+ .gnu.lto__ZNSt10_List_baseI6RecordSaIS0_EED2Ev.5fb7563a
                 0x00000000      0x181 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt4listI6RecordSaIS0_EED2Ev.5a15712e
+ .gnu.lto__ZNSt4listI6RecordSaIS0_EED2Ev.5fb7563a
                 0x00000000      0x16f obj/test-d-2018-beacon-master.o
- .gnu.lto__ZN9__gnu_cxx13new_allocatorISt10_List_nodeIhEED2Ev.5a15712e
+ .gnu.lto__ZN9__gnu_cxx13new_allocatorISt10_List_nodeIhEED2Ev.5fb7563a
                 0x00000000      0x113 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSaISt10_List_nodeIhEED2Ev.5a15712e
+ .gnu.lto__ZNSaISt10_List_nodeIhEED2Ev.5fb7563a
                 0x00000000      0x132 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt10_List_baseIhSaIhEE10_List_implD2Ev.5a15712e
+ .gnu.lto__ZNSt10_List_baseIhSaIhEE10_List_implD2Ev.5fb7563a
                 0x00000000      0x133 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZN9__gnu_cxx13new_allocatorISt10_List_nodeIhEE10deallocateEPS2_j.5a15712e
+ .gnu.lto__ZN9__gnu_cxx13new_allocatorISt10_List_nodeIhEE10deallocateEPS2_j.5fb7563a
                 0x00000000       0xe5 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt10_List_baseIhSaIhEE11_M_put_nodeEPSt10_List_nodeIhE.5a15712e
+ .gnu.lto__ZNSt10_List_baseIhSaIhEE11_M_put_nodeEPSt10_List_nodeIhE.5fb7563a
                 0x00000000      0x13a obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt10_List_baseIhSaIhEE8_M_clearEv.5a15712e
+ .gnu.lto__ZNSt10_List_baseIhSaIhEE8_M_clearEv.5fb7563a
                 0x00000000      0x232 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt4listIhSaIhEE5clearEv.5a15712e
+ .gnu.lto__ZNSt4listIhSaIhEE5clearEv.5fb7563a
                 0x00000000      0x15f obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt10_List_baseIhSaIhEED2Ev.5a15712e
+ .gnu.lto__ZNSt10_List_baseIhSaIhEED2Ev.5fb7563a
                 0x00000000      0x181 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt4listIhSaIhEED2Ev.5a15712e
+ .gnu.lto__ZNSt4listIhSaIhEED2Ev.5fb7563a
                 0x00000000      0x16f obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt14_Function_base13_Base_managerIPFbPKhjEE15_M_init_functorERSt9_Any_dataOS4_St17integral_constantIbLb1EE.5a15712e
+ .gnu.lto__ZNSt14_Function_base13_Base_managerIPFbPKhjEE15_M_init_functorERSt9_Any_dataOS4_St17integral_constantIbLb1EE.5fb7563a
                 0x00000000      0x1de obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt14_Function_base13_Base_managerIPFbPKhjEE15_M_init_functorERSt9_Any_dataOS4_.5a15712e
+ .gnu.lto__ZNSt14_Function_base13_Base_managerIPFbPKhjEE15_M_init_functorERSt9_Any_dataOS4_.5fb7563a
                 0x00000000      0x15b obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt8functionIFbPKhjEEC2IPS2_vEET_.5a15712e
+ .gnu.lto__ZNSt8functionIFbPKhjEEC2IPS2_vEET_.5fb7563a
                 0x00000000      0x277 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt17_Function_handlerIFbPKhjEPS2_E9_M_invokeERKSt9_Any_dataS1_j.5a15712e
+ .gnu.lto__ZNSt17_Function_handlerIFbPKhjEPS2_E9_M_invokeERKSt9_Any_dataS1_j.5fb7563a
                 0x00000000      0x1f3 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt14_Function_base13_Base_managerIPFbPKhjEE10_M_managerERSt9_Any_dataRKS6_St18_Manager_operation.5a15712e
+ .gnu.lto__ZNSt14_Function_base13_Base_managerIPFbPKhjEE10_M_managerERSt9_Any_dataRKS6_St18_Manager_operation.5fb7563a
                 0x00000000      0x27d obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt8functionIFbPKhjEEaSIPS2_EENSt9enable_ifIXsrSt6__and_IISt6__not_ISt7is_sameINSt5decayIT_E4typeES3_EESt5__or_IISt7is_voidIbESt14is_convertibleIDTclcl18__callable_functorcl7declvalIRSD_EEEcl7declvalIS1_EEcl7declvalIjEEEEbEEEEE5valueERS3_E4typeEOSB_.5a15712e
+ .gnu.lto__ZNSt8functionIFbPKhjEEaSIPS2_EENSt9enable_ifIXsrSt6__and_IISt6__not_ISt7is_sameINSt5decayIT_E4typeES3_EESt5__or_IISt7is_voidIbESt14is_convertibleIDTclcl18__callable_functorcl7declvalIRSD_EEEcl7declvalIS1_EEcl7declvalIjEEEEbEEEEE5valueERS3_E4typeEOSB_.5fb7563a
                 0x00000000      0x1cf obj/test-d-2018-beacon-master.o
- .gnu.lto__Z7init_btv.5a15712e
+ .gnu.lto__Z7init_btv.5fb7563a
                 0x00000000      0x19c obj/test-d-2018-beacon-master.o
- .gnu.lto__Z11bt_listenerPKhj.5a15712e
+ .gnu.lto__Z11bt_listenerPKhj.5fb7563a
                 0x00000000      0x6cc obj/test-d-2018-beacon-master.o
- .gnu.lto__Z9init_commv.5a15712e
+ .gnu.lto__Z9init_commv.5fb7563a
                 0x00000000      0x19e obj/test-d-2018-beacon-master.o
- .gnu.lto__Z13comm_listenerPKhj.5a15712e
+ .gnu.lto__Z13comm_listenerPKhj.5fb7563a
                 0x00000000      0x211 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt9_Any_data9_M_accessIPPFbPKhjEEERT_v.5a15712e
+ .gnu.lto__ZNSt9_Any_data9_M_accessIPPFbPKhjEEERT_v.5fb7563a
                 0x00000000      0x11b obj/test-d-2018-beacon-master.o
- .gnu.lto__ZN9__gnu_cxx13new_allocatorISt10_List_nodeI6RecordEEC2Ev.5a15712e
+ .gnu.lto__ZN9__gnu_cxx13new_allocatorISt10_List_nodeI6RecordEEC2Ev.5fb7563a
                 0x00000000      0x113 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSaISt10_List_nodeI6RecordEEC2Ev.5a15712e
+ .gnu.lto__ZNSaISt10_List_nodeI6RecordEEC2Ev.5fb7563a
                 0x00000000      0x134 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt10_List_baseI6RecordSaIS0_EE10_List_implC2Ev.5a15712e
+ .gnu.lto__ZNSt10_List_baseI6RecordSaIS0_EE10_List_implC2Ev.5fb7563a
                 0x00000000      0x163 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt10_List_baseI6RecordSaIS0_EEC2Ev.5a15712e
+ .gnu.lto__ZNSt10_List_baseI6RecordSaIS0_EEC2Ev.5fb7563a
                 0x00000000      0x194 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt4listI6RecordSaIS0_EEC2Ev.5a15712e
+ .gnu.lto__ZNSt4listI6RecordSaIS0_EEC2Ev.5fb7563a
                 0x00000000      0x183 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZN6RecordC2EOS_.5a15712e
+ .gnu.lto__ZN6RecordC2EOS_.5fb7563a
                 0x00000000      0x158 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt10_List_nodeI6RecordEC2IIS0_EEEDpOT_.5a15712e
+ .gnu.lto__ZNSt10_List_nodeI6RecordEC2IIS0_EEEDpOT_.5fb7563a
                 0x00000000      0x1c1 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZN9__gnu_cxx13new_allocatorISt10_List_nodeI6RecordEE9constructIS3_IS2_EEEvPT_DpOT0_.5a15712e
+ .gnu.lto__ZN9__gnu_cxx13new_allocatorISt10_List_nodeI6RecordEE9constructIS3_IS2_EEEvPT_DpOT0_.5fb7563a
                 0x00000000      0x1b6 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZN9__gnu_cxx13new_allocatorISt10_List_nodeIhEEC2Ev.5a15712e
+ .gnu.lto__ZN9__gnu_cxx13new_allocatorISt10_List_nodeIhEEC2Ev.5fb7563a
                 0x00000000      0x113 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSaISt10_List_nodeIhEEC2Ev.5a15712e
+ .gnu.lto__ZNSaISt10_List_nodeIhEEC2Ev.5fb7563a
                 0x00000000      0x134 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt10_List_baseIhSaIhEE10_List_implC2Ev.5a15712e
+ .gnu.lto__ZNSt10_List_baseIhSaIhEE10_List_implC2Ev.5fb7563a
                 0x00000000      0x163 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt10_List_baseIhSaIhEEC2Ev.5a15712e
+ .gnu.lto__ZNSt10_List_baseIhSaIhEEC2Ev.5fb7563a
                 0x00000000      0x194 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt4listIhSaIhEEC2Ev.5a15712e
+ .gnu.lto__ZNSt4listIhSaIhEEC2Ev.5fb7563a
                 0x00000000      0x183 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt10_List_nodeIhEC2IIRKhEEEDpOT_.5a15712e
+ .gnu.lto__ZNSt10_List_nodeIhEC2IIRKhEEEDpOT_.5fb7563a
                 0x00000000      0x1d1 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZN9__gnu_cxx13new_allocatorISt10_List_nodeIhEE9constructIS2_IRKhEEEvPT_DpOT0_.5a15712e
+ .gnu.lto__ZN9__gnu_cxx13new_allocatorISt10_List_nodeIhEE9constructIS2_IRKhEEEvPT_DpOT0_.5fb7563a
                 0x00000000      0x1b7 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNKSt9_Any_data9_M_accessIPFbPKhjEEERKT_v.5a15712e
+ .gnu.lto__ZNKSt9_Any_data9_M_accessIPFbPKhjEEERKT_v.5fb7563a
                 0x00000000      0x11a obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt14_Function_base13_Base_managerIPFbPKhjEE8_M_cloneERSt9_Any_dataRKS6_St17integral_constantIbLb1EE.5a15712e
+ .gnu.lto__ZNSt14_Function_base13_Base_managerIPFbPKhjEE8_M_cloneERSt9_Any_dataRKS6_St17integral_constantIbLb1EE.5fb7563a
                 0x00000000      0x1ce obj/test-d-2018-beacon-master.o
- .gnu.lto__ZSt11__addressofIKPFbPKhjEEPT_RS5_.5a15712e
+ .gnu.lto__ZSt11__addressofIKPFbPKhjEEPT_RS5_.5fb7563a
                 0x00000000      0x10c obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt14_Function_base13_Base_managerIPFbPKhjEE14_M_get_pointerERKSt9_Any_data.5a15712e
+ .gnu.lto__ZNSt14_Function_base13_Base_managerIPFbPKhjEE14_M_get_pointerERKSt9_Any_data.5fb7563a
                 0x00000000      0x18a obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt9_Any_data9_M_accessIPFbPKhjEEERT_v.5a15712e
+ .gnu.lto__ZNSt9_Any_data9_M_accessIPFbPKhjEEERT_v.5fb7563a
                 0x00000000      0x11b obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt14_Function_base13_Base_managerIPFbPKhjEE10_M_destroyERSt9_Any_dataSt17integral_constantIbLb1EE.5a15712e
+ .gnu.lto__ZNSt14_Function_base13_Base_managerIPFbPKhjEE10_M_destroyERSt9_Any_dataSt17integral_constantIbLb1EE.5fb7563a
                 0x00000000      0x111 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNK9__gnu_cxx13new_allocatorISt10_List_nodeI6RecordEE8max_sizeEv.5a15712e
+ .gnu.lto__ZNK9__gnu_cxx13new_allocatorISt10_List_nodeI6RecordEE8max_sizeEv.5fb7563a
                 0x00000000      0x116 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZN9__gnu_cxx13new_allocatorISt10_List_nodeI6RecordEE8allocateEjPKv.5a15712e
+ .gnu.lto__ZN9__gnu_cxx13new_allocatorISt10_List_nodeI6RecordEE8allocateEjPKv.5fb7563a
                 0x00000000      0x1da obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt10_List_baseI6RecordSaIS0_EE11_M_get_nodeEv.5a15712e
+ .gnu.lto__ZNSt10_List_baseI6RecordSaIS0_EE11_M_get_nodeEv.5fb7563a
                 0x00000000      0x15c obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt4listI6RecordSaIS0_EE14_M_create_nodeIIS0_EEEPSt10_List_nodeIS0_EDpOT_.5a15712e
+ .gnu.lto__ZNSt4listI6RecordSaIS0_EE14_M_create_nodeIIS0_EEEPSt10_List_nodeIS0_EDpOT_.5fb7563a
                 0x00000000      0x225 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt4listI6RecordSaIS0_EE9_M_insertIIS0_EEEvSt14_List_iteratorIS0_EDpOT_.5a15712e
+ .gnu.lto__ZNSt4listI6RecordSaIS0_EE9_M_insertIIS0_EEEvSt14_List_iteratorIS0_EDpOT_.5fb7563a
                 0x00000000      0x1cf obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt4listI6RecordSaIS0_EE9push_backEOS0_.5a15712e
+ .gnu.lto__ZNSt4listI6RecordSaIS0_EE9push_backEOS0_.5fb7563a
                 0x00000000      0x14f obj/test-d-2018-beacon-master.o
- .gnu.lto__Z7processv.5a15712e
+ .gnu.lto__Z7processv.5fb7563a
                 0x00000000     0x10cf obj/test-d-2018-beacon-master.o
- .gnu.lto_main.5a15712e
+ .gnu.lto_main.5fb7563a
                 0x00000000     0x1578 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNK9__gnu_cxx13new_allocatorISt10_List_nodeIhEE8max_sizeEv.5a15712e
+ .gnu.lto__ZNK9__gnu_cxx13new_allocatorISt10_List_nodeIhEE8max_sizeEv.5fb7563a
                 0x00000000      0x117 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZN9__gnu_cxx13new_allocatorISt10_List_nodeIhEE8allocateEjPKv.5a15712e
+ .gnu.lto__ZN9__gnu_cxx13new_allocatorISt10_List_nodeIhEE8allocateEjPKv.5fb7563a
                 0x00000000      0x1d5 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt10_List_baseIhSaIhEE11_M_get_nodeEv.5a15712e
+ .gnu.lto__ZNSt10_List_baseIhSaIhEE11_M_get_nodeEv.5fb7563a
                 0x00000000      0x15c obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt4listIhSaIhEE14_M_create_nodeIIRKhEEEPSt10_List_nodeIhEDpOT_.5a15712e
+ .gnu.lto__ZNSt4listIhSaIhEE14_M_create_nodeIIRKhEEEPSt10_List_nodeIhEDpOT_.5fb7563a
                 0x00000000      0x225 obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt4listIhSaIhEE9_M_insertIIRKhEEEvSt14_List_iteratorIhEDpOT_.5a15712e
+ .gnu.lto__ZNSt4listIhSaIhEE9_M_insertIIRKhEEEvSt14_List_iteratorIhEDpOT_.5fb7563a
                 0x00000000      0x1cf obj/test-d-2018-beacon-master.o
- .gnu.lto__ZNSt4listIhSaIhEE9push_backERKh.5a15712e
+ .gnu.lto__ZNSt4listIhSaIhEE9push_backERKh.5fb7563a
                 0x00000000      0x124 obj/test-d-2018-beacon-master.o
- .gnu.lto__Z41__static_initialization_and_destruction_0ii.5a15712e
+ .gnu.lto__Z41__static_initialization_and_destruction_0ii.5fb7563a
                 0x00000000      0x232 obj/test-d-2018-beacon-master.o
- .gnu.lto__GLOBAL__sub_I_chasing_speed.5a15712e
+ .gnu.lto__GLOBAL__sub_I_chasing_speed.5fb7563a
                 0x00000000       0x89 obj/test-d-2018-beacon-master.o
- .gnu.lto_.symbol_nodes.5a15712e
+ .gnu.lto_.symbol_nodes.5fb7563a
                 0x00000000      0xf9e obj/test-d-2018-beacon-master.o
- .gnu.lto_.refs.5a15712e
+ .gnu.lto_.refs.5fb7563a
                 0x00000000      0x2c3 obj/test-d-2018-beacon-master.o
- .gnu.lto_.decls.5a15712e
+ .gnu.lto_.decls.5fb7563a
                 0x00000000    0x13620 obj/test-d-2018-beacon-master.o
- .gnu.lto_.symtab.5a15712e
+ .gnu.lto_.symtab.5fb7563a
                 0x00000000     0x62a6 obj/test-d-2018-beacon-master.o
  .gnu.lto_.opts
                 0x00000000       0xd7 obj/test-d-2018-beacon-master.o

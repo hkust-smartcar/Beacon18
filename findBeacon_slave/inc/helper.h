@@ -73,4 +73,41 @@ inline void reset_recrod() {
 	}
 }
 
+inline void display_greyscale_image() {
+	for (uint i = 0; i < height; i++) {
+		lcd->SetRegion(Lcd::Rect(0, i, 160, 1));
+		lcd->FillGrayscalePixel(buf + width * i, 160);
+	}
+}
+
+inline void check_cam(){
+	bool down_timer = false;
+	uint16_t down_time = 0;
+	while (!cam->IsAvailable());
+	buf = cam->LockBuffer();
+	display_greyscale_image();
+	while (true) {
+		if (joystick->GetState() == Joystick::State::kIdle && !down_timer)
+			continue;
+		if (joystick->GetState() == Joystick::State::kSelect) {
+			if (!down_timer) {
+				down_timer = true;
+				down_time = System::Time();
+			}
+		} else if (down_timer && System::Time() - down_time > 500) {
+			break;
+		} else {
+			cam->RegSet(0x0C, 0x03);
+			cam->UnlockBuffer();
+			System::DelayMs(300);
+			buf = cam->LockBuffer();
+			display_greyscale_image();
+			down_timer = false;
+		}
+	}
+	cam->UnlockBuffer();
+	lcd->SetRegion(Lcd::Rect(0, 0, 160, 128));
+	lcd->Clear(Lcd::kWhite);
+}
+
 #endif /* INC_HELPER_H_ */
