@@ -161,7 +161,7 @@ int main() {
 		PID Dir_pid_(Dir_kp, Dir_ki, Dir_kd, 500, -500);
 		Dir_pid = &Dir_pid_;
 		Dir_pid->errorSumBound = 10000;
-		PID avoid_pid_(avoid_kp, avoid_ki, avoid_kd, 100, -100);
+		PID avoid_pid_(avoid_kp, avoid_ki, avoid_kd, 500, -500);
 		avoid_pid = &avoid_pid_;
 		avoid_pid->errorSumBound = 10000;
 //	Pit::Config pitConfig;
@@ -195,8 +195,8 @@ int main() {
 	int search_Rcount = 0 ;
 	int forward_Lcount =0;
 	int forward_Rcount =0;
-	const int forward_L_target =1000;
-	const int forward_R_target =-1000;
+	const int forward_L_target =1500;
+	const int forward_R_target =-1500;
 	const int search_L_target =2300;
 	const int search_R_target =2300;
 	/////////////////For Dubug////////////////////
@@ -211,8 +211,8 @@ int main() {
 
 	////////////////Main loop////////////////////////
 	while (1) {
-		//if (tick != System::Time() && run) {
-		if (tick != System::Time()) {
+		if (tick != System::Time() && run) {
+		//if (tick != System::Time()) {
 			tick = System::Time();
 			if (tick - pid_time >= 10) {
 							uint32_t time_diff = tick - pid_time;
@@ -227,9 +227,9 @@ int main() {
 			if (tick - process_time >= 25) {
 				process_time = tick;
 				///////////////decision making///////////////
-				buf = cam->LockBuffer();
+				//buf = cam->LockBuffer();
 				////////////init value///////////////////////
-				ir_target = NULL;
+				//ir_target = NULL;
 				///////////////process image/////////////////
 				process();
 				tick = System::Time();
@@ -250,44 +250,49 @@ int main() {
 				}
 
 
-				if(notonptr!=nullptr&&action!=search&&(*notonptr)->center.first>30&&(*notonptr)->center.first<160){//find obstacle no need to update prestate as we need prestate after avoid the obstacle
-					action =avoid;
-				}else
-				if(action==avoid&&notonptr==nullptr){//go back the previous state after avoid
-					action=prestate;
-				}else
-				if(ir_target!=nullptr||onptr!=nullptr){//find beacon
-					search_Lcount = 0 ;
-					search_Rcount = 0 ;
-					if(onptr==nullptr){//find on-beacon in long distance=>ir!=null
-						led0->SetEnable(1);
-						not_find_time = 0;
-						last_beacon = ir_target->center;
-						if (!seen) {
-							seen = true;
-							Dir_pid->reset();
-						}
-						if (ir_target->area > max_area)
-							max_area = (ir_target->area + max_area) / 2;
-						target_x = target_slope * max_area + target_intercept;
-						if (target_x > 320)
-							target_x = 320;
-						if (action == search
-							&& ir_target->center.first > target_x)
-							action = keep;
-						else
-							action = chase;
-					} else if (seen) { //target not find but have seen target before
-						if (not_find_time == 0) {
-							not_find_time = tick;
-							action = keep;
-						} else if (tick - not_find_time > 400) { //target lost for more than 75 ms
-						//						action = backward;
-							led0->SetEnable(0);
-							seen = false;
-							max_area = 0;
-											}
+//				if(notonptr!=nullptr&&action!=search&&(*notonptr)->center.first>60&&(*notonptr)->center.first<160){//find obstacle no need to update prestate as we need prestate after avoid the obstacle
+//					action =avoid;
+//				}else
+//				if(action==avoid&&notonptr==nullptr){//go back the previous state after avoid
+//					action=prestate;
+//				}else
+	//			if(ir_target!=nullptr||onptr!=nullptr){//find beacon
+				if (ir_target != NULL) {	//target find
+									led0->SetEnable(1);
+									not_find_time = 0;
+									last_beacon = ir_target->center;
+									if (!seen) {
+										seen = true;
+										Dir_pid->reset();
+									}
+									if (ir_target->area > max_area)
+										max_area = (ir_target->area + max_area) / 2;
+									target_x = target_slope * max_area + target_intercept;
+									if (target_x > 320)
+										target_x = 320;
+									if (action == search
+											&& ir_target->center.first > target_x)
+										action = keep;
+									else
+										action = chase;
+								}
+				else if (seen) { //target not find but have seen target before
+					if (not_find_time == 0) {
+						not_find_time = tick;
+						action = keep;
+					} else if (tick - not_find_time > 400) { //target lost for more than 75 ms
+										//						action = backward;
+						led0->SetEnable(0);
+						seen = false;
+						max_area = 0;
 					}
+				}
+				///////////////////////////
+//				else { //target not find and have not seen target before
+//									led0->SetEnable(0);
+//									action = search;
+//								}
+				///////////////////
 					else if(onptr!=nullptr){//find a on-beacon in short distance=>ir!=null
 
 						action =chase;
@@ -299,8 +304,7 @@ int main() {
 
 						}
 					}
-
-				}else
+				else
 				if((prestate==approach||prestate==chase)&&(ir_target!=nullptr||onptr!=nullptr)){
 					action =keep;
 
@@ -337,140 +341,140 @@ int main() {
 					search_Rcount = 0 ;
 
 					}
-				FSM();
+FSM();
 
 
 				send(action, state);
 				cam->UnlockBuffer();
-				int time = System::Time();
-				char data[20];
-				lcd->SetRegion(libsc::Lcd::Rect(0,15,80,12));
-				switch(action){//forwardstart, search, approach ,chase,keep,avoid ,arrived
-				case forwardstart:
-					writer_.WriteString("forwardstart");
-					break;
-				case search:
-					writer_.WriteString("search");
-					break;
-				case approach:
-					writer_.WriteString("approach");
-					break;
-				case chase :
-					writer_.WriteString("chase");
-					break;
-				case keep:
-					writer_.WriteString("keep");
-					break;
-				case avoid:
-					writer_.WriteString("avoid");
-					break;
-				case arrived:
-					writer_.WriteString("arrived");
-					break;
-				default:
-					writer_.WriteString("n o");
-					break;
-				}
-				lcd->SetRegion(libsc::Lcd::Rect(60,15,80,12));
-				sprintf(data,"T:%d",time-tick);
-				writer_.WriteString(data);
-				lcd->SetRegion(libsc::Lcd::Rect(0,27,80,12));
-				if(ir_target!=nullptr){
-					sprintf(data,"ir:%d",1);
-					writer_.WriteString(data);
-				}else{
-					sprintf(data,"ir:%d",0);
-					writer_.WriteString(data);
-				}
-				lcd->SetRegion(libsc::Lcd::Rect(0,39,80,12));
-				if(onptr!=nullptr){
-					sprintf(data,"on:%d",1);
-					writer_.WriteString(data);
-				}else{
-					sprintf(data,"on:%d",0);
-					writer_.WriteString(data);
-				}
-				lcd->SetRegion(libsc::Lcd::Rect(61,39,80,12));
-				if(notonptr!=nullptr){
-					sprintf(data,"noton:%d",1);
-					writer_.WriteString(data);
-				}else{
-					sprintf(data,"noton:%d",0);
-					writer_.WriteString(data);
-				}
-				lcd->SetRegion(libsc::Lcd::Rect(0,51,80,12));
-				sprintf(data,"L_S:%d",search_Lcount);
-				writer_.WriteString(data);
-				lcd->SetRegion(libsc::Lcd::Rect(81,51,80,12));
-				sprintf(data,"R_S:%d",search_Rcount);
-				writer_.WriteString(data);
-				lcd->SetRegion(libsc::Lcd::Rect(0,63,80,12));
-				sprintf(data,"L_F:%d",forward_Lcount);
-				writer_.WriteString(data);
-				lcd->SetRegion(libsc::Lcd::Rect(81,63,80,12));
-				sprintf(data,"R_F:%d",forward_Rcount);
-				writer_.WriteString(data);
-				if(ir_target!=nullptr){
-				lcd->SetRegion(libsc::Lcd::Rect(0,75,80,12));
-				sprintf(data,"irx:%d",ir_target->center.first);
-				writer_.WriteString(data);
-				lcd->SetRegion(libsc::Lcd::Rect(81,75,80,12));
-				sprintf(data,"iry:%d",ir_target->center.second);
-				writer_.WriteString(data);
-				}else{
-					lcd->SetRegion(libsc::Lcd::Rect(0,75,80,12));
-					sprintf(data,"irx:%d",0);
-					writer_.WriteString(data);
-					lcd->SetRegion(libsc::Lcd::Rect(81,75,80,12));
-					sprintf(data,"iry:%d",0);
-					writer_.WriteString(data);
-				}
-				if(onptr!=nullptr){
-				lcd->SetRegion(libsc::Lcd::Rect(0,87,80,12));
-				sprintf(data,"onx:%d",(*onptr)->center.first);
-				writer_.WriteString(data);
-				lcd->SetRegion(libsc::Lcd::Rect(81,87,80,12));
-				sprintf(data,"ony:%d",(*onptr)->center.second);
-				writer_.WriteString(data);
-				}else{
-					lcd->SetRegion(libsc::Lcd::Rect(0,87,80,12));
-					sprintf(data,"onx:%d",0);
-					writer_.WriteString(data);
-					lcd->SetRegion(libsc::Lcd::Rect(81,87,80,12));
-					sprintf(data,"ony:%d",0);
-					writer_.WriteString(data);
-				}
-				if(notonptr!=nullptr){
-				lcd->SetRegion(libsc::Lcd::Rect(0,99,80,12));
-				sprintf(data,"notx:%d",(*notonptr)->center.first);
-				writer_.WriteString(data);
-				lcd->SetRegion(libsc::Lcd::Rect(81,99,80,12));
-				sprintf(data,"noty:%d",(*notonptr)->center.second);
-				writer_.WriteString(data);
-				}else{
-					lcd->SetRegion(libsc::Lcd::Rect(0,99,80,12));
-					sprintf(data,"notx:%d",0);
-					writer_.WriteString(data);
-					lcd->SetRegion(libsc::Lcd::Rect(81,99,80,12));
-					sprintf(data,"noty:%d",0);
-					writer_.WriteString(data);
-				}
-				if(joyStick.GetState()==Joystick::State::kSelect){
-					mpu.IsCalibrated();
-					float cardegree=0;
-					std::array<int32_t, 1> gyropre={0};
-					std::array<int32_t, 1> gyro={0};
-					while(cardegree<360){
-						if(System::Time()%15==0){
-						mpu.Update();
-						gyropre[0]=mpu.GetOmega()[2]*15/1000;
-						gyro[0]+=gyropre[0];
-						cardegree=gyro[0]*90/759135*90/220;
-						lcd->SetRegion(libsc::Lcd::Rect(0,0, 160, 20));
-						sprintf(data, "gyro:%f",cardegree);
-						writer_.WriteString(data);}
-					}
-				}
+//				int time = System::Time();
+//				char data[20];
+//				lcd->SetRegion(libsc::Lcd::Rect(0,15,80,12));
+//				switch(action){//forwardstart, search, approach ,chase,keep,avoid ,arrived
+//				case forwardstart:
+//					writer_.WriteString("forwardstart");
+//					break;
+//				case search:
+//					writer_.WriteString("search");
+//					break;
+//				case approach:
+//					writer_.WriteString("approach");
+//					break;
+//				case chase :
+//					writer_.WriteString("chase");
+//					break;
+//				case keep:
+//					writer_.WriteString("keep");
+//					break;
+//				case avoid:
+//					writer_.WriteString("avoid");
+//					break;
+//				case arrived:
+//					writer_.WriteString("arrived");
+//					break;
+//				default:
+//					writer_.WriteString("n o");
+//					break;
+//				}
+//				lcd->SetRegion(libsc::Lcd::Rect(60,15,80,12));
+//				sprintf(data,"T:%d",time-tick);
+//				writer_.WriteString(data);
+//				lcd->SetRegion(libsc::Lcd::Rect(0,27,80,12));
+//				if(ir_target!=nullptr){
+//					sprintf(data,"ir:%d",1);
+//					writer_.WriteString(data);
+//				}else{
+//					sprintf(data,"ir:%d",0);
+//					writer_.WriteString(data);
+//				}
+//				lcd->SetRegion(libsc::Lcd::Rect(0,39,80,12));
+//				if(onptr!=nullptr){
+//					sprintf(data,"on:%d",1);
+//					writer_.WriteString(data);
+//				}else{
+//					sprintf(data,"on:%d",0);
+//					writer_.WriteString(data);
+//				}
+//				lcd->SetRegion(libsc::Lcd::Rect(61,39,80,12));
+//				if(notonptr!=nullptr){
+//					sprintf(data,"noton:%d",1);
+//					writer_.WriteString(data);
+//				}else{
+//					sprintf(data,"noton:%d",0);
+//					writer_.WriteString(data);
+//				}
+//				lcd->SetRegion(libsc::Lcd::Rect(0,51,80,12));
+//				sprintf(data,"L_S:%d",search_Lcount);
+//				writer_.WriteString(data);
+//				lcd->SetRegion(libsc::Lcd::Rect(81,51,80,12));
+//				sprintf(data,"R_S:%d",search_Rcount);
+//				writer_.WriteString(data);
+//				lcd->SetRegion(libsc::Lcd::Rect(0,63,80,12));
+//				sprintf(data,"L_F:%d",forward_Lcount);
+//				writer_.WriteString(data);
+//				lcd->SetRegion(libsc::Lcd::Rect(81,63,80,12));
+//				sprintf(data,"R_F:%d",forward_Rcount);
+//				writer_.WriteString(data);
+//				if(ir_target!=nullptr){
+//				lcd->SetRegion(libsc::Lcd::Rect(0,75,80,12));
+//				sprintf(data,"irx:%d",ir_target->center.first);
+//				writer_.WriteString(data);
+//				lcd->SetRegion(libsc::Lcd::Rect(81,75,80,12));
+//				sprintf(data,"iry:%d",ir_target->center.second);
+//				writer_.WriteString(data);
+//				}else{
+//					lcd->SetRegion(libsc::Lcd::Rect(0,75,80,12));
+//					sprintf(data,"irx:%d",0);
+//					writer_.WriteString(data);
+//					lcd->SetRegion(libsc::Lcd::Rect(81,75,80,12));
+//					sprintf(data,"iry:%d",0);
+//					writer_.WriteString(data);
+//				}
+//				if(onptr!=nullptr){
+//				lcd->SetRegion(libsc::Lcd::Rect(0,87,80,12));
+//				sprintf(data,"onx:%d",(*onptr)->center.first);
+//				writer_.WriteString(data);
+//				lcd->SetRegion(libsc::Lcd::Rect(81,87,80,12));
+//				sprintf(data,"ony:%d",(*onptr)->center.second);
+//				writer_.WriteString(data);
+//				}else{
+//					lcd->SetRegion(libsc::Lcd::Rect(0,87,80,12));
+//					sprintf(data,"onx:%d",0);
+//					writer_.WriteString(data);
+//					lcd->SetRegion(libsc::Lcd::Rect(81,87,80,12));
+//					sprintf(data,"ony:%d",0);
+//					writer_.WriteString(data);
+//				}
+//				if(notonptr!=nullptr){
+//				lcd->SetRegion(libsc::Lcd::Rect(0,99,80,12));
+//				sprintf(data,"notx:%d",(*notonptr)->center.first);
+//				writer_.WriteString(data);
+//				lcd->SetRegion(libsc::Lcd::Rect(81,99,80,12));
+//				sprintf(data,"noty:%d",(*notonptr)->center.second);
+//				writer_.WriteString(data);
+//				}else{
+//					lcd->SetRegion(libsc::Lcd::Rect(0,99,80,12));
+//					sprintf(data,"notx:%d",0);
+//					writer_.WriteString(data);
+//					lcd->SetRegion(libsc::Lcd::Rect(81,99,80,12));
+//					sprintf(data,"noty:%d",0);
+//					writer_.WriteString(data);
+//				}
+//				if(joyStick.GetState()==Joystick::State::kSelect){
+//					mpu.IsCalibrated();
+//					float cardegree=0;
+//					std::array<int32_t, 1> gyropre={0};
+//					std::array<int32_t, 1> gyro={0};
+//					while(cardegree<360){
+//						if(System::Time()%15==0){
+//						mpu.Update();
+//						gyropre[0]=mpu.GetOmega()[2]*15/1000;
+//						gyro[0]+=gyropre[0];
+//						cardegree=gyro[0]*90/759135*90/220;
+//						lcd->SetRegion(libsc::Lcd::Rect(0,0, 160, 20));
+//						sprintf(data, "gyro:%f",cardegree);
+//						writer_.WriteString(data);}
+//					}
+//				}
 			}
 		}
 	}
