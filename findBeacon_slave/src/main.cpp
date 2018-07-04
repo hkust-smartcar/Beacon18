@@ -39,7 +39,7 @@ using namespace libsc;
 using namespace libsc::k60;
 using namespace libbase::k60;
 
-working_mode m = image;
+working_mode m = close;
 int main() {
 	System::Init();
 
@@ -83,7 +83,7 @@ int main() {
 	}
 
 	while (1) {
-		if (tick != System::Time() /*&& run*/) {
+		if (tick != System::Time() && run) {
 			tick = System::Time();
 			if (tick - start > 30) {
 				start = tick;
@@ -101,13 +101,12 @@ int main() {
 				} else {
 					o_find_time = 0;
 					led1->SetEnable(false);
-
 				}
 
 				if(m != close)
 					display_state(m);
 				reset_recrod();
-				display_time(start);
+//				display_time(start);
 			}
 		}
 	}

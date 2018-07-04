@@ -96,12 +96,14 @@ int main() {
 	tick = System::Time();
 	uint32_t not_find_time = 0;
 	int finding_time = 0;
-	rotate_state rotate = no;
 	Beacon *ptr = NULL;
 	uint32_t pid_time = System::Time();
 	uint32_t process_time = System::Time();
+	uint32_t avoid_count = 0;
 	int L_count = 0;
 	int R_count = 0;
+	int encoder_record = 0;
+	bool avoid_out = false;
 	/////////////////For Dubug////////////////////
 	uint8_t state = 100;
 	JyMcuBt106 bt_(init_bt());
@@ -135,27 +137,42 @@ int main() {
 //			}
 			if (tick - process_time >= 30) {
 				process_time = tick;
-				///////////////decision making///////////////
-				//				if (tick - o_target.received_time < 50 && action != rotation) {
-				//					action = avoid;
-				//					FSM();
-				//					continue;
-				////					ptr = o_target.target;
-				////					char data[20] = {};
-				////					lcd->SetRegion(Lcd::Rect(0,0,160,15));
-				////					sprintf(data,"%d : %d", ptr->center.first, ptr->center.second);
-				////					writer->WriteBuffer(data,20);
-				//				}
-				//				if (tick - ir_target2.received_time < 50) {
-				//					action = approach;
-				//					FSM();
-				//					continue;
-				////					ptr = o_target.target;
-				////					char data[20] = {};
-				////					lcd->SetRegion(Lcd::Rect(0,0,160,15));
-				////					sprintf(data,"%d : %d", ptr->center.first, ptr->center.second);
-				////					writer->WriteBuffer(data,20);
-				//				}
+				////////decision making///////////////
+				auto x = o_target.target->center.first;
+				if (tick - o_target.received_time < 150 && action != rotation
+						&& x > 60 && x < 150) {
+					if (o_target.target->center.second > 80)
+						action = backward;
+					else
+						action = avoid;
+					avoid_count = System::Time();
+					FSM();
+					continue;
+				} else if (action == avoid) {
+					if (tick - avoid_count < 200) {
+						FSM();
+						continue;
+					} else {
+						action = forward;
+						FSM();
+						avoid_out = true;
+					}
+				} else if (action == backward) {
+					if (tick - avoid_count < 200) {
+						FSM();
+						continue;
+					} else
+						avoid_out = false;
+				} else if (avoid_out) {
+					encoder_record += L_count;
+					if (encoder_record > 1000)
+						avoid_out = false;
+					else {
+						action = forward;
+						FSM();
+						continue;
+					}
+				}
 				process();
 				tick = System::Time();
 				if (ir_target != NULL) {	//target find
@@ -188,7 +205,6 @@ int main() {
 					}
 				} else { //target not find and have not seen target before
 					led0->SetEnable(0);
-					action = rotation;
 					if (finding_time == 0)
 						finding_time = tick;
 					else if (tick - finding_time > 1000) //change to rotate after going foward for 1000ms

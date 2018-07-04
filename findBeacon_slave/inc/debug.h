@@ -42,7 +42,7 @@ inline void display_time(int start)
 void display(Beacon temp, uint16_t color)
 {
 	lcd->SetRegion(
-		Lcd::Rect(temp.left_x, temp.upper_y, temp.right_x - temp.left_x,
+		Lcd::Rect(temp.left_x - offset, temp.upper_y, temp.right_x - temp.left_x,
 				  temp.lower_y - temp.upper_y));
 	lcd->FillColor(color);
 }

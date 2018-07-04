@@ -48,7 +48,7 @@ inline void BuildTargetPackage() {
 	auto it = buffer.begin();
 	Byte temp[4];
 	float val;
-	auto ptr = Dir_pid;
+	auto ptr = avoid_pid;
 	for (int i = 0; i < 4; i++)
 		temp[i] = *(it++);
 	memcpy(&val, temp, sizeof(float));
@@ -193,21 +193,18 @@ void FSM() {
 	case chase:
 		Dir_pid->settarget(target_x);
 		diff = Dir_pid->output(ir_target->center.first);
-		diff = chasing_speed * diff /100;
+		diff = chasing_speed * diff / 100;
 		L_pid->settarget(chasing_speed - diff);
 		R_pid->settarget(chasing_speed + diff);
 		if (chasing_speed < 150)
 			L_pid->settarget(chasing_speed);
-		bt->SendBuffer(&a.kSTART, 1);
-		sendInt(ir_target->center.first);
-		bt->SendBuffer(&a.kEND, 1);
+//		bt->SendBuffer(&a.kSTART, 1);
+//		sendInt(ir_target->center.first);
+//		bt->SendBuffer(&a.kEND, 1);
 		break;
 	case stop:
 		L_pid->settarget(0);
 		R_pid->settarget(0);
-		bt->SendBuffer(&a.kSTART, 1);
-		sendInt(0);
-		bt->SendBuffer(&a.kEND, 1);
 		break;
 	case out:
 		L_pid->settarget(L_out_speed);
@@ -215,10 +212,17 @@ void FSM() {
 		break;
 	case avoid:
 		p = o_target.target->center;
-		avoid_pid->settarget(target_slope2 * p.second + target_intercept2);
+		if (p.first < 90)
+			avoid_pid->settarget(0);
+		else
+			avoid_pid->settarget(189);
 		diff = avoid_pid->output(p.first);
+		diff = chasing_speed * diff / 100;
 		L_pid->settarget(chasing_speed - diff);
 		R_pid->settarget(chasing_speed + diff);
+		bt->SendBuffer(&a.kSTART, 1);
+		sendInt(p.second);
+		bt->SendBuffer(&a.kEND, 1);
 		break;
 	case approach:
 		p = ir_target2.target->center;

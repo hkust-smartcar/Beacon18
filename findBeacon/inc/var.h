@@ -75,7 +75,7 @@ float Dir_kd = 0.0;
 
 float avoid_kp = 0.5;
 float avoid_ki = 0.0;
-float avoid_kd = 0.05;
+float avoid_kd = 0.0;
 
 //Debug
 bool move_re = false;

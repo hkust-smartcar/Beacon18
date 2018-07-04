@@ -87,9 +87,16 @@ JyMcuBt106* bt = NULL;
 JyMcuBt106* comm = NULL;
 Joystick* joystick = NULL;
 
-const uint16_t sobel_value = 140;
+const uint16_t sobel_value = 200;
+const uint16_t max_size = 5000;
+const uint8_t size = 3;
+const uint8_t white = 250;
+const uint8_t min_area = 30;
+const uint16_t near_dist = 20;
+const uint8_t min_edge = 5;
 ir_state irState = no;
 uint32_t find_time = 0;
 uint32_t o_find_time = 0;
+uint16_t offset = 0;
 
 #endif /* INC_VAR_H_ */

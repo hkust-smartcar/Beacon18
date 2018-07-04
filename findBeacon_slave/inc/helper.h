@@ -29,13 +29,13 @@ void insert(Beacon t, ptr_mode m) {
 	*ptr = new Beacon(t);
 }
 bool comm_listener(const Byte *data, const size_t size) {
-    if(data[0] == 's') {
-			run = true;
+	if (data[0] == 's') {
+		run = true;
 //			led0->Switch();
-		}
-		if(data[0] == 'S')
-			run =false;
-		return true;
+	}
+	if (data[0] == 'S')
+		run = false;
+	return true;
 }
 
 void send_coord(uint8_t type) {
@@ -76,14 +76,15 @@ inline void reset_recrod() {
 inline void display_greyscale_image() {
 	for (uint i = 0; i < height; i++) {
 		lcd->SetRegion(Lcd::Rect(0, i, 160, 1));
-		lcd->FillGrayscalePixel(buf + width * i, 160);
+		lcd->FillGrayscalePixel(buf+ offset + width * i, 160);
 	}
 }
 
-inline void check_cam(){
+inline void check_cam() {
 	bool down_timer = false;
 	uint16_t down_time = 0;
-	while (!cam->IsAvailable());
+	while (!cam->IsAvailable())
+		;
 	buf = cam->LockBuffer();
 	display_greyscale_image();
 	while (true) {
