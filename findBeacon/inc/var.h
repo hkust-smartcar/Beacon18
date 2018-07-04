@@ -44,6 +44,21 @@ struct Record {
 enum PkgType {
 	irTarget = 0, oTarget = 1
 };
+
+class distance_recorder {
+public:
+	distance_recorder() :
+			distance(0), start(false) {
+	}
+	void init() {
+		distance = 0;
+		start = true;
+	}
+
+	uint32_t distance;
+	bool start;
+};
+
 struct BitConsts {
 	uint8_t kSTART = 0xF0;
 	uint8_t kEND = 0xFF;
@@ -74,14 +89,13 @@ float Dir_ki = 0.0;
 float Dir_kd = 0.0;
 
 float avoid_kp = 0.5;
-float avoid_ki = 0.0;
+float avoid_ki = 0.01;
 float avoid_kd = 0.0;
 
 //Debug
 bool move_re = false;
 bool stop_re = false;
 bool move[4] = { }; //up,down,left,right
-
 
 //////////////algo parm///////////////////
 const float target_slope = 0.009855697800993502;
@@ -108,6 +122,9 @@ uint8_t contrast = 0x40;
 uint8_t brightness = 0x00;
 uint32_t max_area = 0;
 uint32_t near_area = 4500;
+uint32_t init_forward_count = 2000;
+uint32_t avoid_dead_time = 2000;
+uint32_t exit_dead_time = 2000;
 Led* led0 = NULL;
 Led* led1 = NULL;
 St7735r* lcd = NULL;

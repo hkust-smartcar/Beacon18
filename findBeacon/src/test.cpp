@@ -72,10 +72,6 @@ int main() {
 	cam->Start();
 	Joystick::Config j_config;
 	j_config.id = 0;
-	j_config.dispatcher = [](const uint8_t id, const Joystick::State which) {
-		char data[20] = {};
-		sprintf(data,"%d",20);
-	};
 	Joystick joyStick(j_config);
 	//////////////////PID init////////////////////
 	PID L_pid_(L_kp, L_ki, L_kd, 1000, -1000);
@@ -88,7 +84,7 @@ int main() {
 	PID Dir_pid_(Dir_kp, Dir_ki, Dir_kd, 500, -500);
 	Dir_pid = &Dir_pid_;
 	Dir_pid->errorSumBound = 10000;
-	PID avoid_pid_(avoid_kp, avoid_ki, avoid_kd, 100, -100);
+	PID avoid_pid_(avoid_kp, avoid_ki, avoid_kd, 500, -500);
 	avoid_pid = &avoid_pid_;
 	avoid_pid->errorSumBound = 10000;
 
@@ -99,11 +95,10 @@ int main() {
 	Beacon *ptr = NULL;
 	uint32_t pid_time = System::Time();
 	uint32_t process_time = System::Time();
-	uint32_t avoid_count = 0;
+	distance_recorder avoid_counter;
+	distance_recorder exit_counter;
 	int L_count = 0;
 	int R_count = 0;
-	int encoder_record = 0;
-	bool avoid_out = false;
 	/////////////////For Dubug////////////////////
 	uint8_t state = 100;
 	JyMcuBt106 bt_(init_bt());
@@ -127,52 +122,57 @@ int main() {
 				SetPower(L_pid->output(L_count), 0);
 				SetPower(R_pid->output(-R_count), 1);
 				pid_time = System::Time();
+				if(avoid_counter.start)
+					avoid_counter.distance += L_count;
+				if(exit_counter.start)
+					exit_counter.distance += L_count;
 			}
-//			if (tick - ir_target2.received_time < 100) {
-//				BitConsts a;
-//				bt->SendBuffer(&a.kSTART, 1);
-//				sendInt(ir_target2.target->center.first);
-//				sendInt(ir_target2.target->center.second);
-//				bt->SendBuffer(&a.kEND, 1);
-//			}
 			if (tick - process_time >= 30) {
 				process_time = tick;
-				////////decision making///////////////
 				auto x = o_target.target->center.first;
-				if (tick - o_target.received_time < 150 && action != rotation
+				if (tick - o_target.received_time < 200 && action != rotation
 						&& x > 60 && x < 150) {
-					if (o_target.target->center.second > 80)
+					if (o_target.target->center.second > 70)
 						action = backward;
 					else
 						action = avoid;
-					avoid_count = System::Time();
 					FSM();
 					continue;
-				} else if (action == avoid) {
-					if (tick - avoid_count < 200) {
-						FSM();
-						continue;
-					} else {
+				} else if (action == avoid || action == backward) {
 						action = forward;
 						FSM();
-						avoid_out = true;
+						avoid_counter.init();
 					}
-				} else if (action == backward) {
-					if (tick - avoid_count < 200) {
-						FSM();
-						continue;
-					} else
-						avoid_out = false;
-				} else if (avoid_out) {
-					encoder_record += L_count;
-					if (encoder_record > 1000)
-						avoid_out = false;
+				else if (avoid_counter.start) {
+					if (avoid_counter.distance > avoid_dead_time)
+						avoid_counter.start = false;
 					else {
 						action = forward;
 						FSM();
 						continue;
 					}
 				}
+
+				if (tick - ir_target2.received_time < 200 && seen) {	
+					action = approach;
+					FSM();
+					continue;
+				}
+				else if(action == approach){
+					exit_counter.init();
+					action = forward;
+					FSM();
+					continue;
+				}
+				else if(exit_counter.start){
+					if(exit_counter.distance > exit_dead_time)
+						exit_counter.start = false;
+					else{
+						action = forward;
+						FSM();
+					}
+				}
+
 				process();
 				tick = System::Time();
 				if (ir_target != NULL) {	//target find
@@ -198,7 +198,6 @@ int main() {
 						not_find_time = tick;
 						action = keep;
 					} else if (tick - not_find_time > 400) { //target lost for more than 75 ms
-						//						action = backward;
 						led0->SetEnable(0);
 						seen = false;
 						max_area = 0;

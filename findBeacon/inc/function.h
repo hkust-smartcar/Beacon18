@@ -198,9 +198,6 @@ void FSM() {
 		R_pid->settarget(chasing_speed + diff);
 		if (chasing_speed < 150)
 			L_pid->settarget(chasing_speed);
-//		bt->SendBuffer(&a.kSTART, 1);
-//		sendInt(ir_target->center.first);
-//		bt->SendBuffer(&a.kEND, 1);
 		break;
 	case stop:
 		L_pid->settarget(0);
@@ -220,16 +217,20 @@ void FSM() {
 		diff = chasing_speed * diff / 100;
 		L_pid->settarget(chasing_speed - diff);
 		R_pid->settarget(chasing_speed + diff);
-		bt->SendBuffer(&a.kSTART, 1);
-		sendInt(p.second);
-		bt->SendBuffer(&a.kEND, 1);
 		break;
 	case approach:
 		p = ir_target2.target->center;
-		avoid_pid->settarget(target_slope2 * p.second + target_intercept2);
+		if(p.first < 90)
+			avoid_pid->settarget(20);
+		else 
+			avoid_pid->settarget(170);
 		diff = avoid_pid->output(p.first);
+		diff = chasing_speed * diff / 100;
 		L_pid->settarget(chasing_speed - diff);
 		R_pid->settarget(chasing_speed + diff);
+		bt->SendBuffer(&a.kSTART, 1);
+		sendInt(p.second);
+		bt->SendBuffer(&a.kEND, 1);
 		break;
 	case keep:
 		break;
