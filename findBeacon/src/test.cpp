@@ -76,10 +76,10 @@ int main() {
 	//////////////////PID init////////////////////
 	PID L_pid_(L_kp, L_ki, L_kd, 1000, -1000);
 	L_pid = &L_pid_;
-	L_pid->errorSumBound = 10000;
+	L_pid->errorSumBound = 100000;
 	PID R_pid_(R_kp, R_ki, R_kd, 1000, -1000);
 	R_pid = &R_pid_;
-	R_pid->errorSumBound = 10000;
+	R_pid->errorSumBound = 100000;
 
 	PID Dir_pid_(Dir_kp, Dir_ki, Dir_kd, 500, -500);
 	Dir_pid = &Dir_pid_;
@@ -97,6 +97,7 @@ int main() {
 	uint32_t process_time = System::Time();
 	distance_recorder avoid_counter;
 	distance_recorder exit_counter;
+	distance_recorder out_counter;
 	int L_count = 0;
 	int R_count = 0;
 	/////////////////For Dubug////////////////////
@@ -117,33 +118,40 @@ int main() {
 				uint32_t time_diff = tick - pid_time;
 				encoder1->Update();
 				encoder2->Update();
-				L_count = encoder1->GetCount() * 50 / (int) time_diff;
-				R_count = encoder2->GetCount() * 50 / (int) time_diff;
+				L_count = encoder1->GetCount();
+				R_count = encoder2->GetCount();
+				if (avoid_counter.start)
+					avoid_counter.distance += L_count;
+				if (exit_counter.start)
+					exit_counter.distance += L_count;
+				if (out_counter.start)
+					out_counter.distance +=
+							L_count > R_count ? L_count : R_count;
+				L_count = L_count * 50 / (int) time_diff;
+				R_count = R_count * 50 / (int) time_diff;
 				SetPower(L_pid->output(L_count), 0);
 				SetPower(R_pid->output(-R_count), 1);
 				pid_time = System::Time();
-				if(avoid_counter.start)
-					avoid_counter.distance += L_count;
-				if(exit_counter.start)
-					exit_counter.distance += L_count;
+
 			}
+
 			if (tick - process_time >= 30) {
 				process_time = tick;
 				auto x = o_target.target->center.first;
-				if (tick - o_target.received_time < 200 && action != rotation
-						&& x > 60 && x < 150) {
+				if (tick - o_target.received_time < 200 /*&& action != rotation*/
+						&& x > 40 && x < 170) {
 					if (o_target.target->center.second > 70)
 						action = backward;
-					else
+					else if (x > 60 && x < 150)
 						action = avoid;
 					FSM();
 					continue;
 				} else if (action == avoid || action == backward) {
-						action = forward;
-						FSM();
-						avoid_counter.init();
-					}
-				else if (avoid_counter.start) {
+					action = forward;
+					FSM();
+					avoid_counter.init();
+					continue;
+				} else if (avoid_counter.start) {
 					if (avoid_counter.distance > avoid_dead_time)
 						avoid_counter.start = false;
 					else {
@@ -153,23 +161,23 @@ int main() {
 					}
 				}
 
-				if (tick - ir_target2.received_time < 200 && seen) {	
+				if (tick - ir_target2.received_time < 200 && seen) {
 					action = approach;
 					FSM();
 					continue;
-				}
-				else if(action == approach){
+				} else if (action == approach) {
 					exit_counter.init();
-					action = forward;
+					action = backward;
 					FSM();
 					continue;
-				}
-				else if(exit_counter.start){
-					if(exit_counter.distance > exit_dead_time)
+				} else if (exit_counter.start) {
+					if (exit_counter.distance > exit_dead_time) {
 						exit_counter.start = false;
-					else{
-						action = forward;
+						seen = false;
+					} else {
+						action = backward;
 						FSM();
+						continue;
 					}
 				}
 
@@ -197,11 +205,19 @@ int main() {
 					if (not_find_time == 0) {
 						not_find_time = tick;
 						action = keep;
-					} else if (tick - not_find_time > 400) { //target lost for more than 75 ms
+					} else if (tick - not_find_time > 400) { //target lost for more than 400 ms
 						led0->SetEnable(0);
 						seen = false;
 						max_area = 0;
+						action = backward;
+						out_counter.init();
 					}
+				} else if (action == backward) {
+					if (out_counter.distance > out_dead_time) {
+						out_counter.start = false;
+						action = rotation;
+					} else
+						action = backward;
 				} else { //target not find and have not seen target before
 					led0->SetEnable(0);
 					if (finding_time == 0)

@@ -173,10 +173,11 @@ void FSM() {
 	int diff;
 	std::pair<uint16_t, uint16_t> p;
 	int speed;
-	BitConsts a;
+//	BitConsts a;
 //	bt->SendBuffer(&a.kSTART, 1);
-//			sendInt(diff);
-//			bt->SendBuffer(&a.kEND, 1);
+//	bt->SendBuffer(0,1);
+//	sendInt(action);
+//	bt->SendBuffer(&a.kEND, 1);
 	switch (action) {
 	case forward:
 		L_pid->settarget(finding_speed);
@@ -204,8 +205,13 @@ void FSM() {
 		R_pid->settarget(0);
 		break;
 	case out:
-		L_pid->settarget(L_out_speed);
-		R_pid->settarget(R_out_speed);
+		if (last_beacon.first < 170) {
+			L_pid->settarget(out_speed);
+			R_pid->settarget(out_speed  + out_speed * 0.67);
+		} else {
+			L_pid->settarget(out_speed + out_speed * 0.67);
+			R_pid->settarget(out_speed);
+		}
 		break;
 	case avoid:
 		p = o_target.target->center;
@@ -220,17 +226,14 @@ void FSM() {
 		break;
 	case approach:
 		p = ir_target2.target->center;
-		if(p.first < 90)
-			avoid_pid->settarget(20);
-		else 
-			avoid_pid->settarget(170);
+		if (p.first < 90)
+			avoid_pid->settarget(10);
+		else
+			avoid_pid->settarget(180);
 		diff = avoid_pid->output(p.first);
 		diff = chasing_speed * diff / 100;
 		L_pid->settarget(chasing_speed - diff);
 		R_pid->settarget(chasing_speed + diff);
-		bt->SendBuffer(&a.kSTART, 1);
-		sendInt(p.second);
-		bt->SendBuffer(&a.kEND, 1);
 		break;
 	case keep:
 		break;

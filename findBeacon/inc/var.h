@@ -74,8 +74,7 @@ enum state_ {
 int chasing_speed = 200;
 int finding_speed = 200;
 int rotate_speed = 100;
-int L_out_speed = 10;
-int R_out_speed = 30;
+int out_speed = 200;
 
 float L_kp = 3;
 float L_ki = 0.015;
@@ -84,13 +83,13 @@ float R_kp = 4.4;
 float R_ki = 0.015;
 float R_kd = 0.2;
 
-float Dir_kp = 0.3;
+float Dir_kp = 0.35;
 float Dir_ki = 0.0;
-float Dir_kd = 0.0;
+float Dir_kd = 0.2;
 
 float avoid_kp = 0.5;
-float avoid_ki = 0.01;
-float avoid_kd = 0.0;
+float avoid_ki = 0.0;
+float avoid_kd = 0.3;
 
 //Debug
 bool move_re = false;
@@ -98,8 +97,10 @@ bool stop_re = false;
 bool move[4] = { }; //up,down,left,right
 
 //////////////algo parm///////////////////
-const float target_slope = 0.009855697800993502;
-const float target_intercept = 172.55532972120778;
+// const float target_slope = 0.009855697800993502;
+// const float target_intercept = 172.55532972120778;
+const float target_slope = 0.004921767004823744;
+const float target_intercept = 173.05365266783048;
 const float target_slope2 = -1.4209145956223272;
 const float target_intercept2 = 98.18294250176507;
 
@@ -123,8 +124,9 @@ uint8_t brightness = 0x00;
 uint32_t max_area = 0;
 uint32_t near_area = 4500;
 uint32_t init_forward_count = 2000;
-uint32_t avoid_dead_time = 2000;
-uint32_t exit_dead_time = 2000;
+uint32_t avoid_dead_time = 500;
+uint32_t exit_dead_time = 1500;
+uint32_t out_dead_time = 1500;
 Led* led0 = NULL;
 Led* led1 = NULL;
 St7735r* lcd = NULL;

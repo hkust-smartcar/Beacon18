@@ -54,7 +54,7 @@ obj/test-d-2018-beacon-master.o: src/test.cpp \
  C:\Users\Sheldon\git\libsccc\inc/libutil/misc.h \
  C:\Users\Sheldon\git\libsccc\inc/libutil/incremental_pid_controller.tcc \
  inc/pid.h C:\Users\Sheldon\git\libsccc\inc/libbase/k60/pit.h \
- inc/config.h inc/function.h \
+ inc/function.h inc/config.h \
  C:\Users\Sheldon\git\libsccc\inc/libbase/k60/vectors.h \
  C:\Users\Sheldon\git\libsccc\inc/libbase/k60/hardware.h \
  C:\Users\Sheldon\git\libsccc\inc/libbase/k60/cmsis/mk60f15.h \
