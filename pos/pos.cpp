@@ -312,12 +312,12 @@ void setAnglePower(const float& radAngle)
 	}
 
 	//	-ve turn left; +ve turn right
-	if(radAngle>0)
+	if(radAngle<0)
 	{
 		L_pid->settarget(chasing_speed - diff);
 		R_pid->settarget(chasing_speed + diff);
 	}
-	else //radAngle<0
+	else //radAngle>0
 	{
 		L_pid->settarget(chasing_speed + diff);
 		R_pid->settarget(chasing_speed - diff);
