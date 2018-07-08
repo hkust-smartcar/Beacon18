@@ -74,7 +74,7 @@ using namespace libutil;
 //	no, prepare, performing
 //};
 //enum state_ {
-//	forwardstart, search, approach ,chase,keep,avoid ,arrived//};
+//	searchforwardleft,searchforwardright,forwardstart, search, approach ,chase,keep,avoid ,arrived,turn180//};
 /* state			info									action
  *
  * forwardstart		after finish one beacon					move forward a short distance
@@ -97,13 +97,16 @@ using namespace libutil;
  * arrived			arrived a beacon(check whether 		 	change the action to forwardstart to ready se
  * 					ditance_y is equal to center.y			arch next beacon
  *
+ *searchforwardleft after finish one beacon and beacon are 	turn little left while forwarding
+ *					at the right side
  *
- *
+ *searchforwardright after finish one beacon and beacon are turn little right while forwarding
+ *					at the left side
  */
-enum avoid_state {
-	forw,turnleft,turnright,fastturnleft,fastturnright,stop
-};
-avoid_state avoid_st=forw;
+//enum avoid_state {
+//	forw,turnleft,turnright
+//};
+//avoid_state avoid_st=forw;
 void send(state_ action, uint8_t &state) {
 	if (action == keep)
 		return;
@@ -183,6 +186,7 @@ int main() {
 			int R_count = 0;
 
 	Beacon** onptr= nullptr;
+
 	Beacon** notonptr = nullptr;
 	const int value_forward_left = 40;
 	const int value_forward_right = 170;
@@ -190,15 +194,24 @@ int main() {
 	const int value_need_fast_turn=50;//if y value is larger than the range of it,it will need fast turn/////need tune
 	state_ prestate = arrived;
 	int  haveseen = 0;// 0 =not seen beacon 1 = seen beacon by ir cam 2= seen beacon by grey cam
-	int arrived_y = 90;
+	int seenleftright = 0;//0=notseen 1=left 2=right
+	int arrived_y = 20;
 	int search_Lcount = 0 ;
 	int search_Rcount = 0 ;
 	int forward_Lcount =0;
 	int forward_Rcount =0;
-	const int forward_L_target =1500;
-	const int forward_R_target =-1500;
-	const int search_L_target =2300;
-	const int search_R_target =2300;
+	int arrived_Lcount =0;
+	int arrived_Rcount =0;
+	const int arrived_L_target =700;
+	const int arrived_R_target =-700;
+	const int forward_L_target =1200;
+	const int forward_R_target =-1200;
+	const int search_L_target =1000;
+	const int search_R_target =1000;
+	std::array<int32_t, 1> gyropre={0};
+	std::array<int32_t, 1> gyro={0};
+	int cardegree=0;
+
 	/////////////////For Dubug////////////////////
 	uint8_t state = 100;
 	JyMcuBt106 bt_(init_bt());
@@ -234,7 +247,8 @@ int main() {
 				process();
 				tick = System::Time();
 				if (tick - ir_target2.received_time < 100) {
-				//	onptr = &ir_target2.target;
+					onptr = &ir_target2.target;
+
 
 				} else {
 					onptr=nullptr;
@@ -250,17 +264,44 @@ int main() {
 				}
 
 
-//				if(notonptr!=nullptr&&action!=search&&(*notonptr)->center.first>60&&(*notonptr)->center.first<160){//find obstacle no need to update prestate as we need prestate after avoid the obstacle
-//					action =avoid;
-//				}else
-//				if(action==avoid&&notonptr==nullptr){//go back the previous state after avoid
-//					action=prestate;
-//				}else
-	//			if(ir_target!=nullptr||onptr!=nullptr){//find beacon
-				if (ir_target != NULL) {	//target find
+				if(notonptr!=nullptr&&action!=search&&(*notonptr)->center.first>60&&(*notonptr)->center.first<150){//find obstacle no need to update prestate as we need prestate after avoid the obstacle
+					action =avoid;
+					if((*notonptr)->center.first>90){
+						avoid_st = turnleft;
+					}else{avoid_st = turnright;}
+				}else
+				if(action==avoid&&notonptr==nullptr){//go back the previous state after avoid
+					action=prestate;
+				}else
+			//if(ir_target!=nullptr||onptr!=nullptr){//find beacon
+				if(ir_target != nullptr&&onptr!=nullptr){//find a on-beacon in short distance=>ir!=null
+
+						action =chase;
+						prestate = chase;
+						haveseen =2 ;
+						if((*onptr)->center.first>90){
+							seenleftright=2;//right
+						}else{
+							seenleftright=1;
+						}
+						if((*onptr)->center.second>=arrived_y){
+							action =arrived;
+							prestate = arrived;
+							seen = false;
+							max_area = 0;
+							seen=0;
+
+						}
+					}else
+						if (ir_target != NULL) {	//target find
 									led0->SetEnable(1);
 									not_find_time = 0;
 									last_beacon = ir_target->center;
+									if(ir_target->center.first>170){
+										seenleftright=2;//right
+									}else{
+										seenleftright=1;
+									}
 									if (!seen) {
 										seen = true;
 										Dir_pid->reset();
@@ -271,17 +312,25 @@ int main() {
 									if (target_x > 320)
 										target_x = 320;
 									if (action == search
-											&& ir_target->center.first > target_x)
+											&& ir_target->center.first > target_x){
 										action = keep;
-									else
+										prestate = keep;
+									}
+									else{
 										action = chase;
+										prestate = chase;
+
+									}
 								}
 				else if (seen) { //target not find but have seen target before
 					if (not_find_time == 0) {
 						not_find_time = tick;
 						action = keep;
+						prestate = keep;
 					} else if (tick - not_find_time > 400) { //target lost for more than 75 ms
 										//						action = backward;
+						action=arrived;
+						prestate=arrived;
 						led0->SetEnable(0);
 						seen = false;
 						max_area = 0;
@@ -293,24 +342,60 @@ int main() {
 //									action = search;
 //								}
 				///////////////////
-					else if(onptr!=nullptr){//find a on-beacon in short distance=>ir!=null
 
-						action =chase;
-						prestate = chase;
-						haveseen =2 ;
-						if((*onptr)->center.second==arrived_y){
-							action =arrived;
-							prestate = arrived;
-
-						}
-					}
 				else
-				if((prestate==approach||prestate==chase)&&(ir_target!=nullptr||onptr!=nullptr)){
-					action =keep;
-
-
+//				if((prestate==approach||prestate==chase)&&(ir_target!=nullptr||onptr!=nullptr)){
+//					action =keep;
+//
+//
+//				}else
+				if(action==arrived ){//finished one beacon and not found next
+					if(seenleftright==2){
+					action=arrivedleft;
+					prestate=arrivedleft;}else{
+						action=arrivedright;
+						prestate=arrivedright;
+					}
+					haveseen=0;
+					 search_Lcount = 0 ;
+					 search_Rcount = 0 ;
+					 forward_Lcount =0;
+					 forward_Rcount =0;
+					 arrived_Lcount =0;
+					arrived_Rcount =0;
 				}else
-				if(prestate==arrived ){//just start or finished one beacon and not found next
+				if((action==arrivedleft||action==arrivedright)&&(arrived_Lcount<arrived_L_target||arrived_Rcount>arrived_R_target)){
+					arrived_Lcount +=encoder1->GetCount();
+					arrived_Rcount +=encoder2->GetCount();
+				}else
+				if((prestate==arrivedleft||prestate==arrivedright)&&(arrived_Lcount>=arrived_L_target||arrived_Rcount<=arrived_R_target)){
+					action=search;
+					prestate=search;
+					haveseen=0;
+					arrived_Lcount =0;
+					arrived_Rcount =0;
+				}else
+//				if(action==turn180&&cardegree>=180){
+//					cardegree=0;
+//					action=forwardstart;
+//					prestate=forwardstart;
+//					haveseen=0;
+//					forward_Lcount =0;
+//					forward_Rcount =0;
+//				}else
+//				if(action==turn180&&cardegree<180){
+//					mpu.Update();
+//					gyropre[0]=mpu.GetOmega()[2]*15/1000;
+//					gyro[0]+=gyropre[0];
+//					cardegree=gyro[0]*90/759135*90/220;
+//					lcd->SetRegion(libsc::Lcd::Rect(0,0, 160, 20));
+//					char data[20]={};
+//					sprintf(data, "gyro:%d",cardegree);
+//					writer_.WriteString(data);
+//
+//				}else
+
+				if(prestate==arrived ){//just start
 					action=forwardstart;
 					prestate=forwardstart;
 					haveseen=0;
@@ -330,26 +415,54 @@ int main() {
 
 
 				}else
+
 				if(action==search &&( search_Lcount<search_L_target||search_Rcount<search_R_target)){//ensure car turning a certain degree
 					search_Lcount+=encoder1->GetCount();
 					search_Rcount+=encoder2->GetCount();
 				}else
 				if(prestate==search&&haveseen==0&&search_Lcount>=search_L_target&&search_Rcount>=search_R_target){//search but not seen anything
-					action=forwardstart;																			//when it turning with zero distance that mean one wheel go forward and once go backward
-					prestate=forwardstart;																			//therefore both are negative which is clockwise
+					if(searchforwardleft==2){
+						action=searchforwardleft;
+						prestate=searchforwardleft;}else{
+							action=searchforwardright;
+							prestate=searchforwardright;
+						}																	//therefore both are negative which is clockwise
 					search_Lcount = 0 ;
 					search_Rcount = 0 ;
 
 					}
+				else if((action==searchforwardleft||action==searchforwardright)&&(forward_Lcount<forward_L_target||forward_Rcount>forward_R_target)){//ensure car can go certain distance for searching
+					forward_Lcount +=encoder1->GetCount();
+					forward_Rcount +=encoder2->GetCount();
+				}else
+				if((prestate==searchforwardleft||prestate==searchforwardright)&&forward_Lcount>=forward_L_target&&forward_Rcount<=forward_R_target){//after it go a short distance but it still cannot find the beacon therefore it will go a search state
+					action=search;                                                                             // forward_Lcount>=forward_L_target&&forward_Rcount<=forward_R_target
+					prestate=search;																			// as left id postive and right is negative when it is go forward therefore search is different
+					haveseen=0;
+					forward_Lcount =0;
+					forward_Rcount =0;
+				}
 FSM();
 
 
 				send(action, state);
 				cam->UnlockBuffer();
 //				int time = System::Time();
-//				char data[20];
+//				char data[20]={};
 //				lcd->SetRegion(libsc::Lcd::Rect(0,15,80,12));
 //				switch(action){//forwardstart, search, approach ,chase,keep,avoid ,arrived
+//				case arrivedleft:
+//					writer_.WriteString("arrileft");
+//					break;
+//				case arrivedright:
+//					writer_.WriteString("arriright");
+//					break;
+//				case searchforwardleft:
+//				writer_.WriteString("sforleft");
+//					break;
+//				case searchforwardright:
+//					writer_.WriteString("sforright");
+//					break;
 //				case forwardstart:
 //					writer_.WriteString("forwardstart");
 //					break;
@@ -366,7 +479,9 @@ FSM();
 //					writer_.WriteString("keep");
 //					break;
 //				case avoid:
-//					writer_.WriteString("avoid");
+//					if(avoid_st==1){writer_.WriteString("avoid left");}else
+//						if(avoid_st==2){writer_.WriteString("avoid right");}
+//
 //					break;
 //				case arrived:
 //					writer_.WriteString("arrived");
@@ -375,6 +490,7 @@ FSM();
 //					writer_.WriteString("n o");
 //					break;
 //				}
+//
 //				lcd->SetRegion(libsc::Lcd::Rect(60,15,80,12));
 //				sprintf(data,"T:%d",time-tick);
 //				writer_.WriteString(data);
@@ -419,7 +535,7 @@ FSM();
 //				sprintf(data,"irx:%d",ir_target->center.first);
 //				writer_.WriteString(data);
 //				lcd->SetRegion(libsc::Lcd::Rect(81,75,80,12));
-//				sprintf(data,"iry:%d",ir_target->center.second);
+//				sprintf(data,"iry:%d",ir_target->area);
 //				writer_.WriteString(data);
 //				}else{
 //					lcd->SetRegion(libsc::Lcd::Rect(0,75,80,12));
@@ -459,12 +575,19 @@ FSM();
 //					sprintf(data,"noty:%d",0);
 //					writer_.WriteString(data);
 //				}
+//				lcd->SetRegion(libsc::Lcd::Rect(0,111,80,12));
+//				sprintf(data,"L_A:%d",arrived_Rcount);
+//				writer_.WriteString(data);
+//				lcd->SetRegion(libsc::Lcd::Rect(81,111,80,12));
+//				sprintf(data,"R_A:%d",arrived_Lcount);
+//				writer_.WriteString(data);
 //				if(joyStick.GetState()==Joystick::State::kSelect){
 //					mpu.IsCalibrated();
 //					float cardegree=0;
+//
+//					while(cardegree<360){
 //					std::array<int32_t, 1> gyropre={0};
 //					std::array<int32_t, 1> gyro={0};
-//					while(cardegree<360){
 //						if(System::Time()%15==0){
 //						mpu.Update();
 //						gyropre[0]=mpu.GetOmega()[2]*15/1000;
