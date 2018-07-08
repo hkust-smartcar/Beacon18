@@ -1,61 +1,319 @@
-/*
- * var.h
- *
- *  Created on: 2018¦~6¤ë15¤é
- *      Author: User
- */
+#ifndef INC_FUNCTION_H_
+#define INC_FUNCTION_H_
+#include "var.h"
 
-#ifndef INC_VAR_H_
-#define INC_VAR_H_
+void SetPower(int speed, int id) {
+	bool direction = (speed > 0);
+	int power = (speed > 0 ? speed : -speed);
+	power = libutil::Clamp<int>(0, power, 1000);
+	switch (id) {
+	case 0:
+		L_motor->SetPower(power);
+		L_motor->SetClockwise(!direction);
+		break;
+	case 1:
+		R_motor->SetPower(power);
+		R_motor->SetClockwise(direction);
+	}
+}
 
+int GetMotorPower(int id) {
+	switch (id) {
+	case 0:
+		return L_motor->IsClockwise() ?
+				-L_motor->GetPower() : L_motor->GetPower(); //true is forward
+		break;
+	case 1:
+		return R_motor->IsClockwise() ?
+				R_motor->GetPower() : -R_motor->GetPower(); //false is forward
+		break;
+	}
+	return 0;
+}
 
+void sendInt(int i) {
+	Byte out[5];
+	out[0] = i < 0 ? 1 : 0;
+	i = abs(i);
+	out[1] = (i >> 24) & 0xFF;
+	out[2] = (i >> 16) & 0xFF;
+	out[3] = (i >> 8) & 0xFF;
+	out[4] = i & 0xFF;
+	bt->SendBuffer(out, 5);
+}
 
-#include "beacon.h"
-#include <stdlib.h>
-#include "libsc/st7735r.h"
-#include <libsc/led.h>
-#include <libsc/k60/jy_mcu_bt_106.h>
-#include "libsc/lcd_typewriter.h"
-#include <libsc/k60/ov7725.h>
-#include <libsc/dir_encoder.h>
-#include "libsc/alternate_motor.h"
+std::list<uint8_t> buffer;
 
+inline void BuildTargetPackage() {
+	auto it = buffer.begin();
+	Byte temp[4];
+	float val;
+	auto ptr = avoid_pid;
+	for (int i = 0; i < 4; i++)
+		temp[i] = *(it++);
+	memcpy(&val, temp, sizeof(float));
+	ptr->kP = val;
+	for (int i = 0; i < 4; i++)
+		temp[i] = *(it++);
+	memcpy(&val, temp, sizeof(float));
+	ptr->kI = val;
+	for (int i = 0; i < 4; i++)
+		temp[i] = *(it++);
+	memcpy(&val, temp, sizeof(float));
+	ptr->kD = val;
+	char data[20] = { };
+	int y = 15;
+	lcd->SetRegion(Lcd::Rect(0, y, 128, 15));
+	y += 15;
+	sprintf(data, "kp: %.4f", ptr->kP);
+	writer->WriteBuffer(data, 20);
+	lcd->SetRegion(Lcd::Rect(0, y, 128, 15));
+	y += 15;
+	sprintf(data, "ki: %.4f", ptr->kI);
+	writer->WriteBuffer(data, 20);
+	lcd->SetRegion(Lcd::Rect(0, y, 128, 15));
+	y += 15;
+	sprintf(data, "kd: %.4f", ptr->kD);
+	writer->WriteBuffer(data, 20);
+}
 
-using libsc::System;
-using namespace libsc;
-using namespace libsc::k60;
-using namespace libbase::k60;
+inline void BuildBufferPackage() {
+	auto it = buffer.begin();
+	uint8_t type = *(it++);
+	uint8_t x = *(it++);
+	uint8_t y = *(it++);
+	BeaconPackage* ptr = NULL;
+	switch (type) {
+	case PkgType::irTarget:
+		ptr = &ir_target2;
+		break;
+	case PkgType::oTarget:
+		ptr = &o_target;
+		break;
+	}
+	if (ptr->target == NULL)
+		ptr->target = new Beacon();
+	ptr->target->center.first = x;
+	ptr->target->center.second = y;
+	ptr->received_time = System::Time();
 
-struct BeaconPackage{
-	Beacon* target = NULL;
-	uint16_t received_time = 0;
-	bool same = false;
-};
+}
 
-const Byte* buf = NULL;
-Beacon* ir_target = NULL;
-Beacon* ir_record = NULL;
-BeaconPackage o_target;
-BeaconPackage ir_target2;
+bool comm_listener(const Byte *data, const size_t size) {
+	BitConsts a;
+	if (data[0] == a.kSTART)
+		buffer.clear();
+	else if (data[0] == a.kEND)
+		BuildBufferPackage();
+//		BuildTargetPackage();
+	else
+		buffer.push_back(data[0]);
+	return true;
+}
 
-const uint16_t width = 320;
-const uint16_t height = 240;
-const uint16_t numOfPixel = 9600;
-uint8_t contrast = 0x40;
-uint8_t brightness = 0x00;
-Led* led0 = NULL;
-Led* led1 = NULL;
-St7735r* lcd = NULL;
-LcdTypewriter* writer = NULL;
-Ov7725* cam = NULL;
-JyMcuBt106* bt = NULL;
-JyMcuBt106* comm = NULL;
-AlternateMotor *L_motor = NULL;
-AlternateMotor *R_motor = NULL;
-DirEncoder* encoder1 = NULL;
-DirEncoder* encoder2 = NULL;
+void reset_pid() {
+	L_pid->reset();
+	R_pid->reset();
+	Dir_pid->reset();
+	avoid_pid->reset();
+}
+bool receiving = false;
+bool bt_listener(const Byte *data, const size_t size) {
+	BitConsts a;
+	if (move_re) {
+		move[data[0] - '0'] = true;
+		move_re = false;
+		return true;
+	}
+	if (stop_re) {
+		move[data[0] - '0'] = false;
+		stop_re = false;
+		return true;
+	}
 
+	if (receiving) {
+		if (data[0] == a.kEND) {
+			BuildTargetPackage();
+			receiving = false;
+		} else
+			buffer.push_back(data[0]);
+		return true;
+	}
+	if (data[0] == a.kSTART) {
+		buffer.clear();
+		receiving = true;
+		return true;
+	}
 
+	if (data[0] == 'm')
+		move_re = true;
+	if (data[0] == 'p')
+		stop_re = true;
 
+	if (data[0] == 's') {
+		run = true;
+		led1->SetEnable(1);
+		comm->SendStrLiteral("s");
+		reset_pid();
 
-#endif /* INC_VAR_H_ */
+	}
+	if (data[0] == 'S') {
+		run = false;
+		led1->SetEnable(0);
+		L_pid->settarget(0);
+		R_pid->settarget(0);
+		L_motor->SetPower(0);
+		R_motor->SetPower(0);
+		comm->SendStrLiteral("S");
+	}
+	return true;
+}
+
+void FSM() {
+	int diff;
+	std::pair<uint16_t, uint16_t> p;
+	int speed;
+//	BitConsts a;
+//	bt->SendBuffer(&a.kSTART, 1);
+//	bt->SendBuffer(0,1);
+//	sendInt(action);
+//	bt->SendBuffer(&a.kEND, 1);
+	switch (action) {
+	case arrivedleft:
+		L_pid->settarget(finding_speed);
+		R_pid->settarget(finding_speed*1.4);
+		break;
+	case arrivedright:
+		L_pid->settarget(finding_speed*1.4);
+		R_pid->settarget(finding_speed);
+		break;
+	case searchforwardleft:
+		L_pid->settarget(finding_speed);
+		R_pid->settarget(finding_speed*1.4);
+		break;
+	case searchforwardright:
+		L_pid->settarget(finding_speed*1.4);
+		R_pid->settarget(finding_speed);
+		break;
+	case forwardstart:
+		L_pid->settarget(finding_speed);
+		R_pid->settarget(finding_speed);
+		break;
+	case backward:
+		L_pid->settarget(-finding_speed);
+		R_pid->settarget(-finding_speed);
+		break;
+	case search:
+		L_pid->settarget(rotate_speed);
+		R_pid->settarget(-rotate_speed);
+		break;
+	case chase:
+		Dir_pid->settarget(target_x);
+		diff = Dir_pid->output(ir_target->center.first);
+		diff = chasing_speed * diff / 100;
+		L_pid->settarget(chasing_speed - diff);
+		R_pid->settarget(chasing_speed + diff);
+		if (chasing_speed < 150)
+			L_pid->settarget(chasing_speed);
+		break;
+	case stop:
+		L_pid->settarget(0);
+		R_pid->settarget(0);
+		break;
+	case arrived:
+		if (last_beacon.first < 170) {
+			L_pid->settarget(out_speed);
+			R_pid->settarget(out_speed  + out_speed * 0.67);
+		} else {
+			L_pid->settarget(out_speed + out_speed * 0.67);
+			R_pid->settarget(out_speed);
+		}
+		break;
+	case avoid:
+		p = o_target.target->center;
+		if (p.first < 90)
+			avoid_pid->settarget(0);
+		else
+			avoid_pid->settarget(189);
+		diff = avoid_pid->output(p.first);
+		diff = chasing_speed * diff / 100;
+		if(avoid_st==turnleft){
+		L_pid->settarget(chasing_speed - diff);
+		R_pid->settarget(chasing_speed + diff);
+		}else{
+			L_pid->settarget(chasing_speed - diff);
+			R_pid->settarget(chasing_speed + diff);
+		}
+		break;
+	case approach:
+		p = ir_target2.target->center;
+		if (p.first < 90)
+			avoid_pid->settarget(10);
+		else
+			avoid_pid->settarget(180);
+		diff = avoid_pid->output(p.first);
+		diff = chasing_speed * diff / 100;
+		L_pid->settarget(chasing_speed - diff);
+		R_pid->settarget(chasing_speed + diff);
+		break;
+	case keep:
+		break;
+	}
+}
+
+inline void send(uint8_t &state) {
+	if (action == keep)
+		return;
+	if (state != action) {
+		state = action;
+		char data[10];
+		sprintf(data, "S:%d\n", state);
+		bt->SendStr(data);
+	}
+}
+
+inline void display_bMeter() {
+	lcd->SetRegion(Lcd::Rect(0, 0, 160, 15));
+	char data[20] = { };
+	sprintf(data, "%f", bMeter->GetVoltage());
+	writer->WriteBuffer(data, 20);
+}
+
+inline void reControl() {
+	if (!(move[0] || move[1] || move[2] || move[3])) {
+		L_pid->settarget(0);
+		R_pid->settarget(0);
+		L_motor->SetPower(0);
+		R_motor->SetPower(0);
+	} else if (move[0]) {	//forward
+		if (move[2]) {
+			L_pid->settarget((int) (chasing_speed * 0.67));
+			R_pid->settarget(chasing_speed);
+		} else if (move[3]) {
+			L_pid->settarget(chasing_speed);
+			R_pid->settarget((int) (chasing_speed * 0.67));
+		} else {
+			L_pid->settarget(chasing_speed);
+			R_pid->settarget(chasing_speed);
+		}
+	} else if (move[1]) {	//backward
+		if (move[2]) {
+			L_pid->settarget(-(int) (chasing_speed * 0.67));
+			R_pid->settarget(-chasing_speed);
+		} else if (move[3]) {
+			L_pid->settarget(-chasing_speed);
+			R_pid->settarget(-(int) (chasing_speed * 0.67));
+		} else {
+			L_pid->settarget(-chasing_speed);
+			R_pid->settarget(-chasing_speed);
+		}
+	} else if (move[2]) {
+		L_pid->settarget(-chasing_speed);
+		R_pid->settarget(chasing_speed);
+	} else if (move[3]) {
+		L_pid->settarget(chasing_speed);
+		R_pid->settarget(-chasing_speed);
+	}
+}
+
+#endif
