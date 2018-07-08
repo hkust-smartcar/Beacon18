@@ -206,7 +206,7 @@ int main(void)
 
 float BeaconAvoidAngleCalculate(const uint16_t& bx, const uint16_t& by)
 {
-	if(bx<=O_X_LEFT||bx<=O_X_RIGHT)return 0.0;
+	if(bx<=O_X_LEFT||bx>=O_X_RIGHT)return 0.0;
 	//assume beacon position need to avoid
 
 	int16_t dx = bx - CARX;
