@@ -61,7 +61,7 @@ const int16_t CARW = 16; //cm
 const int16_t XCOOR_IMAGE_OFFSET = 189/2; //lowest middle of image is (0,0)
 const int16_t O_X_LEFT = 60;
 const int16_t O_X_RIGHT = 150;
-const int16_t O_NX_OFFSET = 10;
+const int16_t O_NX_OFFSET = 5;
 const int16_t O_NX_LEFT = (CARX - (O_X_RIGHT - CARX)) - O_NX_OFFSET;
 const float O_X_LEFT_INC_RATIO = 1.0*(((O_X_RIGHT - CARX)+O_NX_OFFSET)-(CARX- O_X_LEFT))/(CARX- O_X_LEFT);
 const float X_CM_PER_PIX = 0.1; //1pixel = 1mm, x-axis
@@ -181,7 +181,7 @@ int main(void)
 ///////////////////////////////////
 
 //avoid///////////////////////////
-			if (tick - process_time >= 22) {
+			if (tick - process_time >= 19) {
 
 				process_time = tick;
 
@@ -252,7 +252,10 @@ float BeaconAvoidAngleCalculate(const uint16_t& bx, const uint16_t& by)
 			{
 				//turn left
 				int16_t ndx=O_X_RIGHT-CARX;
-				ratio = - (1-atan(ndx*1.0/dy));
+				//ratio = - (1-atan(ndx*1.0/dy));
+				ratio = atan(ndx*1.0/dy);
+				if(ratio>1||ratio<-1)ratio = 0;
+				ratio = - (1-ratio);
 			}
 			//back
 //			else //dy<=0
@@ -270,7 +273,10 @@ float BeaconAvoidAngleCalculate(const uint16_t& bx, const uint16_t& by)
 				{
 					//turn left
 					int16_t ndx=O_X_RIGHT-bx;
-					ratio = - (1-atan(ndx*1.0/dy));
+					//ratio = - (1-atan(ndx*1.0/dy));
+					ratio = atan(ndx*1.0/dy);
+					if(ratio>1||ratio<-1)ratio = 0;
+					ratio = -(1-ratio);
 				}
 				//beacon at back right
 //				else //dy<0
@@ -287,7 +293,10 @@ float BeaconAvoidAngleCalculate(const uint16_t& bx, const uint16_t& by)
 					//turn right
 					int16_t nbx = (((bx - O_X_LEFT) * (1+ O_X_LEFT_INC_RATIO))+ O_NX_LEFT)-O_NX_OFFSET;
 					int16_t ndx= (nbx - O_NX_LEFT)+O_NX_OFFSET;
-					ratio = 1- atan(ndx*1.0/dy);
+					//ratio = 1- atan(ndx*1.0/dy);
+					ratio = atan(ndx*1.0/dy);
+					if(ratio>1||ratio<-1)ratio = 0;
+					ratio = 1-ratio;
 				}
 				//beacon at back left
 //				else //dy<0
@@ -341,12 +350,29 @@ void setAnglePower(const float& radAngle, const uint32_t& tick, uint32_t& pid_ti
 	if(radAngle<0)
 	{
 		R_pid->settarget(chasing_speed);
-		L_pid->settarget(chasing_speed* abs(radAngle));
+		if(radAngle<=-1||radAngle==0)
+		{
+			L_pid->settarget(0);
+			SetPower(0,0);
+		}
+		else
+		{
+			L_pid->settarget(chasing_speed* abs(radAngle));
+		}
+
+
 	}
 	else //radAngle>0
 	{
 		L_pid->settarget(chasing_speed);
-		R_pid->settarget(chasing_speed*radAngle);
+		if(radAngle>=1||radAngle==0)
+		{
+			R_pid->settarget(0);
+		}
+		else
+		{
+			R_pid->settarget(chasing_speed*radAngle);
+		}
 	}
 	if(run&&(tempR != R_pid->getTarget() || tempL!= L_pid->getTarget()))
 	{
