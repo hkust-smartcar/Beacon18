@@ -48,10 +48,11 @@ using namespace libsc;
 using namespace libbase::k60;
 
 //pos
+//pos
 const uint8_t COUNT_PER_CM = 23;
 const float CM_PER_COUNT = 1.0/COUNT_PER_CM;  //0.041666666
 const float PI = 22/7.0;
-const float DEG_PER_RAD = 180.0/PI; //1 rad = 180簞/�
+const float DEG_PER_RAD = 180.0/PI; //1 rad = 180/pi
 const uint8_t WHEEL_DIST = 12;
 const uint8_t Y_CENTER_OFFEST = 12;
 const int16_t CARX = 189/2;
@@ -60,6 +61,8 @@ const int16_t CARW = 16; //cm
 const int16_t XCOOR_IMAGE_OFFSET = 189/2; //lowest middle of image is (0,0)
 const int16_t O_X_LEFT = 60;
 const int16_t O_X_RIGHT = 150;
+const int16_t O_NX_LEFT = CARX - (O_X_RIGHT - CARX);
+const float O_X_LEFT_INC_RATIO = 1.0*((O_X_RIGHT - CARX)-(CARX- O_X_LEFT))/(CARX- O_X_LEFT);
 const float X_CM_PER_PIX = 0.1; //1pixel = 1mm, x-axis
 const float Y_CM_PER_PIX = 2;
 const int8_t YX_ratio = 20; //20mm/1mm
@@ -241,7 +244,7 @@ float BeaconAvoidAngleCalculate(const uint16_t& bx, const uint16_t& by)
 			if (dy > 0)
 			{
 				//turn left
-				int16_t ndx=CARX-O_X_LEFT;
+				int16_t ndx=O_X_RIGHT-CARX;
 				ratio = - (1-atan(ndx*1.0/dy));
 			}
 			//back
@@ -275,7 +278,8 @@ float BeaconAvoidAngleCalculate(const uint16_t& bx, const uint16_t& by)
 				if (dy > 0)
 				{
 					//turn right
-					int16_t ndx=bx-O_X_LEFT;
+					int16_t nbx = ((bx - O_X_LEFT) * (1+ O_X_LEFT_INC_RATIO))+ O_NX_LEFT;
+					int16_t ndx= nbx - O_NX_LEFT;
 					ratio = 1- atan(ndx*1.0/dy);
 				}
 				//beacon at back left
