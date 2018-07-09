@@ -49,9 +49,9 @@ using namespace libbase::k60;
 
 //pos
 const uint8_t COUNT_PER_CM = 23;
-const float CM_PER_COUNT = 1/COUNT_PER_CM;  //0.041666666
-const float PI = 22/7;
-const float DEG_PER_RAD = 180/PI; //1 rad = 180°/π
+const float CM_PER_COUNT = 1.0/COUNT_PER_CM;  //0.041666666
+const float PI = 22/7.0;
+const float DEG_PER_RAD = 180.0/PI; //1 rad = 180°/π
 const uint8_t WHEEL_DIST = 12;
 const uint8_t Y_CENTER_OFFEST = 12;
 const int16_t CARX = 189/2;
@@ -63,12 +63,13 @@ const int16_t O_X_RIGHT = 150;
 const float X_CM_PER_PIX = 0.1; //1pixel = 1mm, x-axis
 const float Y_CM_PER_PIX = 2;
 const int8_t YX_ratio = 20; //20mm/1mm
+
 int32_t aCountL = 0;
 int32_t aCountR = 0;
 
 bool printLCD = true;
 
-float BeaconAvoidAngleCalculate(const uint16_t& bx, const uint16_t& by);
+inline float BeaconAvoidAngleCalculate(const uint16_t& bx, const uint16_t& by);
 inline void setAnglePower(const float& radAngle);
 
 int main(void)
@@ -135,9 +136,10 @@ int main(void)
     uint32_t process_time = 0;
     uint32_t past_time = System::Time();
     uint32_t pid_time = 0;
-    run = false;
+
 /////////////////////////////////////////
 
+    run = false;
 	L_pid->settarget(chasing_speed);
 	R_pid->settarget(chasing_speed);
 
@@ -163,31 +165,36 @@ int main(void)
 
 //avoid///////////////////////////
 			if (tick - process_time >= 30) {
-							process_time = tick;
-							if (tick - o_target.received_time < 100) {
-								uint16_t x = o_target.target->center.first;
-								uint16_t y = o_target.target->center.second;
-								if(printLCD)
-								{
-									char temp[20] = { };
-									sprintf(temp, "x=%d y=%d", x,y);
-									lcd->SetRegion(Lcd::Rect(0, 40, 128, 160));
-									writer->WriteString(temp);
-								}
-								if ( x > O_X_LEFT && x < O_X_RIGHT)
-								{
+				process_time = tick;
+				if(printLCD)
+				{
+					lcd->SetRegion(Lcd::Rect(0, 20, 128, 160));
+					writer->WriteString("start");
+				}
+				if (tick - o_target.received_time < 100) {
+					uint16_t x = o_target.target->center.first;
+					uint16_t y = o_target.target->center.second;
+					if(printLCD)
+					{
+						char temp[20] = { };
+						sprintf(temp, "x=%d y=%d", x,y);
+						lcd->SetRegion(Lcd::Rect(0, 40, 128, 160));
+						writer->WriteString(temp);
+					}
+					if ( x > O_X_LEFT && x < O_X_RIGHT)
+					{
 
-									if (y> 70)
-										action = backward;
-									else
-									{
-										action = avoid;
-										setAnglePower(BeaconAvoidAngleCalculate(x, y));
-									}
-									//								FSM();
-									//								continue;
-								}
-							}
+						if (y> 70)
+							action = backward;
+						else
+						{
+							action = avoid;
+							setAnglePower(BeaconAvoidAngleCalculate(x, y));
+						}
+						//								FSM();
+						//								continue;
+					}
+				}
 			}
 /////////////////////////////////////
 			if(tick - past_time >=15000){
@@ -212,15 +219,13 @@ float BeaconAvoidAngleCalculate(const uint16_t& bx, const uint16_t& by)
 	int16_t dx = bx - CARX;
 	int16_t dy = -(by - CARY); //lower pixel is larger
 	uint32_t hyp = (dx *dx + dy *dy) ;
-	//int16_t dy = -(by - CARY) * YX_ratio; //lower pixel is larger
-	//uint32_t hyp = (CARX -bx) *(CARX -bx) + (CARY -by) * YX_ratio *(CARY -by) * YX_ratio;
 
-	//float targetAngle = 0; //rad coor
-	float Radius = 0.0; //pixel coor;-ve turn left; +ve turn right
+	float ratio = 0.0; //speed ratio
 
 	//have dist
 	if (hyp != 0)
 	{
+
 		//st line
 		if (dx == 0)
 		{
@@ -229,9 +234,7 @@ float BeaconAvoidAngleCalculate(const uint16_t& bx, const uint16_t& by)
 			{
 				//turn left
 				int16_t ndx=CARX-O_X_LEFT;
-				//targetAngle = - atan(ndx/dy);
-				Radius = - (float) (sqrt(ndx*ndx + dy*dy));
-
+				ratio = - (1-atan(ndx*1.0/dy));
 			}
 			//back
 //			else //dy<=0
@@ -242,34 +245,14 @@ float BeaconAvoidAngleCalculate(const uint16_t& bx, const uint16_t& by)
 		}
 		else  //dx != 0
 		{
-			if (dy == 0)
-			{
-				//beacon at right
-				if (dx > 0)
-				{
-					//turn left
-					//targetAngle = - PI/2;
-					//Radius = 0.0;
-					//backward
-				}
-				//beacon at left
-				else  //dx < 0
-				{
-					//turn right
-					//targetAngle = PI/2;
-					//Radius = 0.0;
-					//backward
-				}
-			}
-			else if (dx > 0)
+			if (dx > 0)
 			{
 				//beacon at front right
 				if (dy > 0)
 				{
 					//turn left
 					int16_t ndx=O_X_RIGHT-bx;
-					//targetAngle = - atan(ndx/dy);
-					Radius = - (float) (sqrt(ndx*ndx + dy*dy));
+					ratio = - (1-atan(ndx*1.0/dy));
 				}
 				//beacon at back right
 //				else //dy<0
@@ -277,15 +260,15 @@ float BeaconAvoidAngleCalculate(const uint16_t& bx, const uint16_t& by)
 //					targetAngle = 0.0;
 //					Radius = 0.0;
 //				}
-			} else //dx<0
+			}
+			else if(dx<0)
 			{
 				//beacon at front left
 				if (dy > 0)
 				{
 					//turn right
 					int16_t ndx=bx-O_X_LEFT;
-					//targetAngle = atan(ndx/dy);
-					Radius = (float) (sqrt(ndx*ndx + dy*dy));
+					ratio = 1- atan(ndx*1.0/dy);
 				}
 				//beacon at back left
 //				else //dy<0
@@ -294,13 +277,32 @@ float BeaconAvoidAngleCalculate(const uint16_t& bx, const uint16_t& by)
 //					Radius = 0.0;
 //				}
 			}
+//			else if (dy == 0)
+//			{
+//				//beacon at right
+//				if (dx > 0)
+//				{
+//					//turn left
+//					//targetAngle = - PI/2;
+//					//Radius = 0.0;
+//					//backward
+//				}
+//				//beacon at left
+//				else  //dx < 0
+//				{
+//					//turn right
+//					//targetAngle = PI/2;
+//					//Radius = 0.0;
+//					//backward
+//				}
+//			}
 		}
 	}
 
 	if(printLCD)
 	{
 		char temp[20] = { };
-		sprintf(temp, "r=%.1f hyp=%d", Radius,hyp);
+		sprintf(temp, "r=%.3f", ratio);
 		lcd->SetRegion(Lcd::Rect(0, 60, 128, 160));
 		writer->WriteString(temp);
 		sprintf(temp, "dx=%d, dy=%d",dx,dy);
@@ -308,33 +310,22 @@ float BeaconAvoidAngleCalculate(const uint16_t& bx, const uint16_t& by)
 		writer->WriteString(temp);
 	}
 
-	//return targetAngle;
-	return Radius;
+	return ratio;
 
 }
 
 void setAnglePower(const float& radAngle)
 {
-
-	float diff = ((abs(radAngle)-9) / (abs(radAngle)+9));
-	if(printLCD)
-	{
-		char temp[20] = { };
-		sprintf(temp, "d=%.4f",diff);
-		lcd->SetRegion(Lcd::Rect(0, 100, 128, 160));
-		writer->WriteString(temp);
-	}
-
 	//	-ve turn left; +ve turn right
 	if(radAngle<0)
 	{
 		R_pid->settarget(chasing_speed);
-		L_pid->settarget(chasing_speed * diff);
+		L_pid->settarget(chasing_speed*abs(radAngle));
 	}
 	else //radAngle>0
 	{
 		L_pid->settarget(chasing_speed);
-		R_pid->settarget(chasing_speed * diff);
+		R_pid->settarget(chasing_speed*radAngle);
 	}
 }
 
