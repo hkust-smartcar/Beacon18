@@ -368,6 +368,7 @@ void setAnglePower(const float& radAngle, const uint32_t& tick, uint32_t& pid_ti
 		if(radAngle>=1||radAngle==0)
 		{
 			R_pid->settarget(0);
+			SetPower(0,0);
 		}
 		else
 		{
