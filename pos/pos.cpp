@@ -1,4 +1,4 @@
-/*
+
  * main.cpp
  *
  * Author: Wongky
@@ -61,8 +61,9 @@ const int16_t CARW = 16; //cm
 const int16_t XCOOR_IMAGE_OFFSET = 189/2; //lowest middle of image is (0,0)
 const int16_t O_X_LEFT = 60;
 const int16_t O_X_RIGHT = 150;
-const int16_t O_NX_LEFT = CARX - (O_X_RIGHT - CARX);
-const float O_X_LEFT_INC_RATIO = 1.0*((O_X_RIGHT - CARX)-(CARX- O_X_LEFT))/(CARX- O_X_LEFT);
+const int16_t O_NX_OFFSET = 10;
+const int16_t O_NX_LEFT = (CARX - (O_X_RIGHT - CARX)) - O_NX_OFFSET;
+const float O_X_LEFT_INC_RATIO = 1.0*(((O_X_RIGHT - CARX)+O_NX_OFFSET)-(CARX- O_X_LEFT))/(CARX- O_X_LEFT);
 const float X_CM_PER_PIX = 0.1; //1pixel = 1mm, x-axis
 const float Y_CM_PER_PIX = 2;
 const int8_t YX_ratio = 20; //20mm/1mm
@@ -166,6 +167,11 @@ int main(void)
 				SetPower(R_pid->output(-R_count), 1);
 				pid_time = System::Time();
 
+//				{
+//					lcd->SetRegion(Lcd::Rect(0, 20, 128, 160));
+//					writer->WriteString("start");
+//				}
+
 			}
 			else if(run==false)
 			{
@@ -176,14 +182,9 @@ int main(void)
 
 //avoid///////////////////////////
 			if (tick - process_time >= 22) {
-				L_pid->settarget(chasing_speed);
-				R_pid->settarget(chasing_speed);
+
 				process_time = tick;
-//				if(printLCD)
-//				{
-//					lcd->SetRegion(Lcd::Rect(0, 20, 128, 160));
-//					writer->WriteString("start");
-//				}
+
 				if (tick - o_target.received_time < 100) {
 					uint16_t x = o_target.target->center.first;
 					uint16_t y = o_target.target->center.second;
@@ -201,9 +202,15 @@ int main(void)
 						else
 						{
 							setAnglePower(BeaconAvoidAngleCalculate(x, y), tick, pid_time);
+							 past_time = System::Time();
 						}
 						//								FSM();
 						//								continue;
+					}
+					else if(past_time-tick>=30)
+					{
+						L_pid->settarget(chasing_speed);
+						R_pid->settarget(chasing_speed);
 					}
 				}
 			}
@@ -278,8 +285,8 @@ float BeaconAvoidAngleCalculate(const uint16_t& bx, const uint16_t& by)
 				if (dy > 0)
 				{
 					//turn right
-					int16_t nbx = ((bx - O_X_LEFT) * (1+ O_X_LEFT_INC_RATIO))+ O_NX_LEFT;
-					int16_t ndx= nbx - O_NX_LEFT;
+					int16_t nbx = (((bx - O_X_LEFT) * (1+ O_X_LEFT_INC_RATIO))+ O_NX_LEFT)-O_NX_OFFSET;
+					int16_t ndx= (nbx - O_NX_LEFT)+O_NX_OFFSET;
 					ratio = 1- atan(ndx*1.0/dy);
 				}
 				//beacon at back left
@@ -341,7 +348,7 @@ void setAnglePower(const float& radAngle, const uint32_t& tick, uint32_t& pid_ti
 		L_pid->settarget(chasing_speed);
 		R_pid->settarget(chasing_speed*radAngle);
 	}
-	if(tempR != R_pid->getTarget() || tempL!= L_pid->getTarget())
+	if(run&&(tempR != R_pid->getTarget() || tempL!= L_pid->getTarget()))
 	{
 		pid(tick, pid_time);
 	}
@@ -365,6 +372,3 @@ void pid(const uint32_t& tick, uint32_t& pid_time)
 	SetPower(R_pid->output(-R_count), 1);
 	pid_time = System::Time();
 }
-
-
-
