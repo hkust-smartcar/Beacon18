@@ -68,6 +68,12 @@ const float X_CM_PER_PIX = 0.1; //1pixel = 1mm, x-axis
 const float Y_CM_PER_PIX = 2;
 const int8_t YX_ratio = 20; //20mm/1mm
 
+const int16_t A_X_LEFT = 85;
+const int16_t A_X_RIGHT = 100;
+const int16_t A_X_CENTER = 90;
+const int16_t A_Y = 20;
+
+
 //pid
 int32_t L_count = 0;
 int32_t R_count = 0;
@@ -77,6 +83,7 @@ int32_t aCountR = 0;
 bool printLCD = false;
 
 inline float BeaconAvoidAngleCalculate(const uint16_t& bx, const uint16_t& by);
+inline float BeaconApproachAngleCalculate(const uint16_t& bx, const uint16_t& by);
 inline void setAnglePower(const float& radAngle, const uint32_t& tick, uint32_t& pid_time);
 inline void pid(const uint32_t& tick, uint32_t& pid_time);
 
@@ -184,8 +191,8 @@ int main(void)
 			if (tick - process_time >= 19) {
 
 				process_time = tick;
-
-				if (tick - o_target.received_time < 100) {
+//otarget/////////////////////////////
+				if (tick - o_target.received_time < 100 && o_target.target->center.first > 40 && o_target.target->center.first < 170) {
 					uint16_t x = o_target.target->center.first;
 					uint16_t y = o_target.target->center.second;
 					if(printLCD)
@@ -202,10 +209,10 @@ int main(void)
 						else
 						{
 							setAnglePower(BeaconAvoidAngleCalculate(x, y), tick, pid_time);
-							 past_time = System::Time();
+							past_time = System::Time();
 						}
 						//								FSM();
-						//								continue;
+						continue;
 					}
 					else if(past_time-tick>=30)
 					{
@@ -213,6 +220,22 @@ int main(void)
 						R_pid->settarget(chasing_speed);
 					}
 				}
+////////////////////////////////
+
+//irtarget////////////////////////
+				if (tick - ir_target2.received_time < 100)
+				{
+					uint16_t x = ir_target2.target->center.first;
+					uint16_t y = ir_target2.target->center.second;
+
+					if (y>= A_Y && x>=A_X_LEFT && x<=A_X_RIGHT){}
+					else
+					{
+						setAnglePower(BeaconApproachAngleCalculate(x, y), tick, pid_time);
+					}
+				}
+///////////////////////////////////
+
 			}
 /////////////////////////////////////
 //			if(tick - past_time >=15000){
@@ -231,7 +254,7 @@ int main(void)
 
 float BeaconAvoidAngleCalculate(const uint16_t& bx, const uint16_t& by)
 {
-	if(bx<=O_X_LEFT||bx>=O_X_RIGHT)return 0.0;
+	if(bx<=O_X_LEFT||bx>=O_X_RIGHT)return 2.0;
 	//assume beacon position need to avoid
 
 	int16_t dx = bx - CARX;
@@ -342,10 +365,122 @@ float BeaconAvoidAngleCalculate(const uint16_t& bx, const uint16_t& by)
 
 }
 
+float BeaconApproachAngleCalculate(const uint16_t& bx, const uint16_t& by)
+{
+	if((bx>=A_X_LEFT&&bx<=A_X_RIGHT) || A_Y>=20)return 2.0;
+	//assume beacon position need to approach
+
+	int16_t dx = bx - A_X_CENTER;
+	int16_t dy = -(by - CARY); //lower pixel is larger
+	uint32_t hyp = (dx *dx + dy *dy) ;
+
+	float ratio = 0.0; //speed ratio
+
+	//have dist
+	if (hyp != 0)
+	{
+
+		//st line
+//		if (dx == 0)
+//		{
+//			//front
+//			if (dy > 0)
+//			{
+////				targetAngle = 0.0;
+////				Radius = 0.0;
+//			}
+//			//back
+////			else //dy<=0
+////			{
+////				targetAngle = 0.0;
+////				Radius = 0.0;
+////			}
+//		}
+		if(dx != 0)
+		{
+			if (dx > 0)
+			{
+				//beacon at front right
+				if (dy > 0)
+				{
+					//turn right
+					int16_t ndx=bx-A_X_CENTER;
+					ratio = atan(ndx*1.0/dy);
+					if(ratio>1||ratio<-1)ratio = 0;
+					ratio = (1-ratio);
+				}
+				//beacon at back right
+//				else //dy<0
+//				{
+//					targetAngle = 0.0;
+//					Radius = 0.0;
+//				}
+			}
+			else if(dx<0)
+			{
+				//beacon at front left
+				if (dy > 0)
+				{
+					//turn left
+					int16_t ndx=A_X_CENTER-bx;
+					ratio = atan(ndx*1.0/dy);
+					if(ratio>1||ratio<-1)ratio = 0;
+					ratio = - (1-ratio);
+				}
+				//beacon at back left
+//				else //dy<0
+//				{
+//					targetAngle = 0.0;
+//					Radius = 0.0;
+//				}
+			}
+//			else if (dy == 0)
+//			{
+//				//beacon at right
+//				if (dx > 0)
+//				{
+//					//turn left
+//					//targetAngle = - PI/2;
+//					//Radius = 0.0;
+//					//backward
+//				}
+//				//beacon at left
+//				else  //dx < 0
+//				{
+//					//turn right
+//					//targetAngle = PI/2;
+//					//Radius = 0.0;
+//					//backward
+//				}
+//			}
+		}
+	}
+
+	if(printLCD)
+	{
+		char temp[20] = { };
+		sprintf(temp, "r=%.3f", ratio);
+		lcd->SetRegion(Lcd::Rect(0, 60, 128, 160));
+		writer->WriteString(temp);
+//		sprintf(temp, "dx=%d, dy=%d",dx,dy);
+//		lcd->SetRegion(Lcd::Rect(0, 80, 128, 160));
+//		writer->WriteString(temp);
+	}
+
+	return ratio;
+
+}
+
 void setAnglePower(const float& radAngle, const uint32_t& tick, uint32_t& pid_time)
 {
+	if(radAngle >=2)
+	{
+		return;
+	}
+
 	int tempR = R_pid->getTarget();
 	int tempL = L_pid->getTarget();
+
 	//	-ve turn left; +ve turn right
 	if(radAngle<0)
 	{
@@ -379,7 +514,7 @@ void setAnglePower(const float& radAngle, const uint32_t& tick, uint32_t& pid_ti
 	{
 		pid(tick, pid_time);
 	}
-	//if(printLCD)
+	if(printLCD)
 	{
 	char temp[20] = { };
 	sprintf(temp, "r=%d\tl=%d", R_pid->getTarget(),L_pid->getTarget());
