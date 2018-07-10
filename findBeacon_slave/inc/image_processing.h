@@ -362,15 +362,24 @@ bool search_line(int &x, int &y, dir d) {
 	return false;
 }
 
+inline bool check_near_boarder(const int x, const int y,
+		const uint8_t boarder_offset) {
+	if (x < boarder_offset || x > width - boarder_offset)
+		return true;
+	if (y < boarder_offset || y > height - boarder_offset)
+		return true;
+	return false;
+}
+
 bool search(int &x, int &y, std::list<point> line) {
 	int x_move = 0;
 	int y_move = 0;
 	point *p = NULL;
 	auto it = --line.end();
-	int size = line.size();
+	uint size = line.size();
 	if(size > 4)
 		size = 4;
-	for (int i = 1; i < 4; i++) {
+	for (int i = 1; i < size + 1; i++) {
 		if (check_dist(point(x, y), *it) == i)
 			*p = *it;
 		for (int a = 0; a < 8; a++) {
@@ -410,6 +419,8 @@ bool search(int &x, int &y, std::list<point> line) {
 			}
 			int m_x = x + x_move;
 			int m_y = y + y_move;
+			if(m_x > width || m_x < 0 || m_y > height || m_y < 0)
+				continue;
 			if (cal_sobel(m_x, m_y) > sobel_value) {
 				if (p != NULL && m_x == p->x && m_y == p->y)
 					;
@@ -425,14 +436,6 @@ bool search(int &x, int &y, std::list<point> line) {
 	return false;
 }
 
-inline bool check_near_boarder(const int x, const int y,
-		const uint8_t boarder_offset) {
-	if (x < boarder_offset || x > width - boarder_offset)
-		return true;
-	if (y < boarder_offset || y > height - boarder_offset)
-		return true;
-	return false;
-}
 //	std::list<regression_line> lines;
 std::list<point> find_boarder() {
 	std::list<point> line;
@@ -443,11 +446,11 @@ std::list<point> find_boarder() {
 	int act;
 	dir d;
 	int moving_act;
-	const int8_t boarder_offset = 5;
+	const int8_t boarder_offset = 2;
 	for (int a = 0; a < 5; a++) { // 0 lower left, 1 lower right, 2 left,3,right, 4up
 		switch (a) {
 		case 0:
-			x = boarder_offset;
+			x = 0;
 			bound = no_scan.left_x;
 			y = height - boarder_offset;
 			search_ptr = &x;
@@ -465,7 +468,7 @@ std::list<point> find_boarder() {
 			moving_act = -1;
 			break;
 		case 2:
-			x = boarder_offset;
+			x = 0;
 			bound = 0;
 			y = height - boarder_offset;
 			search_ptr = &y;
@@ -474,7 +477,7 @@ std::list<point> find_boarder() {
 			moving_act = 1;
 			break;
 		case 3:
-			x = width - boarder_offset;
+			x = width;
 			bound = 0;
 			y = height - boarder_offset;
 			search_ptr = &y;
@@ -483,7 +486,7 @@ std::list<point> find_boarder() {
 			moving_act = -1;
 			break;
 		case 4:
-			x = boarder_offset;
+			x = 0;
 			bound = width;
 			y = boarder_offset;
 			search_ptr = &x;
@@ -498,10 +501,6 @@ std::list<point> find_boarder() {
 				line.push_back(point(x, y));
 				int moving_y = y;
 				int m_x = x;
-				if (d == h)
-					m_x += moving_act;
-				else
-					moving_y += moving_act;
 				while (search(m_x, moving_y, line)) {//search for line
 					line.push_back(point(m_x, moving_y));
 					lcd->SetRegion(Lcd::Rect(m_x, moving_y, 1, 1));

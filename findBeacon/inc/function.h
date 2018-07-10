@@ -189,15 +189,25 @@ bool bt_listener(const Byte *data, const size_t size) {
 	return true;
 }
 
+inline void sendData(){
+	BitConsts a;
+	Byte out[4];
+	bt->SendBuffer(&a.kSTART, 1);
+	Byte size[1] = { 4 };
+	bt->SendBuffer(size, 1);
+	out[0] = action & 0xFF;
+	out[1] = ir_target != NULL?1:0;
+	out[2] = tick - o_target.received_time < 200? 1:0;
+	out[3] = tick - ir_target2.received_time < 200?1:0;
+	bt->SendBuffer(out, 4);
+	bt->SendBuffer(&a.kEND, 1);
+}
+
 void FSM() {
 	int diff;
 	std::pair<uint16_t, uint16_t> p;
 	int speed;
-//	BitConsts a;
-//	bt->SendBuffer(&a.kSTART, 1);
-//	bt->SendBuffer(0,1);
-//	sendInt(action);
-//	bt->SendBuffer(&a.kEND, 1);
+	sendData();
 	switch (action) {
 	case forward:
 		L_pid->settarget(finding_speed);

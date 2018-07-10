@@ -112,7 +112,7 @@ int main() {
 
 //	////////////////Main loop////////////////////////
 	while (1) {
-		if (tick != System::Time() /*&& run*/) {
+		if (tick != System::Time() && run) {
 			tick = System::Time();
 			if (tick - pid_time >= 10) {
 				uint32_t time_diff = tick - pid_time;
@@ -134,17 +134,6 @@ int main() {
 				pid_time = System::Time();
 
 			}
-//			if (tick % 30 == 0) {
-//				BitConsts a;
-//				bt->SendBuffer(&a.kSTART, 1);
-//				Byte size[1] = { 4 };
-//				bt->SendBuffer(size, 1);
-//				sendInt(L_count);
-//				sendInt(R_count);
-//				sendInt(max_area);
-//				sendInt(action);
-//				bt->SendBuffer(&a.kEND, 1);
-//			}
 
 			if (tick - process_time >= 30) {
 				process_time = tick;
