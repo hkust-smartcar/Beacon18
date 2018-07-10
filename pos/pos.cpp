@@ -153,7 +153,7 @@ int main(void)
 /////////////////////////////////////////
 
     run = false;
-    chasing_speed = 300;
+    chasing_speed = 200;
 	L_pid->settarget(chasing_speed);
 	R_pid->settarget(chasing_speed);
 
@@ -188,7 +188,7 @@ int main(void)
 ///////////////////////////////////
 
 //avoid///////////////////////////
-			if (tick - process_time >= 19) {
+			if (tick - process_time >= 29) {
 
 				process_time = tick;
 //otarget/////////////////////////////
@@ -209,7 +209,7 @@ int main(void)
 						if (y> 70){}
 						else
 						{
-							//setAnglePower(BeaconAvoidAngleCalculate(x, y), tick, pid_time);
+							setAnglePower(BeaconAvoidAngleCalculate(x, y), tick, pid_time);
 							past_time = System::Time();
 						}
 						//								FSM();
