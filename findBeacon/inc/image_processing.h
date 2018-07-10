@@ -137,10 +137,10 @@ inline void check_target() {
 		beacon_count++;
 }
 
-inline bool check_target(int no) {
-	return beacons[no].count > min_size
-			&& beacons[no].density > critical_density;
-}
+//inline bool check_target(int no) {
+//	return beacons[no].count > min_size
+//			&& beacons[no].density > critical_density;
+//}
 
 inline void scan(uint16_t m_pos, int8_t m_bit_pos, int mode) {
 
@@ -159,8 +159,8 @@ inline void scan(uint16_t m_pos, int8_t m_bit_pos, int mode) {
 	}
 
 	beacons[beacon_count].calc();
-	beacon_count++;
-//	check_target();
+//	beacon_count++;
+	check_target();
 }
 
 inline bool check_near(const std::pair<uint16_t, uint16_t> b1,
@@ -181,11 +181,11 @@ inline void process() {
 				+ last_beacon.first / 8;
 		uint16_t temp_bit_pos = 8 - (last_beacon.first % 8 + 1);
 		scan(temp_pos, temp_bit_pos, 1);
-		if (check_target(0)) {
+		if (/*check_target(0)*/ beacons->area > 200) {
 			ir_target = beacons;
-			cam->UnlockBuffer();
-			return;
 		}
+		cam->UnlockBuffer();
+		return;
 	}
 
 	bool zero = true;
@@ -243,8 +243,9 @@ inline void process() {
 						cam->UnlockBuffer();
 						return;
 					}
+					break;
 				}
-			if (!add && check_target(i))
+			if (!add)
 				center_record.push_back(Record(beacons[i]));
 		}
 	}

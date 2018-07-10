@@ -40,4 +40,5 @@ obj/main-d-2018-beacon-master.o: src/main.cpp \
  C:\Users\Sheldon\git\libsccc\inc/libsc/k60/ov7725_configurator.h \
  C:\Users\Sheldon\git\libsccc\inc/libbase/k60/soft_sccb_master.h \
  C:\Users\Sheldon\git\libsccc\inc/libbase/k60/soft_i2c_master.h \
- C:\Users\Sheldon\git\libsccc\inc/libbase/k60/i2c_master_interface.h
+ C:\Users\Sheldon\git\libsccc\inc/libbase/k60/i2c_master_interface.h \
+ C:\Users\Sheldon\git\libsccc\inc/libutil/misc.h

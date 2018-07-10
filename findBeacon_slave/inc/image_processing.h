@@ -21,34 +21,58 @@ uint32_t low_time = 0;
 uint32_t high_time = 0;
 bool low_timer = false;
 bool high_timer = false;
-uint32_t not_find_time = 0;
 uint32_t full_screen_check = 0;
 const int8_t y_mask[3][3] = { { -1, 0, 1 }, { -2, 0, 2 }, { -1, 0, 1 } };
 const int8_t x_mask[3][3] = { { -1, -2, -1 }, { 0, 0, 0 }, { 1, 2, 1 } };
-Beacon avoid_region_up(35, 155, 0, 25);
-Beacon avoid_region_left(10, avoid_region_up.left_x, avoid_region_up.lower_y, 120);	//left
-Beacon avoid_region_right(avoid_region_up.right_x, 179, avoid_region_up.lower_y, 120);	//right
+Beacon avoid_region_up(65, 130, 0, 15);
+Beacon avoid_region_left(0, 20, 30, 120);	//left
+Beacon avoid_region_right(159, 189, 30, 120);	//right
 Beacon no_scan(65, 130, 80, 120);	//car head
-
 
 inline void show_avoid_region() {
 
 	//#scan region
-	lcd->SetRegion(Lcd::Rect(0, avoid_region_up.lower_y, width, 1));
+
+	int len = avoid_region_up.right_x - avoid_region_up.left_x;
+	lcd->SetRegion(
+			Lcd::Rect(avoid_region_up.left_x, avoid_region_up.lower_y, len, 1));
 	lcd->FillColor(Lcd::kRed);
-	lcd->SetRegion(Lcd::Rect(avoid_region_left.right_x - offset, 0, 1, height));
+	len = avoid_region_up.lower_y - avoid_region_up.upper_y;
+	lcd->SetRegion(Lcd::Rect(avoid_region_up.right_x - offset, 0, 1, len));
 	lcd->FillColor(Lcd::kRed);
-	lcd->SetRegion(Lcd::Rect(avoid_region_right.left_x - offset, 0, 1, height));
+	lcd->SetRegion(Lcd::Rect(avoid_region_up.left_x - offset, 0, 1, len));
+	lcd->FillColor(Lcd::kRed);
+
+	len = avoid_region_left.lower_y - avoid_region_left.upper_y;
+	lcd->SetRegion(
+			Lcd::Rect(avoid_region_left.right_x - offset,
+					avoid_region_left.upper_y, 1, len));
+	lcd->FillColor(Lcd::kRed);
+	len = avoid_region_right.lower_y - avoid_region_right.upper_y;
+	lcd->SetRegion(
+			Lcd::Rect(avoid_region_right.left_x - offset,
+					avoid_region_right.upper_y, 1, len));
+	lcd->FillColor(Lcd::kRed);
+	len = avoid_region_left.right_x - avoid_region_left.left_x;
+	lcd->SetRegion(
+			Lcd::Rect(avoid_region_left.left_x, avoid_region_left.upper_y, len,
+					1));
+	lcd->FillColor(Lcd::kRed);
+	len = avoid_region_right.right_x - avoid_region_right.left_x;
+	lcd->SetRegion(
+			Lcd::Rect(avoid_region_right.left_x, avoid_region_right.upper_y,
+					len, 1));
 	lcd->FillColor(Lcd::kRed);
 
 	//#car head
-	int len = no_scan.right_x - no_scan.left_x;
+	len = no_scan.right_x - no_scan.left_x;
 	lcd->SetRegion(Lcd::Rect(no_scan.left_x - offset, no_scan.upper_y, len, 1));
 	lcd->FillColor(Lcd::kRed);
 	len = no_scan.lower_y - no_scan.upper_y;
 	lcd->SetRegion(Lcd::Rect(no_scan.left_x - offset, no_scan.upper_y, 1, len));
 	lcd->FillColor(Lcd::kRed);
-	lcd->SetRegion(Lcd::Rect(no_scan.right_x - offset, no_scan.upper_y, 1, len));
+	lcd->SetRegion(
+			Lcd::Rect(no_scan.right_x - offset, no_scan.upper_y, 1, len));
 	lcd->FillColor(Lcd::kRed);
 
 }
@@ -67,7 +91,7 @@ void timer_switch(bool s) {
 		off_timer = &high_timer;
 	}
 	*off_timer = false;
-	if (*on_timer != true) {
+	if (!*on_timer) {
 		*on_time = System::Time();
 		*on_timer = true;
 	}
@@ -112,6 +136,10 @@ inline bool check_near(const point p1, const point p2) {
 	return sqrt(pow(p1.x - p2.x, 2) + pow(p1.y - p2.y, 2)) < near_dist;
 }
 
+inline uint8_t check_dist(const point p1, const point p2) {
+	return sqrt(pow(p1.x - p2.x, 2) + pow(p1.y - p2.y, 2));
+}
+
 inline bool check_valid(std::list<point> edges, std::list<point>::iterator it) {
 	uint8_t count = 0;
 	for (auto it2 = edges.begin(); it2 != edges.end(); ++it2)
@@ -131,64 +159,31 @@ inline bool check_valid2(std::list<point> edges,
 	return false;
 }
 
-inline void check_skip_area(uint16_t &y, uint16_t &y_bound, uint16_t &x_start,
-		uint16_t &x_bound, uint16_t i) {
-	switch (i) {
-	case 0:
-		y = 0;
-		y_bound = no_scan.upper_y;
-		x_start = 0;
-		x_bound = width;
-		break;
-	case 1:
-		y = no_scan.upper_y;
-		y_bound = height;
-		x_start = 0;
-		x_bound = no_scan.left_x;
-		break;
-	case 2:
-		y = no_scan.upper_y;
-		y_bound = height;
-		x_start = no_scan.right_x;
-		x_bound = width;
-		break;
-	}
-}
-
-inline void check_skip_area_edge(uint16_t &y, uint16_t &y_bound, uint16_t &x_start,
-		uint16_t &x_bound, uint16_t i) {
-	switch (i) {
-	case 0:
-		y = avoid_region_up.lower_y;
-		y_bound = no_scan.upper_y;
-		x_start = avoid_region_left.right_x;
-		x_bound = avoid_region_right.left_x;
-		break;
-	case 1:
-		y = no_scan.upper_y;
-		y_bound = height;
-		x_start = avoid_region_left.right_x;
-		x_bound = no_scan.left_x;
-		break;
-	case 2:
-		y = no_scan.upper_y;
-		y_bound = height;
-		x_start = no_scan.right_x;
-		x_bound = avoid_region_right.left_x;
-		break;
-	}
+inline bool check_in_middle() {
+	auto x = o_record->center.first;
+	auto y = o_record->center.second;
+//	if ((x > avoid_region_left.right_x && x < avoid_region_right.left_x
+//			&& y > avoid_region_up.lower_y)
+//			|| (x < avoid_region_up.right_x && x > avoid_region_up.left_x
+//					&& y < avoid_region_up.lower_y))
+	if (y < no_scan.upper_y && x > no_scan.left_x && x < no_scan.right_x)
+		return true;
+	return false;
 }
 
 void check_beacon_edge(Beacon& temp, scan_mode mode) {
 	Beacon* ptr = NULL;
-	int8_t error = 15;
+	int8_t error = 5;
+	int8_t scan_size = 3;
 	std::list<point> edges;
 	switch (mode) {
 	case beacon:
 		ptr = ir_record;
+		scan_size = 2;
 		break;
 	case check_record:
 		ptr = o_record;
+		scan_size = 2;
 		break;
 	case avoid1:
 		ptr = &avoid_region_left;
@@ -214,15 +209,15 @@ void check_beacon_edge(Beacon& temp, scan_mode mode) {
 		if (mode < 2) {
 			x_bound = x_bound > width ? width : x_bound;
 			y_bound = y_bound > height ? height : y_bound;
-			if(y_bound > no_scan.upper_y){
-				if(x_start < no_scan.right_x)
+			if (y_bound > no_scan.upper_y) {
+				if (x_start < no_scan.right_x)
 					x_start = no_scan.right_x;
-				else if(x_bound > no_scan.left_x)
+				else if (x_bound > no_scan.left_x)
 					x_bound = no_scan.left_x;
 			}
 		}
-		for (uint8_t y = y_start; y < y_bound; y += 3) {
-			for (uint8_t x = x_start; x < x_bound; x += 3)
+		for (uint8_t y = y_start; y < y_bound; y += scan_size) {
+			for (uint8_t x = x_start; x < x_bound; x += scan_size)
 				if (cal_sobel(x, y) > sobel_value) {
 					point p(x, y);
 					edges.push_back(p);
@@ -231,21 +226,19 @@ void check_beacon_edge(Beacon& temp, scan_mode mode) {
 				break;
 		}
 	} else {
-		uint16_t x_start = 0;
-		uint16_t x_bound = 0;
+		uint16_t x_start = no_scan.left_x;
+		uint16_t x_bound = no_scan.right_x;
 		uint16_t y_start = 0;
-		uint16_t y_bound = 0;
-		for (int i = 0; i < 3; i++) {
-			check_skip_area_edge(y_start, y_bound, x_start, x_bound, i);
-			for (uint8_t y = y_start; y < y_bound; y += 3) {
-				for (uint8_t x = x_start; x < x_bound; x += 3)
-					if (cal_sobel(x, y) > sobel_value) {
-						point p(x, y);
-						edges.push_back(p);
-					}
-				if (edges.size() > 150)
-					break;
+		uint16_t y_bound = no_scan.upper_y;
+		for (uint8_t y = y_start; y < y_bound; y += 3) {
+			for (uint8_t x = x_start; x < x_bound; x += 3) {
+				if (cal_sobel(x, y) > sobel_value) {
+					point p(x, y);
+					edges.push_back(p);
+				}
 			}
+			if (edges.size() > 150)
+				break;
 		}
 	}
 
@@ -269,8 +262,11 @@ void check_beacon_edge(Beacon& temp, scan_mode mode) {
 			}
 		edges.sort(sort_y);
 	}
+
 	temp.calc();
-	if (edges.size() < 5 || temp.area > max_size)
+	int w = temp.right_x - temp.left_x;
+	int h = temp.lower_y - temp.upper_y;
+	if (edges.size() < 5 || temp.area > max_size || w > h * 3)
 		temp.init(0, 0);
 }
 
@@ -324,33 +320,12 @@ void check_beacon_ir(Beacon& temp, uint16_t x, uint16_t y) {
 	temp.calc();
 }
 
-bool loop_full_screen() {
-	Beacon temp;
-	uint16_t y;
-	uint16_t y_bound;
-	uint16_t x_start;
-	uint16_t x_bound;
-	for (int i = 0; i < 3; i++) {
-		check_skip_area(y, y_bound, x_start, x_bound, i);
-		for (; y < y_bound; y += size)
-			for (uint16_t x = x_start; x < x_bound; x += size)
-				if (cal_mean(x, y) > white) {
-					check_beacon_ir(temp, x, y);
-					if (temp.area > min_area) {
-						insert(temp, ptr_mode::ir_Target);
-						irState = seen;
-						timer_switch(true);
-						return true;
-					}
-				}
-	}
-	return false;
-}
-
 bool check_same(Beacon t) {
 	Beacon temp;
 	check_beacon_ir(temp, t.center.first, t.center.second);
-	if (temp.area > min_area) {
+	int diff = abs(temp.right_x - temp.left_x - (t.right_x - t.left_x));
+	diff += abs(temp.lower_y - temp.upper_y - (t.lower_y - t.upper_y));
+	if (diff < 30) {
 		insert(temp, ptr_mode::ir_Target);
 		irState = seen;
 		timer_switch(true);
@@ -359,98 +334,195 @@ bool check_same(Beacon t) {
 	return false;
 }
 
-//bool search_line(uint &x, uint &y, dir d) {
-//	int m_y = y;
-//	for (int a = 0; a < 2; a++) {
-//		uint error = 0;
-//		int m_x = x;
-//		while (error < 10) {
-//			if (cal_sobel(m_x, m_y) > sobel_value) {
-//				x = m_x;
-//				y = m_y;
-//				return true;
-//			} else {
-//				error++;
-//				if (a)
-//					m_x++;
-//				else
-//					m_x--;
-//				if (m_x < 0 || m_x >= width)
-//					break;
-//			}
-//		}
-//	}
-//	return false;
-//}
-//
-//std::list<regression_line> find_boarder(bool start_check) {
+bool search_line(int &x, int &y, dir d) {
+	const int error = 3;
+	if (d == v) {
+		int m_x = x - error;
+		if (m_x < 0)
+			m_x = 0;
+		while (m_x < x + error && m_x < width) {
+			if (cal_sobel(m_x, y) > sobel_value) {
+				x = m_x;
+				return true;
+			} else
+				m_x += 1;
+		}
+	} else {
+		int m_y = y - error;
+		if (m_y < 0)
+			m_y = 0;
+		while (m_y < y + error && m_y < height) {
+			if (cal_sobel(x, m_y) > sobel_value) {
+				y = m_y;
+				return true;
+			} else
+				m_y += 1;
+		}
+	}
+	return false;
+}
+
+bool search(int &x, int &y, std::list<point> line) {
+	int x_move = 0;
+	int y_move = 0;
+	point *p = NULL;
+	auto it = --line.end();
+	int size = line.size();
+	if(size > 4)
+		size = 4;
+	for (int i = 1; i < 4; i++) {
+		if (check_dist(point(x, y), *it) == i)
+			*p = *it;
+		for (int a = 0; a < 8; a++) {
+			switch (a) {
+			case 0:
+				x_move = -i;
+				y_move = 0;
+				break;
+			case 1:
+				x_move = -i;
+				y_move = -i;
+				break;
+			case 2:
+				x_move = 0;
+				y_move = -i;
+				break;
+			case 3:
+				x_move = i;
+				y_move = -i;
+				break;
+			case 4:
+				x_move = 1;
+				y_move = 0;
+				break;
+			case 5:
+				x_move = i;
+				y_move = i;
+				break;
+			case 6:
+				x_move = 0;
+				y_move = i;
+				break;
+			case 7:
+				x_move = -i;
+				y_move = i;
+				break;
+			}
+			int m_x = x + x_move;
+			int m_y = y + y_move;
+			if (cal_sobel(m_x, m_y) > sobel_value) {
+				if (p != NULL && m_x == p->x && m_y == p->y)
+					;
+				else {
+					x = m_x + x_move;
+					y = m_y + y_move;
+					return true;
+				}
+			}
+		}
+		it--;
+	}
+	return false;
+}
+
+inline bool check_near_boarder(const int x, const int y,
+		const uint8_t boarder_offset) {
+	if (x < boarder_offset || x > width - boarder_offset)
+		return true;
+	if (y < boarder_offset || y > height - boarder_offset)
+		return true;
+	return false;
+}
 //	std::list<regression_line> lines;
-//	std::list<std::pair<int16_t, int16_t>> line;
-//	uint y = height - 3;
-//	uint moving_y = y;
-//	bool find = false;
-//	const uint8_t error = 5;
-//	uint8_t error_count = 0;
-//	uint x = start_check ? 80 : 2;
-//	uint x_bound = width;
-//	for (; x < x_bound; x++) {	//lower bound
-//		if (cal_sobel(x, y) > sobel_value) {
-//			line.push_back(std::make_pair(x, y));
-//			lcd->SetRegion(Lcd::Rect(x, y, 1, 1));
-//			lcd->FillColor(Lcd::kRed);
-//			moving_y = y - 1;
-//			uint m_x = x;
-//			while (true) {
-//				if (search_line(m_x, moving_y, dir::v)) {
-//					line.push_back(std::make_pair(m_x, moving_y));
-//					lcd->SetRegion(Lcd::Rect(m_x, moving_y, 1, 1));
-//					lcd->FillColor(Lcd::kRed);
-//					if (line.size() >= 25) {
-//						find = true;
-//						break;
-//					}
-//					moving_y--;
-//				} else if (++error_count > error)
-//					break;
-//			}
-//			if (find) {
-//				regression_line output;
-//				int mean = 0;
-//				int y_mean = 0;
-//				for (auto it = line.begin(); it != line.end(); it++) {
-//					mean += (*it).first;
-//					y_mean += (*it).second;
-//				}
-//				mean /= line.size();
-//				y_mean /= line.size();
-//				int Sx = 0;
-//				for (auto it = line.begin(); it != line.end(); it++)
-//					Sx += pow((*it).first - mean, 2);
-//				int Sxy = 0;
-//				for (auto it = line.begin(); it != line.end(); it++)
-//					Sxy += ((*it).first - mean) * ((*it).second - y_mean);
-//				output.slope = Sx == 0 ? 0 : (float) Sxy / Sx;
-//				output.intercept = y_mean - output.slope * mean;
-//				for (int y = moving_y; y > 0; y--) {
-//					int x2 = (y - output.intercept) / output.slope;
-//					lcd->SetRegion(Lcd::Rect(x2, y, 1, 1));
-//					lcd->FillColor(Lcd::kRed);
-//				}
-//				lines.push_back(output);
-//			}
-//			line.clear();
-//			error_count = 0;
-//		}
-//	}
-//	return lines;
-//}
+std::list<point> find_boarder() {
+	std::list<point> line;
+	int* search_ptr = NULL;
+	int x;
+	int y;
+	int bound;
+	int act;
+	dir d;
+	int moving_act;
+	const int8_t boarder_offset = 5;
+	for (int a = 0; a < 5; a++) { // 0 lower left, 1 lower right, 2 left,3,right, 4up
+		switch (a) {
+		case 0:
+			x = boarder_offset;
+			bound = no_scan.left_x;
+			y = height - boarder_offset;
+			search_ptr = &x;
+			act = 1;
+			d = v;
+			moving_act = -1;
+			break;
+		case 1:
+			x = no_scan.right_x;
+			bound = width;
+			y = height - boarder_offset;
+			search_ptr = &x;
+			act = 1;
+			d = v;
+			moving_act = -1;
+			break;
+		case 2:
+			x = boarder_offset;
+			bound = 0;
+			y = height - boarder_offset;
+			search_ptr = &y;
+			act = -1;
+			d = h;
+			moving_act = 1;
+			break;
+		case 3:
+			x = width - boarder_offset;
+			bound = 0;
+			y = height - boarder_offset;
+			search_ptr = &y;
+			act = -1;
+			d = h;
+			moving_act = -1;
+			break;
+		case 4:
+			x = boarder_offset;
+			bound = width;
+			y = boarder_offset;
+			search_ptr = &x;
+			act = 1;
+			d = v;
+			moving_act = 1;
+			break;
+		}
+		for (; act < 0 ? *search_ptr > bound : *search_ptr < bound;
+				*search_ptr += act) {
+			if (cal_sobel(x, y) > sobel_value) {	//edge find
+				line.push_back(point(x, y));
+				int moving_y = y;
+				int m_x = x;
+				if (d == h)
+					m_x += moving_act;
+				else
+					moving_y += moving_act;
+				while (search(m_x, moving_y, line)) {//search for line
+					line.push_back(point(m_x, moving_y));
+					lcd->SetRegion(Lcd::Rect(m_x, moving_y, 1, 1));
+					lcd->FillColor(Lcd::kBlue);
+					if (check_near_boarder(m_x, moving_y, boarder_offset - 1))
+						return line;
+				}
+				*search_ptr += act * 10;
+				line.clear();
+			}
+		}
+	}
+	return line;
+}
 
 void process() {
 	buf = cam->LockBuffer();
 //	find_boarder();
 	Beacon temp;
-	if ((low_timer && System::Time() - low_time > 150)
-			|| (high_timer && System::Time() - high_time > 150)) {
+	if ((low_timer && System::Time() - low_time > ir_timeout)
+			|| (high_timer && System::Time() - high_time > ir_timeout)) {
 		if (ir_record != NULL) {
 			delete ir_record;
 			ir_record = NULL;
@@ -477,7 +549,6 @@ void process() {
 					timer_switch(false);
 				}
 				insert(temp, ptr_mode::ir_Target);
-				not_find_time = 0;
 				return;
 			}
 			check_beacon_edge(temp, scan_mode::beacon);
@@ -485,19 +556,16 @@ void process() {
 		timer_switch(false);
 	}
 
-	if (System::Time() - not_find_time > 500) {
-			not_find_time = System::Time();
-			check_beacon_edge(temp, scan_mode::full_screen);
-			if (temp.area > min_area)
-				if (!check_same(temp))
-					insert(temp, ptr_mode::o_Target);
+	if (System::Time() - full_screen_check > 250 && !check_in_middle()) {
+		full_screen_check = System::Time();
+		check_beacon_edge(temp, scan_mode::full_screen);
+		if (temp.area > min_area) {
+			if (!check_same(temp))
+				insert(temp, ptr_mode::o_Target);
+			o_find_time = System::Time();
+			return;
 		}
-
-//	if (System::Time() - full_screen_check > 500) {
-//		full_screen_check = 0;
-//		if (loop_full_screen())
-//			return;
-//	}
+	}
 
 	if (o_record != NULL) {		//ir not find
 		check_beacon_edge(temp, scan_mode::check_record);
@@ -507,20 +575,18 @@ void process() {
 				o_record = NULL;
 			} else
 				insert(temp, ptr_mode::o_Target);
-			not_find_time = 0;
 			return;
 		}
 		delete o_record;
 		o_record = NULL;
 	}
-	for (int a = avoid1; a <= avoid3; a++) {
+	for (int a = avoid1; a < avoid3; a++) {
 		check_beacon_edge(temp, static_cast<scan_mode>(a));	//check the avoid region
 		if (temp.area > min_area) {
 			if (!check_same(temp)) {
 				insert(temp, ptr_mode::o_Target);
 				o_find_time = System::Time();
 			}
-			not_find_time = 0;
 			return;
 		}
 	}

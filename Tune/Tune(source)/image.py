@@ -16,7 +16,7 @@ def open_port(Port_no,self,com_status):
     comPort = "COM" + Port_no
     baudRate = 115200
     try:
-        ser = serial.Serial(comPort,baudRate,timeout=5)
+        ser = serial.Serial(comPort,baudRate,timeout=100)
         com_status.config(text = "Connected")
     except serial.SerialException as e:
         if "OSError" in str(e.args):
@@ -63,6 +63,7 @@ def stop():
     global status
     ser.write(b's')
     status = False
+    app.after_cancel(id);
 
 def sendData(text):
     buffer = text.split(',')
@@ -124,9 +125,11 @@ def save_status(save_mode):
         save_mode.config(text = "Off")
 
 def video_animate():
-    global image,img,pixels,frameNo
-    if status:
-        pixels = ser.read(size = int(imageSize))
+    global image,img,pixels,frameNo,id
+    ser.read_until(b'a');
+    # ser.read_until
+    pixels = ser.read(size = int(imageSize))
+    # pixels = ser.read_until(b'b');
     image = Image.frombytes('1',(width,height),pixels)
     img = ImageTk.PhotoImage(image)
     if save:
@@ -134,7 +137,7 @@ def video_animate():
         frameNo+=1
     fig.itemconfig(fig.image,image = img)
     app.update_idletasks()
-    app.after(50,video_animate)
+    id = app.after(20,video_animate)
 
 def PID_animate(i):
     global x_value
@@ -361,7 +364,7 @@ class PID_page(tk.Frame):
         send_data.pack(side = tk.LEFT)
 
 #start of the program
-global img,fig,ser,ani
+global img,fig,ser,ani,id
 
 status = False
 save = False

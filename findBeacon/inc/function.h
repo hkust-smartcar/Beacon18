@@ -42,6 +42,12 @@ void sendInt(int i) {
 	bt->SendBuffer(out, 5);
 }
 
+void sendFloat(float i) {
+	Byte out[4];
+	memcpy(out,&i, sizeof(float));
+	bt->SendBuffer(out, 4);
+}
+
 std::list<uint8_t> buffer;
 
 inline void BuildTargetPackage() {
@@ -166,6 +172,20 @@ bool bt_listener(const Byte *data, const size_t size) {
 		R_motor->SetPower(0);
 		comm->SendStrLiteral("S");
 	}
+
+	if (data[0] == 'r') {
+		BitConsts a;
+		bt->SendBuffer(&a.kSTART, 1);
+		Byte size[1] = {2};
+		bt->SendBuffer(size,1);
+		sendFloat(L_pid->kP);
+		sendFloat(L_pid->kI);
+		sendFloat(L_pid->kD);
+		sendFloat(R_pid->kP);
+		sendFloat(R_pid->kI);
+		sendFloat(R_pid->kD);
+		bt->SendBuffer(&a.kEND, 1);
+	}
 	return true;
 }
 
@@ -207,7 +227,7 @@ void FSM() {
 	case out:
 		if (last_beacon.first < 170) {
 			L_pid->settarget(out_speed);
-			R_pid->settarget(out_speed  + out_speed * 0.67);
+			R_pid->settarget(out_speed + out_speed * 0.67);
 		} else {
 			L_pid->settarget(out_speed + out_speed * 0.67);
 			R_pid->settarget(out_speed);

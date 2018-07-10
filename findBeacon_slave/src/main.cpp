@@ -39,7 +39,7 @@ using namespace libsc;
 using namespace libsc::k60;
 using namespace libbase::k60;
 
-working_mode m = image;
+working_mode m = close;
 int main() {
 	System::Init();
 
@@ -58,9 +58,6 @@ int main() {
 	lcd->Clear(Lcd::kWhite);
 	LcdTypewriter writer_(init_writer());
 	writer = &writer_;
-	// bool comfirm = false;
-	// JyMcuBt106 bt_(init_bt(comfirm));
-	// bt = &bt_;
 	JyMcuBt106 comm_(init_comm());
 	comm = &comm_;
 	Joystick::Config j_config;
@@ -72,7 +69,6 @@ int main() {
 	check_cam();
 	/////////var/////////////////
 	int start = 0;
-	uint32_t tick = System::Time();
 	irState = no;
 
 	if (m == word) {
@@ -83,7 +79,7 @@ int main() {
 	}
 
 	while (1) {
-		if (tick != System::Time()/* && run*/) {
+		if (tick != System::Time() && run) {
 			tick = System::Time();
 			if (tick - start > 30) {
 				start = tick;

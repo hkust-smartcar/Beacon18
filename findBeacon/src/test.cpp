@@ -112,7 +112,7 @@ int main() {
 
 //	////////////////Main loop////////////////////////
 	while (1) {
-		if (tick != System::Time() && run) {
+		if (tick != System::Time() /*&& run*/) {
 			tick = System::Time();
 			if (tick - pid_time >= 10) {
 				uint32_t time_diff = tick - pid_time;
@@ -134,52 +134,63 @@ int main() {
 				pid_time = System::Time();
 
 			}
+//			if (tick % 30 == 0) {
+//				BitConsts a;
+//				bt->SendBuffer(&a.kSTART, 1);
+//				Byte size[1] = { 4 };
+//				bt->SendBuffer(size, 1);
+//				sendInt(L_count);
+//				sendInt(R_count);
+//				sendInt(max_area);
+//				sendInt(action);
+//				bt->SendBuffer(&a.kEND, 1);
+//			}
 
 			if (tick - process_time >= 30) {
 				process_time = tick;
-				auto x = o_target.target->center.first;
-				if (tick - o_target.received_time < 200 /*&& action != rotation*/
-						&& x > 40 && x < 170) {
-					if (o_target.target->center.second > 70)
-						action = backward;
-					else if (x > 60 && x < 150)
-						action = avoid;
-					FSM();
-					continue;
-				} else if (action == avoid || action == backward) {
-					action = forward;
-					FSM();
-					avoid_counter.init();
-					continue;
-				} else if (avoid_counter.start) {
-					if (avoid_counter.distance > avoid_dead_time)
-						avoid_counter.start = false;
-					else {
-						action = forward;
-						FSM();
-						continue;
-					}
-				}
-
-				if (tick - ir_target2.received_time < 200 && seen) {
-					action = approach;
-					FSM();
-					continue;
-				} else if (action == approach) {
-					exit_counter.init();
-					action = backward;
-					FSM();
-					continue;
-				} else if (exit_counter.start) {
-					if (exit_counter.distance > exit_dead_time) {
-						exit_counter.start = false;
-						seen = false;
-					} else {
-						action = backward;
-						FSM();
-						continue;
-					}
-				}
+//				auto x = o_target.target->center.first;
+//				if (tick - o_target.received_time < 200 /*&& action != rotation*/
+//				&& x > 40 && x < 170) {
+//					if (o_target.target->center.second > 70)
+//						action = backward;
+//					else if (x > 60 && x < 150)
+//						action = avoid;
+//					FSM();
+//					continue;
+//				} else if (action == avoid || action == backward) {
+//					action = forward;
+//					FSM();
+//					avoid_counter.init();
+//					continue;
+//				} else if (avoid_counter.start) {
+//					if (avoid_counter.distance > avoid_dead_time)
+//						avoid_counter.start = false;
+//					else {
+//						action = forward;
+//						FSM();
+//						continue;
+//					}
+//				}
+//
+//				if (tick - ir_target2.received_time < 200 && seen) {
+//					action = approach;
+//					FSM();
+//					continue;
+//				} else if (action == approach) {
+//					exit_counter.init();
+//					action = backward;
+//					FSM();
+//					continue;
+//				} else if (exit_counter.start) {
+//					if (exit_counter.distance > exit_dead_time) {
+//						exit_counter.start = false;
+//						seen = false;
+//					} else {
+//						action = backward;
+//						FSM();
+//						continue;
+//					}
+//				}
 
 				process();
 				tick = System::Time();

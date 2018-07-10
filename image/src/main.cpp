@@ -21,6 +21,7 @@
 #include "libbase/k60/pit.h"
 #include "libsc/lcd_typewriter.h"
 #include <libsc/k60/ov7725.h>
+#include "libutil/misc.h"
 
 namespace libbase {
 namespace k60 {
@@ -42,7 +43,6 @@ using namespace libbase::k60;
 const uint16_t width = 320;
 const uint16_t height = 240;
 
-
 int main() {
 	System::Init();
 	//led init
@@ -54,8 +54,8 @@ int main() {
 	Led led1(led_config);
 
 	St7735r::Config lcd_config;
-	lcd_config.orientation = 0;
-	lcd_config.fps = 20;
+	lcd_config.orientation = 1;
+	lcd_config.fps = 60;
 	St7735r lcd(lcd_config);
 
 	LcdTypewriter::Config writer_config;
@@ -76,7 +76,6 @@ int main() {
 	cam_config.fps = k60::Ov7725Configurator::Config::Fps::kHigh;
 	k60::Ov7725 cam(cam_config);
 
-
 	JyMcuBt106::Config config;
 	config.baud_rate = libbase::k60::Uart::Config::BaudRate::k115200;
 	config.id = 0;
@@ -89,10 +88,10 @@ int main() {
 				if(data[0] =='c') {
 					led0.Switch();
 					c_start = true;
-						cam.Start();
-						char temp[20] = {};
-						sprintf(temp,"%d\n%d\n",width,width * height /8);
-						bt.SendStr(temp);
+					cam.Start();
+					char temp[20] = {};
+					sprintf(temp,"%d\n%d\n",width,width * height /8);
+					bt.SendStr(temp);
 				}
 				if(data[0]=='s') {
 					c_start = false;
@@ -120,15 +119,25 @@ int main() {
 			});
 
 	lcd.SetRegion(Lcd::Rect(0, 0, 160, 128));
-	lcd.Clear(Lcd::kWhite);
-
+	lcd.Clear(Lcd::kBlack);
+	cam.Start();
 	while (1) {
 		if (tick != System::Time()) {
 			tick = System::Time();
-			if (c_start && tick % 450 == 0) {
+			if (tick % 30 == 0) {
 				const Byte* buf = cam.LockBuffer();
-				bt.SendBuffer(buf, width * height / 8);
-//				bt2.SendBuffer(buf + width * height / 16, width * height / 16);
+				lcd.SetRegion(Lcd::Rect(0, 0, 160, 128));
+					lcd.Clear(Lcd::kBlack);
+				for (int y = 0; y < height; y += 2) {
+					for (int x = 0; x < width; x += 2) {
+						uint16_t pos = (width * y) / 8 + x / 8;
+						uint16_t bit_pos = 8 - (x % 8 + 1);
+						if (!GET_BIT(buf[pos], bit_pos)) {
+							lcd.SetRegion(Lcd::Rect(x/2,y/2 , 1, 1));
+							lcd.FillColor(Lcd::kWhite);
+						}
+					}
+				}
 				cam.UnlockBuffer();
 			}
 		}

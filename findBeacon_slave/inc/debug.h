@@ -72,11 +72,13 @@ inline void display_state(working_mode m)
 	{
 	case image:
 		display_greyscale_image();
+//		lcd->SetRegion(Lcd::Rect(0,0,160,120));
+//		lcd->FillColor(Lcd::kWhite);
 		show_avoid_region();
-		if (irState == checked && System::Time() - find_time > 100)
-			display(*ir_target, Lcd::kRed);
-		if (o_target != NULL)
-			display(*o_target, Lcd::kBlue);
+//		if (irState == checked && System::Time() - find_time > 100)
+//			display(*ir_target, Lcd::kRed);
+//		if (o_target != NULL)
+//			display(*o_target, Lcd::kBlue);
 		break;
 	case word:
 		if (irState == checked && System::Time() - find_time > 100)
