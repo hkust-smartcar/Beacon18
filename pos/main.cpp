@@ -326,10 +326,10 @@ int main(void)
 
 //otarget/////////////////////////////
 
-				//forward crash
+				//crash
 				if(run==true && aaction!= sstate_::backwards && tick - o_target.received_time < 200 && tick-changeSpeedTime>=200 && (
-						(!(L_pid->getTarget()<20 && L_pid->getTarget()>=0) && (L_count<20 && L_count>=0))
-						|| (!(R_pid->getTarget()<20 && R_pid->getTarget()>=0) && ((R_count)>-20) && (R_count<=0))
+						(!(abs(L_pid->getTarget())<20) && (abs(L_count)<20))
+						|| (!(abs(R_pid->getTarget()<20)) && (abs(R_count)<20))
 					))
 				{
 					if(aaction == sstate_::avoids)
@@ -343,22 +343,39 @@ int main(void)
 					continue;
 				}
 
-				//backward crash
-				if(run==true && aaction!= sstate_::forwards && tick-changeSpeedTime>=200 && (
-						(!(L_pid->getTarget()>-20 && L_pid->getTarget()<=0) && (L_count>-20 && L_count<=0))
-						|| (!(R_pid->getTarget()>-20 && R_pid->getTarget()<=0) && ((R_count)<20) && (R_count>=0))
-					))
-				{
-					if(aaction == sstate_::avoids)
-					{
-						moveCount(30, sstate_::forwards, sstate_::forwards);
-					}
-					else moveCount(30, sstate_::forwards, aaction);
-					aaction = forwards;
-					actionTarget(aaction);
-					ssend(aaction);
-					continue;
-				}
+//				//forward crash
+//				if(run==true && aaction!= sstate_::backwards && tick - o_target.received_time < 200 && tick-changeSpeedTime>=200 && (
+//						(!(L_pid->getTarget()<20 && L_pid->getTarget()>=0) && (L_count<20 && L_count>=0))
+//						|| (!(R_pid->getTarget()<20 && R_pid->getTarget()>=0) && ((R_count)>-20) && (R_count<=0))
+//					))
+//				{
+//					if(aaction == sstate_::avoids)
+//					{
+//						moveCount(-30, sstate_::backwards, sstate_::forwards);
+//					}
+//					else moveCount(-30, sstate_::backwards, aaction);
+//					aaction = backwards;
+//					actionTarget(aaction);
+//					ssend(aaction);
+//					continue;
+//				}
+//
+//				//backward crash
+//				if(run==true && aaction!= sstate_::forwards && tick-changeSpeedTime>=200 && (
+//						(!(L_pid->getTarget()>-20 && L_pid->getTarget()<=0) && (L_count>-20 && L_count<=0))
+//						|| (!(R_pid->getTarget()>-20 && R_pid->getTarget()<=0) && ((R_count)<20) && (R_count>=0))
+//					))
+//				{
+//					if(aaction == sstate_::avoids)
+//					{
+//						moveCount(30, sstate_::forwards, sstate_::forwards);
+//					}
+//					else moveCount(30, sstate_::forwards, aaction);
+//					aaction = forwards;
+//					actionTarget(aaction);
+//					ssend(aaction);
+//					continue;
+//				}
 
 				if (tick - o_target.received_time < 200 && o_target.target->center.first > 40 && o_target.target->center.first < 170 && aaction!=sstate_::rotations && !(aaction==backwards)) {
 					uint16_t x = o_target.target->center.first;
