@@ -49,11 +49,56 @@ using namespace libbase::k60;
 
 
 enum sstate_ {
+	//0       1           2            3         4      5           6   7          8          9
 	forwards, chases, rotations, turnRights, turnLefts, keeps, avoids, approachs, backwards, stops
 };
 
+void ssend (sstate_ state)
+{
+	char temp[20] = { };
+	switch(state)
+	{
+	case 0:
+		sprintf(temp, "s=for");
+		break;
+	case 1:
+		sprintf(temp, "s=chase");
+		break;
+	case 2:
+		sprintf(temp, "s=rot");
+		break;
+	case 3:
+		sprintf(temp, "s=turnR");
+		break;
+	case 4:
+		sprintf(temp, "s=turnL");
+		break;
+	case 5:
+		break;
+	case 6:
+		sprintf(temp, "s=avoid");
+		break;
+	case 7:
+		sprintf(temp, "s=app");
+		break;
+	case 8:
+		sprintf(temp, "s=back");
+		break;
+	case 9:
+		sprintf(temp, "s=stop");
+		break;
+	default:
+		sprintf(temp, "s=");
+	}
+
+
+
+	lcd->SetRegion(Lcd::Rect(100, 110, 128, 160));
+	writer->WriteString(temp);
+}
+
 //pos
-const uint8_t COUNT_PER_CM = 23;
+const uint8_t COUNT_PER_CM = 200;
 const float CM_PER_COUNT = 1.0/COUNT_PER_CM;  //0.041666666
 const float PI = 22/7.0;
 const float DEG_PER_RAD = 180.0/PI; //1 rad = 180/pi
@@ -90,6 +135,8 @@ bool firstAcc = false;
 int32_t accDis = 0;
 sstate_ accAction = keeps;
 sstate_ actionAfterMove = keeps;
+sstate_ aaction = keeps;
+uint32_t changeSpeedTime = 0;
 
 bool printLCD = false;
 
@@ -99,6 +146,16 @@ inline void setAnglePower(const float& radAngle, const uint32_t& tick, uint32_t&
 inline void pid(const uint32_t& tick, uint32_t& pid_time);
 inline void actionTarget(const sstate_& taction);
 void moveCount(const int& cmDis, const sstate_& nowA, const sstate_& nextA);
+
+//void ssend(sstate_ state) {
+//	if (state == keeps)
+//		return;
+//	else {
+//		char data[10];
+//		sprintf(data, "S:%d\n", state);
+//		bt->SendStr(data);
+//	}
+//}
 
 int main(void)
 {
@@ -165,18 +222,22 @@ int main(void)
     uint32_t not_find_time = 0;
     uint32_t finding_time = 0;
 
+
     //move dis
-    sstate_ aaction = keeps;
+
 /////////////////////////////////////////
 
     run = false;
     chasing_speed = 200;
-    finding_speed = 250;
+    finding_speed = 150;
     rotate_speed = 100;
-	L_pid->settarget(chasing_speed);
-	R_pid->settarget(chasing_speed);
+	L_pid->settarget(finding_speed);
+	R_pid->settarget(finding_speed);
+	encoder1->Update();
+	encoder2->Update();
 
 	display_bMeter();
+	changeSpeedTime = System::Time();
 
 
 	while (true){
@@ -187,8 +248,11 @@ int main(void)
 				uint32_t time_diff = tick - pid_time;
 				encoder1->Update();
 				encoder2->Update();
-				int32_t lc = encoder1->GetCount();
-				int32_t rc = encoder2->GetCount();
+				L_count = encoder1->GetCount() * 50 / (int) time_diff;
+				R_count = encoder2->GetCount() * 50 / (int) time_diff;
+				SetPower(L_pid->output(L_count), 0);
+				SetPower(R_pid->output(-R_count), 1);
+				pid_time = System::Time();
 
 				if(accCount ==true && firstAcc==true)
 				{
@@ -196,46 +260,54 @@ int main(void)
 				}
 				else if(accCount ==true && firstAcc==false)
 				{
-					aCountL += lc;
-					aCountR += rc;
+					aCountL += L_count;
+					aCountR += R_count;
 				}
 
 				//move dis
-				if(accCount == true)
+				if(accCount == true && firstAcc==false)
 				{
+//					{
+//						char temp[20] = { };
+//						sprintf(temp, "al=%d ar=%d", aCountL,aCountR);
+//						lcd->SetRegion(Lcd::Rect(0, 20, 128, 160));
+//						writer->WriteString(temp);
+//						sprintf(temp, "dis=%d", accDis);
+//						lcd->SetRegion(Lcd::Rect(0, 40, 128, 160));
+//						writer->WriteString(temp);
+//					}
 					if(accAction == aaction)
 					{
+						ssend(accAction);
 						//move forward
 						if(accDis>0)
 						{
 							if(aCountL>=accDis || aCountR<= - (accDis))
 							{
 								accCount = false;
+								aaction = actionAfterMove;
 								actionTarget(actionAfterMove);
 							}
 						}
 						//move backward
 						else //(accDis<0)
 						{
-							if(aCountR>=accDis || aCountL<= - (accDis))
+							if(aCountL<=accDis || aCountR>= abs (accDis))
 							{
 								accCount = false;
+								aaction = actionAfterMove;
 								actionTarget(actionAfterMove);
 							}
 						}
 					}
-					// action is changed, move is outdated
+					 //action is changed, move is outdated
 					else
 					{
 						accCount = false;
 					}
 				}
 
-				L_count = lc * 50 / (int) time_diff;
-				R_count = rc * 50 / (int) time_diff;
-				SetPower(L_pid->output(L_count), 0);
-				SetPower(R_pid->output(-R_count), 1);
-				pid_time = System::Time();
+
 
 			}
 			else if(run==false)
@@ -251,41 +323,44 @@ int main(void)
 
 				process_time = tick;
 				process();
-//move dis///////////////////////////
-//				if(accCount == true)
-//				{
-//					if(accAction == aaction)
-//					{
-//						//move forward
-//						if(accDis>0)
-//						{
-//							if(aCountL>=accDis || aCountR<= - (accDis))
-//							{
-//								accCount = false;
-//								actionTarget(actionAfterMove);
-//							}
-//						}
-//						//move backward
-//						else //(accDis<0)
-//						{
-//							if(aCountR>=accDis || aCountL<= - (accDis))
-//							{
-//								accCount = false;
-//								actionTarget(actionAfterMove);
-//							}
-//						}
-//					}
-//					// action is changed, move is outdated
-//					else
-//					{
-//						accCount = false;
-//					}
-//				}
-
-////////////////////////////////////
 
 //otarget/////////////////////////////
-				if (tick - o_target.received_time < 100 && o_target.target->center.first > 40 && o_target.target->center.first < 170) {
+
+				//forward crash
+				if(run==true && aaction!= sstate_::backwards && tick - o_target.received_time < 200 && tick-changeSpeedTime>=200 && (
+						(!(L_pid->getTarget()<20 && L_pid->getTarget()>=0) && (L_count<20 && L_count>=0))
+						|| (!(R_pid->getTarget()<20 && R_pid->getTarget()>=0) && ((R_count)>-20) && (R_count<=0))
+					))
+				{
+					if(aaction == sstate_::avoids)
+					{
+						moveCount(-30, sstate_::backwards, sstate_::forwards);
+					}
+					else moveCount(-30, sstate_::backwards, aaction);
+					aaction = backwards;
+					actionTarget(aaction);
+					ssend(aaction);
+					continue;
+				}
+
+				//backward crash
+				if(run==true && aaction!= sstate_::forwards && tick-changeSpeedTime>=200 && (
+						(!(L_pid->getTarget()>-20 && L_pid->getTarget()<=0) && (L_count>-20 && L_count<=0))
+						|| (!(R_pid->getTarget()>-20 && R_pid->getTarget()<=0) && ((R_count)<20) && (R_count>=0))
+					))
+				{
+					if(aaction == sstate_::avoids)
+					{
+						moveCount(30, sstate_::forwards, sstate_::forwards);
+					}
+					else moveCount(30, sstate_::forwards, aaction);
+					aaction = forwards;
+					actionTarget(aaction);
+					ssend(aaction);
+					continue;
+				}
+
+				if (tick - o_target.received_time < 200 && o_target.target->center.first > 40 && o_target.target->center.first < 170 && aaction!=sstate_::rotations && !(aaction==backwards)) {
 					uint16_t x = o_target.target->center.first;
 					uint16_t y = o_target.target->center.second;
 					led0->SetEnable(true);
@@ -299,7 +374,7 @@ int main(void)
 					if ( x > O_X_LEFT && x < O_X_RIGHT)
 					{
 
-						if (y> 70){
+						if (y> 60){
 							if(aaction!=backwards)
 							{
 
@@ -321,34 +396,37 @@ int main(void)
 							setAnglePower(BeaconAvoidAngleCalculate(x, y), tick, pid_time);
 							avoid_past_time = System::Time();
 							aaction = avoids;
+							changeSpeedTime = System::Time();
 						}
+						ssend(aaction);
 						continue;
 					}
-					else if(avoid_past_time-tick>=30)
-					{
-						if(aaction == avoids)
-						{
-							//forward some distance before rotation
-							moveCount(30, sstate_::forwards, sstate_::rotations);
-							aaction = forwards;
-							actionTarget(aaction);
-							//pid(tick, pid_time);
-						}
-					}
+//					else if(avoid_past_time-tick>=100)
+//					{
+//						if(aaction == avoids)
+//						{
+//							//forward some distance before rotation
+//							moveCount(30, sstate_::forwards, sstate_::rotations);
+//							aaction = forwards;
+//							actionTarget(aaction);
+//							//pid(tick, pid_time);
+//						}
+//					}
 				}
-				else
+				else if(tick - o_target.received_time >= 200)
 				{
 					led0->SetEnable(false);
 					if(aaction == avoids)
 					{
 						//forward some distance before rotation
-						moveCount(30, sstate_::forwards, sstate_::rotations);
+						moveCount(40, sstate_::forwards, sstate_::rotations);
 						aaction = forwards;
 						actionTarget(aaction);
 						//pid(tick, pid_time);
 					}
 				}
 ////////////////////////////////
+
 
 //irtarget2////////////////////////
 				if (ir_target != NULL && tick - ir_target2.received_time < 100)
@@ -372,8 +450,9 @@ int main(void)
 					{
 						setAnglePower(BeaconApproachAngleCalculate(x, y), tick, pid_time);
 						aaction = approachs;
+						changeSpeedTime = System::Time();
 					}
-
+					ssend(aaction);
 					continue;
 				}
 //				else
@@ -446,6 +525,8 @@ int main(void)
 				}
 ////////////////////////////////////
 
+
+				ssend(aaction);
 			}
 /////////////////////////////////////
 //			if(tick - avoid_past_time >=15000){
@@ -740,11 +821,6 @@ void pid(const uint32_t& tick, uint32_t& pid_time)
 	encoder2->Update();
 	int32_t lc = encoder1->GetCount();
 	int32_t rc = encoder2->GetCount();
-	L_count = lc * 50 / (int) time_diff;
-	R_count = rc * 50 / (int) time_diff;
-	SetPower(L_pid->output(L_count), 0);
-	SetPower(R_pid->output(-R_count), 1);
-	pid_time = System::Time();
 
 	if(accCount ==true && firstAcc==true)
 	{
@@ -755,6 +831,43 @@ void pid(const uint32_t& tick, uint32_t& pid_time)
 		aCountL += lc;
 		aCountR += rc;
 	}
+
+	//move dis
+	if(accCount == true)
+	{
+		if(accAction == aaction)
+		{
+			//move forward
+			if(accDis>0)
+			{
+				if(aCountL>=accDis || aCountR<= - (accDis))
+				{
+					accCount = false;
+					actionTarget(actionAfterMove);
+				}
+			}
+			//move backward
+			else //(accDis<0)
+			{
+				if(aCountR>=accDis || aCountL<= - (accDis))
+				{
+					accCount = false;
+					actionTarget(actionAfterMove);
+				}
+			}
+		}
+		// action is changed, move is outdated
+		else
+		{
+			accCount = false;
+		}
+	}
+
+	L_count = lc * 50 / (int) time_diff;
+	R_count = rc * 50 / (int) time_diff;
+	SetPower(L_pid->output(L_count), 0);
+	SetPower(R_pid->output(-R_count), 1);
+	pid_time = System::Time();
 }
 
 void actionTarget(const sstate_& taction)
@@ -764,22 +877,27 @@ void actionTarget(const sstate_& taction)
 		case forwards:
 			L_pid->settarget(finding_speed);
 			R_pid->settarget(finding_speed);
+			changeSpeedTime = System::Time();
 			break;
 		case backwards:
 			L_pid->settarget(-finding_speed);
 			R_pid->settarget(-finding_speed);
+			changeSpeedTime = System::Time();
 			break;
 		case rotations:
 			L_pid->settarget(rotate_speed);
 			R_pid->settarget(-rotate_speed);
+			changeSpeedTime = System::Time();
 			break;
 		case turnRights:
 			L_pid->settarget(finding_speed);
-			R_pid->settarget((int) (finding_speed * 0.8));
+			R_pid->settarget((int) (finding_speed * 0.67));
+			changeSpeedTime = System::Time();
 			break;
 		case turnLefts:
-			L_pid->settarget((int) (finding_speed * 0.8));
+			L_pid->settarget((int) (finding_speed * 0.67));
 			R_pid->settarget(finding_speed);
+			changeSpeedTime = System::Time();
 			break;
 		case chases:
 		{
@@ -791,6 +909,7 @@ void actionTarget(const sstate_& taction)
 			R_pid->settarget(chasing_speed + diff);
 			if (chasing_speed < 150)
 				L_pid->settarget(chasing_speed);
+			changeSpeedTime = System::Time();
 			break;
 		}
 		default:
