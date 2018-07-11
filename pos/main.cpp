@@ -171,7 +171,7 @@ int main(void)
 
     run = false;
     chasing_speed = 200;
-    finding_speed = 200;
+    finding_speed = 250;
     rotate_speed = 100;
 	L_pid->settarget(chasing_speed);
 	R_pid->settarget(chasing_speed);
@@ -189,11 +189,6 @@ int main(void)
 				encoder2->Update();
 				int32_t lc = encoder1->GetCount();
 				int32_t rc = encoder2->GetCount();
-				L_count = lc * 50 / (int) time_diff;
-				R_count = rc * 50 / (int) time_diff;
-				SetPower(L_pid->output(L_count), 0);
-				SetPower(R_pid->output(-R_count), 1);
-				pid_time = System::Time();
 
 				if(accCount ==true && firstAcc==true)
 				{
@@ -205,20 +200,7 @@ int main(void)
 					aCountR += rc;
 				}
 
-			}
-			else if(run==false)
-			{
-				SetPower(0,0);
-				SetPower(0,1);
-			}
-///////////////////////////////////
-
-//process///////////////////////////
-			if (tick - process_time >= 29) {
-
-				process_time = tick;
-				process();
-//move dis///////////////////////////
+				//move dis
 				if(accCount == true)
 				{
 					if(accAction == aaction)
@@ -248,6 +230,57 @@ int main(void)
 						accCount = false;
 					}
 				}
+
+				L_count = lc * 50 / (int) time_diff;
+				R_count = rc * 50 / (int) time_diff;
+				SetPower(L_pid->output(L_count), 0);
+				SetPower(R_pid->output(-R_count), 1);
+				pid_time = System::Time();
+
+			}
+			else if(run==false)
+			{
+				SetPower(0,0);
+				SetPower(0,1);
+				aaction = stops;
+			}
+///////////////////////////////////
+
+//process///////////////////////////
+			if (tick - process_time >= 29) {
+
+				process_time = tick;
+				process();
+//move dis///////////////////////////
+//				if(accCount == true)
+//				{
+//					if(accAction == aaction)
+//					{
+//						//move forward
+//						if(accDis>0)
+//						{
+//							if(aCountL>=accDis || aCountR<= - (accDis))
+//							{
+//								accCount = false;
+//								actionTarget(actionAfterMove);
+//							}
+//						}
+//						//move backward
+//						else //(accDis<0)
+//						{
+//							if(aCountR>=accDis || aCountL<= - (accDis))
+//							{
+//								accCount = false;
+//								actionTarget(actionAfterMove);
+//							}
+//						}
+//					}
+//					// action is changed, move is outdated
+//					else
+//					{
+//						accCount = false;
+//					}
+//				}
 
 ////////////////////////////////////
 
@@ -353,6 +386,7 @@ int main(void)
 				if (ir_target != NULL) {	//target find
 					led1->SetEnable(true);
 					not_find_time = 0;
+					finding_time = 0;
 					last_beacon = ir_target->center;
 					if (!seen) {
 						seen = true;
@@ -389,26 +423,26 @@ int main(void)
 					}
 				}
 				else if (accCount==true) {
-
+					finding_time = tick;
 				}
 				else { //target not find and have not seen target before
 					led1->SetEnable(0);
-					if (finding_time == 0)
+					if (finding_time == 0 && aaction!=forwards)
 					{
 						moveCount(30, sstate_::forwards, sstate_::rotations);
 						aaction = forwards;
 						actionTarget(aaction);
-						finding_time == tick;
+						finding_time = tick;
 					}
-					else if (tick - finding_time < 2000) //rotate 2000ms
+					else if(finding_time != 0 && aaction == rotations && tick-finding_time>2040)//rotate 2000ms
 					{
-						aaction = rotations;
-						actionTarget(aaction);
+						finding_time = 0;
 					}
-					else
+					else if(finding_time != 0 && aaction != rotations)
 					{
-						finding_time == 0;
+						finding_time = 0;
 					}
+
 				}
 ////////////////////////////////////
 
@@ -766,7 +800,7 @@ void actionTarget(const sstate_& taction)
 
 void moveCount(const int& cmDis, const sstate_& nowA, const sstate_& nextA)
 {
-	accDis = - (cmDis*COUNT_PER_CM);
+	accDis = (cmDis*COUNT_PER_CM);
 	accCount=true;
 	firstAcc = true;
 	aCountL = 0;
