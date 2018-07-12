@@ -376,26 +376,31 @@ int main(void)
 					ssend(aaction);
 
 					//update seen
-					if (ir_target == NULL)
+//					if (ir_target == NULL)
+//					{
+//						if (seen) { //target not find but have seen target before
+//							if (not_find_time == 0) {
+//								not_find_time = tick;
+//								//aaction = keeps;
+//							} else if (tick - not_find_time > 400) { //target lost for more than 400 ms
+//								led1->SetEnable(0);
+//								seen = false;
+//								max_area = 0;
+//							}
+//						}
+//					}
+//					else //have ir
+//					{
+//						not_find_time = 0;
+//						if (!seen) {
+//							seen = true;
+//							Dir_pid->reset();
+//						}
+//					}
+					if(seen)
 					{
-						if (seen) { //target not find but have seen target before
-							if (not_find_time == 0) {
-								not_find_time = tick;
-								//aaction = keeps;
-							} else if (tick - not_find_time > 400) { //target lost for more than 400 ms
-								led1->SetEnable(0);
-								seen = false;
-								max_area = 0;
-							}
-						}
-					}
-					else //have ir
-					{
-						not_find_time = 0;
-						if (!seen) {
-							seen = true;
-							Dir_pid->reset();
-						}
+						seen = false;
+						max_area = 0;
 					}
 
 					continue;
@@ -420,26 +425,31 @@ int main(void)
 					ssend(aaction);
 
 					//update seen
-					if (ir_target == NULL)
+//					if (ir_target == NULL)
+//					{
+//						if (seen) { //target not find but have seen target before
+//							if (not_find_time == 0) {
+//								not_find_time = tick;
+//								//aaction = keeps;
+//							} else if (tick - not_find_time > 400) { //target lost for more than 400 ms
+//								led1->SetEnable(0);
+//								seen = false;
+//								max_area = 0;
+//							}
+//						}
+//					}
+//					else //have ir
+//					{
+//						not_find_time = 0;
+//						if (!seen) {
+//							seen = true;
+//							Dir_pid->reset();
+//						}
+//					}
+					if(seen)
 					{
-						if (seen) { //target not find but have seen target before
-							if (not_find_time == 0) {
-								not_find_time = tick;
-								//aaction = keeps;
-							} else if (tick - not_find_time > 400) { //target lost for more than 400 ms
-								led1->SetEnable(0);
-								seen = false;
-								max_area = 0;
-							}
-						}
-					}
-					else //have ir
-					{
-						not_find_time = 0;
-						if (!seen) {
-							seen = true;
-							Dir_pid->reset();
-						}
+						seen = false;
+						max_area = 0;
 					}
 
 					continue;
