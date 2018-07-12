@@ -335,28 +335,28 @@ int main(void)
 				process_time = tick;
 				process();
 
-				//update seen
-				if (ir_target == NULL)
-				{
-					if (seen) { //target not find but have seen target before
-						if (not_find_time == 0) {
-							not_find_time = tick;
-							//aaction = keeps;
-						} else if (tick - not_find_time > 400) { //target lost for more than 400 ms
-							led1->SetEnable(0);
-							seen = false;
-							max_area = 0;
-						}
-					}
-				}
-				else //have ir
-				{
-					not_find_time = 0;
-					if (!seen) {
-						seen = true;
-						Dir_pid->reset();
-					}
-				}
+//				//update seen
+//				if (ir_target == NULL)
+//				{
+//					if (seen) { //target not find but have seen target before
+//						if (not_find_time == 0) {
+//							not_find_time = tick;
+//							//aaction = keeps;
+//						} else if (tick - not_find_time > 400) { //target lost for more than 400 ms
+//							led1->SetEnable(0);
+//							seen = false;
+//							max_area = 0;
+//						}
+//					}
+//				}
+//				else //have ir
+//				{
+//					not_find_time = 0;
+//					if (!seen) {
+//						seen = true;
+//						Dir_pid->reset();
+//					}
+//				}
 
 //otarget/////////////////////////////
 
@@ -374,6 +374,30 @@ int main(void)
 					aaction = backwards;
 					actionTarget(aaction);
 					ssend(aaction);
+
+					//update seen
+					if (ir_target == NULL)
+					{
+						if (seen) { //target not find but have seen target before
+							if (not_find_time == 0) {
+								not_find_time = tick;
+								//aaction = keeps;
+							} else if (tick - not_find_time > 400) { //target lost for more than 400 ms
+								led1->SetEnable(0);
+								seen = false;
+								max_area = 0;
+							}
+						}
+					}
+					else //have ir
+					{
+						not_find_time = 0;
+						if (!seen) {
+							seen = true;
+							Dir_pid->reset();
+						}
+					}
+
 					continue;
 				}
 				else if(run==true && aaction==sstate_::backwards && tick-changeSpeedTime>=200 && (
@@ -394,6 +418,30 @@ int main(void)
 					actionTarget(aaction);
 					finding_time = 0; //trigger rotations in not seen condition check
 					ssend(aaction);
+
+					//update seen
+					if (ir_target == NULL)
+					{
+						if (seen) { //target not find but have seen target before
+							if (not_find_time == 0) {
+								not_find_time = tick;
+								//aaction = keeps;
+							} else if (tick - not_find_time > 400) { //target lost for more than 400 ms
+								led1->SetEnable(0);
+								seen = false;
+								max_area = 0;
+							}
+						}
+					}
+					else //have ir
+					{
+						not_find_time = 0;
+						if (!seen) {
+							seen = true;
+							Dir_pid->reset();
+						}
+					}
+
 					continue;
 				}
 
@@ -444,6 +492,11 @@ int main(void)
 					}
 					if ( x > O_X_LEFT && x < O_X_RIGHT)
 					{
+						if(seen)
+						{
+							seen = false;
+							max_area = 0;
+						}
 
 						// too close
 						if (y> 60){
@@ -596,7 +649,7 @@ int main(void)
 						actionTarget(aaction);
 						finding_time = tick;
 					}
-					else if(finding_time != 0 && aaction == sstate_::rotations && tick-finding_time>2040)//rotate 2000ms
+					else if(finding_time != 0 && aaction == sstate_::rotations && tick-finding_time>3040)//rotate 2000ms
 					{
 						finding_time = 0;
 					}
