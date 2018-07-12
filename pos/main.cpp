@@ -53,6 +53,8 @@ enum sstate_ {
 	forwards, chases, rotations, turnRights, turnLefts, keeps, avoids, approachs, backwards, stops
 };
 
+bool printLCD = false;
+
 void ssend (sstate_ state)
 {
 	BitConsts a;
@@ -67,46 +69,46 @@ void ssend (sstate_ state)
 	bt->SendBuffer(out, 4);
 	bt->SendBuffer(&a.kEND, 1);
 
-	char temp[20] = { };
-	switch(state)
+	if(printLCD)
 	{
-	case 0:
-		sprintf(temp, "s=for");
-		break;
-	case 1:
-		sprintf(temp, "s=chase");
-		break;
-	case 2:
-		sprintf(temp, "s=rot");
-		break;
-	case 3:
-		sprintf(temp, "s=turnR");
-		break;
-	case 4:
-		sprintf(temp, "s=turnL");
-		break;
-	case 5:
-		break;
-	case 6:
-		sprintf(temp, "s=avoid");
-		break;
-	case 7:
-		sprintf(temp, "s=app");
-		break;
-	case 8:
-		sprintf(temp, "s=back");
-		break;
-	case 9:
-		sprintf(temp, "s=stop");
-		break;
-	default:
-		sprintf(temp, "s=");
+		char temp[20] = { };
+		switch(state)
+		{
+		case 0:
+			sprintf(temp, "s=for");
+			break;
+		case 1:
+			sprintf(temp, "s=chase");
+			break;
+		case 2:
+			sprintf(temp, "s=rot");
+			break;
+		case 3:
+			sprintf(temp, "s=turnR");
+			break;
+		case 4:
+			sprintf(temp, "s=turnL");
+			break;
+		case 5:
+			break;
+		case 6:
+			sprintf(temp, "s=avoid");
+			break;
+		case 7:
+			sprintf(temp, "s=app");
+			break;
+		case 8:
+			sprintf(temp, "s=back");
+			break;
+		case 9:
+			sprintf(temp, "s=stop");
+			break;
+		default:
+			sprintf(temp, "s=");
+		}
+		lcd->SetRegion(Lcd::Rect(100, 110, 128, 160));
+		writer->WriteString(temp);
 	}
-
-
-
-	lcd->SetRegion(Lcd::Rect(100, 110, 128, 160));
-	writer->WriteString(temp);
 }
 
 //pos
@@ -150,8 +152,6 @@ sstate_ accAction = keeps;
 sstate_ actionAfterMove = keeps;
 sstate_ aaction = keeps;
 uint32_t changeSpeedTime = 0;
-
-bool printLCD = false;
 
 inline float BeaconAvoidAngleCalculate(const uint16_t& bx, const uint16_t& by);
 inline float BeaconApproachAngleCalculate(const uint16_t& bx, const uint16_t& by);
@@ -229,7 +229,7 @@ int main(void)
 
 	//time
     uint32_t process_time = 0;
-    uint32_t avoid_past_time = System::Time();
+    //uint32_t avoid_past_time = System::Time();
     uint32_t pid_time = 0;
     uint32_t not_find_time = 0;
     uint32_t finding_time = 0;
@@ -240,7 +240,7 @@ int main(void)
     run = false;
     chasing_speed = 200;
     finding_speed = 150;
-    rotate_speed = 100;
+    rotate_speed = 100+50;
 	L_pid->settarget(finding_speed);
 	R_pid->settarget(finding_speed);
 	encoder1->Update();
@@ -334,6 +334,29 @@ int main(void)
 
 				process_time = tick;
 				process();
+
+				//update seen
+				if (ir_target == NULL)
+				{
+					if (seen) { //target not find but have seen target before
+						if (not_find_time == 0) {
+							not_find_time = tick;
+							//aaction = keeps;
+						} else if (tick - not_find_time > 400) { //target lost for more than 400 ms
+							led1->SetEnable(0);
+							seen = false;
+							max_area = 0;
+						}
+					}
+				}
+				else //have ir
+				{
+					not_find_time = 0;
+					if (!seen) {
+						seen = true;
+						Dir_pid->reset();
+					}
+				}
 
 //otarget/////////////////////////////
 
