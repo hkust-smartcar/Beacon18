@@ -329,7 +329,7 @@ int main(void)
 				//crash
 				if(run==true && aaction!= sstate_::backwards && tick - o_target.received_time < 200 && tick-changeSpeedTime>=200 && (
 						(!(abs(L_pid->getTarget())<20) && (abs(L_count)<20))
-						|| (!(abs(R_pid->getTarget()<20)) && (abs(R_count)<20))
+						|| (!(abs(R_pid->getTarget())<20) && (abs(R_count)<20))
 					))
 				{
 					if(aaction == sstate_::avoids)
