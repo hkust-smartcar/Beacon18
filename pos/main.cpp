@@ -55,6 +55,18 @@ enum sstate_ {
 
 void ssend (sstate_ state)
 {
+	BitConsts a;
+	Byte out[4];
+	bt->SendBuffer(&a.kSTART, 1);
+	Byte size[1] = { 4 };
+	bt->SendBuffer(size, 1);
+	out[0] = state & 0xFF;
+	out[1] = ir_target != NULL?1:0;
+	out[2] = tick - o_target.received_time < 200? 1:0;
+	out[3] = tick - ir_target2.received_time < 200?1:0;
+	bt->SendBuffer(out, 4);
+	bt->SendBuffer(&a.kEND, 1);
+
 	char temp[20] = { };
 	switch(state)
 	{
@@ -163,6 +175,11 @@ int main(void)
 	System::Init();
 
 //init/////////////////////////////////////
+	JyMcuBt106 bt_(init_bt());
+	bt = &bt_;
+	JyMcuBt106 comm_(init_comm());
+	comm = &comm_;
+
 	Led Led0(init_led(0));
 	led0 = &Led0;
 	Led Led1(init_led(1));
@@ -190,10 +207,7 @@ int main(void)
 	j_config.id = 0;
 	Joystick joyStick(j_config);
 	//uint8_t state = 100;
-	JyMcuBt106 bt_(init_bt());
-	bt = &bt_;
-	JyMcuBt106 comm_(init_comm());
-	comm = &comm_;
+
 
 	PID L_pid_(L_kp, L_ki, L_kd, 1000, -1000);
 	L_pid = &L_pid_;
