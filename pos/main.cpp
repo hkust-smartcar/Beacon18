@@ -50,7 +50,7 @@ using namespace libbase::k60;
 
 enum sstate_ {
 	//0       1           2            3         4      5           6   7          8          9
-	forwards, chases, rotations, turnRights, turnLefts, keeps, avoids, approachs, backwards, stops
+	forwards, chases, rotations, turnRights, turnLefts, searchs, avoids, approachs, backwards, stops
 };
 
 bool printLCD = false;
@@ -148,9 +148,9 @@ int32_t aCountR = 0;
 bool accCount = false;
 bool firstAcc = false;
 int32_t accDis = 0;
-sstate_ accAction = keeps;
-sstate_ actionAfterMove = keeps;
-sstate_ aaction = keeps;
+sstate_ accAction = stops;
+sstate_ actionAfterMove = stops;
+sstate_ aaction = stops;
 uint32_t changeSpeedTime = 0;
 
 inline float BeaconAvoidAngleCalculate(const uint16_t& bx, const uint16_t& by);
@@ -229,17 +229,21 @@ int main(void)
 
 	//time
     uint32_t process_time = 0;
-    //uint32_t avoid_past_time = System::Time();
+    //uint32_t avoid_past_time = 0;
     uint32_t pid_time = 0;
     uint32_t not_find_time = 0;
     uint32_t finding_time = 0;
+
+    bool irSeen = false;
+
+    bool atom = false;
 ////////////////////////////////////////////
 
 //set//////////////////////////////////////
 
     run = false;
-    chasing_speed = 200;
-    finding_speed = 150;
+    chasing_speed = 250;
+    finding_speed = 200;
     rotate_speed = 100+50;
 	L_pid->settarget(finding_speed);
 	R_pid->settarget(finding_speed);
@@ -298,6 +302,8 @@ int main(void)
 								accCount = false;
 								aaction = actionAfterMove;
 								actionTarget(actionAfterMove);
+
+								atom = false;
 							}
 						}
 						//move backward
@@ -308,6 +314,8 @@ int main(void)
 								accCount = false;
 								aaction = actionAfterMove;
 								actionTarget(actionAfterMove);
+
+								atom = false;
 							}
 						}
 					}
@@ -315,6 +323,7 @@ int main(void)
 					else
 					{
 						accCount = false;
+						atom = false;
 					}
 				}
 
@@ -323,41 +332,23 @@ int main(void)
 			}
 			else if(run==false)
 			{
-				SetPower(0,0);
-				SetPower(0,1);
 				aaction = stops;
+				actionTarget(aaction);
+				//update seen
+				if(seen)
+				{
+					seen = false;
+					max_area = 0;
+				}
 			}
 //pid end/////////////////////////////////
 
 //process///////////////////////////
-			if (tick - process_time >= 29) {
+			if (tick - process_time >= 29 && atom == false) {
+			//if(tick - avoid_past_time>=19){
+				//avoid_past_time = tick;
 
 				process_time = tick;
-				process();
-
-//				//update seen
-//				if (ir_target == NULL)
-//				{
-//					if (seen) { //target not find but have seen target before
-//						if (not_find_time == 0) {
-//							not_find_time = tick;
-//							//aaction = keeps;
-//						} else if (tick - not_find_time > 400) { //target lost for more than 400 ms
-//							led1->SetEnable(0);
-//							seen = false;
-//							max_area = 0;
-//						}
-//					}
-//				}
-//				else //have ir
-//				{
-//					not_find_time = 0;
-//					if (!seen) {
-//						seen = true;
-//						Dir_pid->reset();
-//					}
-//				}
-
 //otarget/////////////////////////////
 
 				//crash
@@ -376,27 +367,6 @@ int main(void)
 					ssend(aaction);
 
 					//update seen
-//					if (ir_target == NULL)
-//					{
-//						if (seen) { //target not find but have seen target before
-//							if (not_find_time == 0) {
-//								not_find_time = tick;
-//								//aaction = keeps;
-//							} else if (tick - not_find_time > 400) { //target lost for more than 400 ms
-//								led1->SetEnable(0);
-//								seen = false;
-//								max_area = 0;
-//							}
-//						}
-//					}
-//					else //have ir
-//					{
-//						not_find_time = 0;
-//						if (!seen) {
-//							seen = true;
-//							Dir_pid->reset();
-//						}
-//					}
 					if(seen)
 					{
 						seen = false;
@@ -425,27 +395,6 @@ int main(void)
 					ssend(aaction);
 
 					//update seen
-//					if (ir_target == NULL)
-//					{
-//						if (seen) { //target not find but have seen target before
-//							if (not_find_time == 0) {
-//								not_find_time = tick;
-//								//aaction = keeps;
-//							} else if (tick - not_find_time > 400) { //target lost for more than 400 ms
-//								led1->SetEnable(0);
-//								seen = false;
-//								max_area = 0;
-//							}
-//						}
-//					}
-//					else //have ir
-//					{
-//						not_find_time = 0;
-//						if (!seen) {
-//							seen = true;
-//							Dir_pid->reset();
-//						}
-//					}
 					if(seen)
 					{
 						seen = false;
@@ -489,7 +438,7 @@ int main(void)
 //					continue;
 //				}
 
-				if (tick - o_target.received_time < 200 && o_target.target->center.first > 40 && o_target.target->center.first < 170 && aaction!=sstate_::rotations && !(aaction==backwards)) {
+				if (tick - o_target.received_time < 200 && o_target.target->center.first > 40 && o_target.target->center.first < 170 && aaction!=sstate_::rotations && aaction!=searchs && aaction!=backwards) {
 					uint16_t x = o_target.target->center.first;
 					uint16_t y = o_target.target->center.second;
 					led0->SetEnable(true);
@@ -502,11 +451,7 @@ int main(void)
 					}
 					if ( x > O_X_LEFT && x < O_X_RIGHT)
 					{
-						if(seen)
-						{
-							seen = false;
-							max_area = 0;
-						}
+
 
 						// too close
 						if (y> 60){
@@ -534,6 +479,11 @@ int main(void)
 							changeSpeedTime = System::Time();
 						}
 						ssend(aaction);
+						if(seen)
+						{
+							seen = false;
+							max_area = 0;
+						}
 						continue;
 					}
 				}
@@ -557,7 +507,9 @@ int main(void)
 
 
 //irtarget2////////////////////////
-				if (ir_target != NULL && tick - ir_target2.received_time < 100)
+				process();
+
+				if (ir_target != NULL && tick - ir_target2.received_time < 200)
 				{
 					uint16_t x = ir_target2.target->center.first;
 					uint16_t y = ir_target2.target->center.second;
@@ -566,9 +518,12 @@ int main(void)
 					not_find_time = 0;
 					finding_time = 0;
 
+					if (!irSeen) {
+						irSeen = true;
+						Dir_pid->reset();
+					}
 					if (!seen) {
 						seen = true;
-						Dir_pid->reset();
 					}
 
 					led1->SetEnable(true);
@@ -582,7 +537,30 @@ int main(void)
 
 					//too close, circle
 //					if (y>= 20 && x>=A_X_LEFT && x<=A_X_RIGHT){
+////						run = false;
+////						aaction = stops;
+////						actionTarget(aaction);
+////						ssend(accAction);
+//						atom = true;
+//						{
+//							char temp[20] = { };
+//							sprintf(temp, "x=%d y=%d", x,y);
+//							lcd->SetRegion(Lcd::Rect(0, 60, 128, 160));
+//							writer->WriteString(temp);
+//						}
+//						if(x<A_X_CENTER){
+//							moveCount(60, sstate_::turnRights, sstate_::stops);
+//							aaction = turnRights;
+//						}
+//						else
+//						{
+//							moveCount(60, sstate_::turnLefts, sstate_::stops);
+//							aaction = turnLefts;
+//						}
 //
+//						actionTarget(aaction);
+//						ssend(accAction);
+//						pid(tick, pid_time);
 //					}
 //					else
 					{
@@ -593,10 +571,6 @@ int main(void)
 					ssend(aaction);
 					continue;
 				}
-//				else
-//				{
-//					led1->SetEnable(false);
-//				}
 //ir target 2 end/////////////////////////////////
 
 //ir target/////////////////////////
@@ -604,19 +578,28 @@ int main(void)
 					led1->SetEnable(true);
 					not_find_time = 0;
 					finding_time = 0;
+
 					last_beacon = ir_target->center;
+					if (!irSeen) {
+						irSeen = true;
+						Dir_pid->reset();
+					}
 					if (!seen) {
 						seen = true;
-						Dir_pid->reset();
 					}
 					if (ir_target->area > max_area)
 						max_area = (ir_target->area + max_area) / 2;
 					target_x = target_slope * max_area + target_intercept;
 					if (target_x > 320)
 						target_x = 320;
-					if (aaction == rotations
+					if ((aaction == rotations||aaction == searchs)
 							&& ir_target->center.first > target_x)
 					{
+						if(aaction == rotations)
+						{
+							aaction = searchs;
+							actionTarget(aaction);
+						}
 						//aaction = keeps;
 					}
 					else
@@ -625,13 +608,14 @@ int main(void)
 						actionTarget(aaction);
 					}
 				}
-				else if (seen) { //target not find but have seen target before
+				else if (irSeen) { //target not find but have seen target before
 					if (not_find_time == 0) {
 						not_find_time = tick;
 						//aaction = keeps;
 					} else if (tick - not_find_time > 400) { //target lost for more than 400 ms
 						led1->SetEnable(0);
 						seen = false;
+						irSeen = false;
 						max_area = 0;
 
 						moveCount(-40, sstate_::backwards, sstate_::rotations);
@@ -1023,6 +1007,10 @@ void pid(const uint32_t& tick, uint32_t& pid_time)
 
 void actionTarget(const sstate_& taction)
 {
+	if(accCount == true && taction!=accAction)
+	{
+		accCount = false;
+	}
 	switch(taction)
 	{
 		case forwards:
@@ -1050,6 +1038,13 @@ void actionTarget(const sstate_& taction)
 			R_pid->settarget(finding_speed);
 			changeSpeedTime = System::Time();
 			break;
+		case searchs:
+		{
+			L_pid->settarget(80);
+			R_pid->settarget(-80);
+			changeSpeedTime = System::Time();
+			break;
+		}
 		case chases:
 		{
 			int diff;
@@ -1062,6 +1057,17 @@ void actionTarget(const sstate_& taction)
 				L_pid->settarget(chasing_speed);
 			changeSpeedTime = System::Time();
 			break;
+		}
+		case stops:
+		{
+			L_pid->settarget(0);
+			R_pid->settarget(0);
+			SetPower(0,0);
+			SetPower(0,1);
+			changeSpeedTime = System::Time();
+			run = false;
+			break;
+
 		}
 		default:
 			break;
