@@ -9,9 +9,9 @@
 #define INC_IMAGE_PROCESSING_H_
 
 #include "var.h"
-#include <list>
 #include "math.h"
 #include "helper.h"
+#include "debug.h"
 
 using namespace libsc;
 using namespace libsc::k60;
@@ -24,58 +24,6 @@ bool high_timer = false;
 uint32_t full_screen_check = 0;
 const int8_t y_mask[3][3] = { { -1, 0, 1 }, { -2, 0, 2 }, { -1, 0, 1 } };
 const int8_t x_mask[3][3] = { { -1, -2, -1 }, { 0, 0, 0 }, { 1, 2, 1 } };
-Beacon avoid_region_up(65, 130, 0, 15);
-Beacon avoid_region_left(0, 20, 30, 120);	//left
-Beacon avoid_region_right(159, 189, 30, 120);	//right
-Beacon no_scan(65, 130, 80, 120);	//car head
-
-inline void show_avoid_region() {
-
-	//#scan region
-
-	int len = avoid_region_up.right_x - avoid_region_up.left_x;
-	lcd->SetRegion(
-			Lcd::Rect(avoid_region_up.left_x, avoid_region_up.lower_y, len, 1));
-	lcd->FillColor(Lcd::kRed);
-	len = avoid_region_up.lower_y - avoid_region_up.upper_y;
-	lcd->SetRegion(Lcd::Rect(avoid_region_up.right_x - offset, 0, 1, len));
-	lcd->FillColor(Lcd::kRed);
-	lcd->SetRegion(Lcd::Rect(avoid_region_up.left_x - offset, 0, 1, len));
-	lcd->FillColor(Lcd::kRed);
-
-	len = avoid_region_left.lower_y - avoid_region_left.upper_y;
-	lcd->SetRegion(
-			Lcd::Rect(avoid_region_left.right_x - offset,
-					avoid_region_left.upper_y, 1, len));
-	lcd->FillColor(Lcd::kRed);
-	len = avoid_region_right.lower_y - avoid_region_right.upper_y;
-	lcd->SetRegion(
-			Lcd::Rect(avoid_region_right.left_x - offset,
-					avoid_region_right.upper_y, 1, len));
-	lcd->FillColor(Lcd::kRed);
-	len = avoid_region_left.right_x - avoid_region_left.left_x;
-	lcd->SetRegion(
-			Lcd::Rect(avoid_region_left.left_x, avoid_region_left.upper_y, len,
-					1));
-	lcd->FillColor(Lcd::kRed);
-	len = avoid_region_right.right_x - avoid_region_right.left_x;
-	lcd->SetRegion(
-			Lcd::Rect(avoid_region_right.left_x, avoid_region_right.upper_y,
-					len, 1));
-	lcd->FillColor(Lcd::kRed);
-
-	//#car head
-	len = no_scan.right_x - no_scan.left_x;
-	lcd->SetRegion(Lcd::Rect(no_scan.left_x - offset, no_scan.upper_y, len, 1));
-	lcd->FillColor(Lcd::kRed);
-	len = no_scan.lower_y - no_scan.upper_y;
-	lcd->SetRegion(Lcd::Rect(no_scan.left_x - offset, no_scan.upper_y, 1, len));
-	lcd->FillColor(Lcd::kRed);
-	lcd->SetRegion(
-			Lcd::Rect(no_scan.right_x - offset, no_scan.upper_y, 1, len));
-	lcd->FillColor(Lcd::kRed);
-
-}
 
 void timer_switch(bool s) {
 	bool* on_timer = NULL;
@@ -334,6 +282,213 @@ bool check_same(Beacon t) {
 	return false;
 }
 
+//bool search(int &x, int &y, std::list<point>::iterator begin,
+//		std::list<point>::iterator end, dir Dir) {
+//	int x_move = 0;
+//	int y_move = 0;
+//	point *p = NULL;
+//	auto it = --end;
+//	int start;
+//	point p_(0, 0);
+//	switch (Dir) {
+//	case w:
+//		start = 1;
+//		break;
+//	case a:
+//		start = 7;
+//		break;
+//	case s:
+//		start = 5;
+//		break;
+//	case d:
+//		start = 3;
+//		break;
+//	}
+//	if (it != begin)
+//		--it;
+//	for (int i = 1; i < 4; i++) {
+//		if (check_dist(point(x, y), *it) == i) {
+//			p = &p_;
+//			*p = *it;
+//			if (it != begin)
+//				--it;
+//		} else
+//			p = NULL;
+//		int t = start;
+//		int m_x;
+//		int m_y;
+//		while (1) {
+//			if (t > 7)
+//				t = 0;
+//			switch (t) {
+//			case 0:
+//				x_move = -i;
+//				y_move = 0;
+//				break;
+//			case 1:
+//				x_move = -i;
+//				y_move = -i;
+//				break;
+//			case 2:
+//				x_move = 0;
+//				y_move = -i;
+//				break;
+//			case 3:
+//				x_move = i;
+//				y_move = -i;
+//				break;
+//			case 4:
+//				x_move = i;
+//				y_move = 0;
+//				break;
+//			case 5:
+//				x_move = i;
+//				y_move = i;
+//				break;
+//			case 6:
+//				x_move = 0;
+//				y_move = i;
+//				break;
+//			case 7:
+//				x_move = -i;
+//				y_move = i;
+//				break;
+//			default:
+//				x_move = 0;
+//				y_move = 0;
+//			}
+//			m_x = x + x_move;
+//			m_y = y + y_move;
+//			if (m_x > width - 2 || m_x < 0 || m_y > height - 2 || m_y < 0)
+//				;
+//			else if (cal_sobel(m_x, m_y) > sobel_value) {
+//				if (p != NULL && m_x == p->x && m_y == p->y) {
+//
+//				} else {
+//					x = m_x;
+//					y = m_y;
+//					return true;
+//				}
+//			}
+//			if (++t == start)
+//				break;
+//		}
+//	}
+//	return false;
+//}
+//
+//inline bool check_near_boarder(const int x, const int y,
+//		const uint8_t boarder_offset) {
+//	if (x < boarder_offset || x > width - boarder_offset)
+//		return true;
+//	if (y < boarder_offset || y > height - boarder_offset)
+//		return true;
+//	return false;
+//}
+//
+////	std::list<regression_line> lines;
+//std::list<point> find_boarder() {
+//	std::list<point> line_;
+//	int* search_ptr = NULL;
+//	int x;
+//	int y;
+//	int bound;
+//	int act;
+//	dir Dir;
+//	const int8_t boarder_offset = 2;
+//	for (int side = 0; side < 1; side++) { // 0 lower left, 1 lower right, 2 left,3,right, 4up
+//		switch (side) {
+//		case 0:
+//			x = 0;
+//			bound = no_scan.left_x;
+//			y = height - boarder_offset;
+//			search_ptr = &x;
+//			act = 1;
+//			Dir = w;
+//			break;
+//		case 1:
+//			x = no_scan.right_x;
+//			bound = width;
+//			y = height - boarder_offset;
+//			search_ptr = &x;
+//			act = 1;
+//			Dir = w;
+//			break;
+//		case 2:
+//			x = boarder_offset;
+//			bound = 0;
+//			y = height - boarder_offset;
+//			search_ptr = &y;
+//			act = -1;
+//			Dir = d;
+//			break;
+//		case 3:
+//			x = width - boarder_offset;
+//			bound = 0;
+//			y = height - boarder_offset;
+//			search_ptr = &y;
+//			act = -1;
+//			Dir = a;
+//			break;
+//		case 4:
+//			x = 0;
+//			bound = width;
+//			y = boarder_offset;
+//			search_ptr = &x;
+//			act = 1;
+//			Dir = s;
+//			break;
+//		}
+//		for (; act < 0 ? *search_ptr > bound : *search_ptr < bound;
+//				*search_ptr += act)
+//			if (cal_sobel(x, y) > sobel_value) {	//edge find
+//				line->push_back(point(x, y));
+//				int moving_y = y;
+//				int m_x = x;
+//				while (search(m_x, moving_y, line->begin(), line->end(), Dir)) {//search for line_
+//					line->push_back(point(m_x, moving_y));
+//					if (m_x < 160) {
+//						lcd->SetRegion(Lcd::Rect(m_x, moving_y, 1, 1));
+//						lcd->FillColor(Lcd::kBlue);
+//					}
+//					if (line->size() > 40
+//							&& check_near_boarder(m_x, moving_y, 15))
+//						return line_;
+//				}
+//				*search_ptr += act * 10;
+//				line->clear();
+//			}
+//	}
+//	return line_;
+//}
+
+// 0 lower left, 1 lower right, 2 left,3,right, 4up
+inline bool check_near_boarder(const uint8_t boarder_offset, int dir) {
+	auto first = line->begin();
+	auto last = --line->end();
+	if (dir != 2 && last->x < boarder_offset) {
+		if (first->x < boarder_offset)
+			return false;
+		return true;
+	}
+	if (dir != 3 && last->x > width - boarder_offset) {
+		if (first->x > width - boarder_offset)
+			return false;
+		return true;
+	}
+	if (dir != 4 && (last->y < boarder_offset)) {
+		if (first->y < boarder_offset)
+			return false;
+		return true;
+	}
+	if (((dir != 0 || dir != 1) && last->y > height - boarder_offset)) {
+		if (first->y > height - boarder_offset)
+			return false;
+		return true;
+	}
+	return false;
+}
+
 bool search_line(int &x, int &y, dir d) {
 	const int error = 3;
 	if (d == v) {
@@ -362,83 +517,8 @@ bool search_line(int &x, int &y, dir d) {
 	return false;
 }
 
-inline bool check_near_boarder(const int x, const int y,
-		const uint8_t boarder_offset) {
-	if (x < boarder_offset || x > width - boarder_offset)
-		return true;
-	if (y < boarder_offset || y > height - boarder_offset)
-		return true;
-	return false;
-}
-
-bool search(int &x, int &y, std::list<point> line) {
-	int x_move = 0;
-	int y_move = 0;
-	point *p = NULL;
-	auto it = --line.end();
-	uint size = line.size();
-	if(size > 4)
-		size = 4;
-	for (int i = 1; i < size + 1; i++) {
-		if (check_dist(point(x, y), *it) == i)
-			*p = *it;
-		for (int a = 0; a < 8; a++) {
-			switch (a) {
-			case 0:
-				x_move = -i;
-				y_move = 0;
-				break;
-			case 1:
-				x_move = -i;
-				y_move = -i;
-				break;
-			case 2:
-				x_move = 0;
-				y_move = -i;
-				break;
-			case 3:
-				x_move = i;
-				y_move = -i;
-				break;
-			case 4:
-				x_move = 1;
-				y_move = 0;
-				break;
-			case 5:
-				x_move = i;
-				y_move = i;
-				break;
-			case 6:
-				x_move = 0;
-				y_move = i;
-				break;
-			case 7:
-				x_move = -i;
-				y_move = i;
-				break;
-			}
-			int m_x = x + x_move;
-			int m_y = y + y_move;
-			if(m_x > width || m_x < 0 || m_y > height || m_y < 0)
-				continue;
-			if (cal_sobel(m_x, m_y) > sobel_value) {
-				if (p != NULL && m_x == p->x && m_y == p->y)
-					;
-				else {
-					x = m_x + x_move;
-					y = m_y + y_move;
-					return true;
-				}
-			}
-		}
-		it--;
-	}
-	return false;
-}
-
-//	std::list<regression_line> lines;
-std::list<point> find_boarder() {
-	std::list<point> line;
+void find_boarder() {
+	line->clear();
 	int* search_ptr = NULL;
 	int x;
 	int y;
@@ -446,11 +526,13 @@ std::list<point> find_boarder() {
 	int act;
 	dir d;
 	int moving_act;
-	const int8_t boarder_offset = 2;
+	const int error = 4;
+	int error_count = 0;
+	const int8_t boarder_offset = 5;
 	for (int a = 0; a < 5; a++) { // 0 lower left, 1 lower right, 2 left,3,right, 4up
 		switch (a) {
 		case 0:
-			x = 0;
+			x = boarder_offset;
 			bound = no_scan.left_x;
 			y = height - boarder_offset;
 			search_ptr = &x;
@@ -460,7 +542,7 @@ std::list<point> find_boarder() {
 			break;
 		case 1:
 			x = no_scan.right_x;
-			bound = width;
+			bound = width - boarder_offset;
 			y = height - boarder_offset;
 			search_ptr = &x;
 			act = 1;
@@ -468,8 +550,8 @@ std::list<point> find_boarder() {
 			moving_act = -1;
 			break;
 		case 2:
-			x = 0;
-			bound = 0;
+			x = boarder_offset;
+			bound = boarder_offset;
 			y = height - boarder_offset;
 			search_ptr = &y;
 			act = -1;
@@ -477,8 +559,8 @@ std::list<point> find_boarder() {
 			moving_act = 1;
 			break;
 		case 3:
-			x = width;
-			bound = 0;
+			x = width - boarder_offset;
+			bound = boarder_offset;
 			y = height - boarder_offset;
 			search_ptr = &y;
 			act = -1;
@@ -486,8 +568,8 @@ std::list<point> find_boarder() {
 			moving_act = -1;
 			break;
 		case 4:
-			x = 0;
-			bound = width;
+			x = boarder_offset;
+			bound = width - boarder_offset;
 			y = boarder_offset;
 			search_ptr = &x;
 			act = 1;
@@ -496,29 +578,107 @@ std::list<point> find_boarder() {
 			break;
 		}
 		for (; act < 0 ? *search_ptr > bound : *search_ptr < bound;
-				*search_ptr += act) {
+				*search_ptr += act)
 			if (cal_sobel(x, y) > sobel_value) {	//edge find
-				line.push_back(point(x, y));
+				line->push_back(point(x, y));
 				int moving_y = y;
 				int m_x = x;
-				while (search(m_x, moving_y, line)) {//search for line
-					line.push_back(point(m_x, moving_y));
-					lcd->SetRegion(Lcd::Rect(m_x, moving_y, 1, 1));
-					lcd->FillColor(Lcd::kBlue);
-					if (check_near_boarder(m_x, moving_y, boarder_offset - 1))
-						return line;
+				while (1) {
+					if (search_line(m_x, moving_y, d)) {	//search for line
+						line->push_back(point(m_x, moving_y));
+						if (check_near_boarder(15, a)) {
+							print_line(line->begin(), line->end());
+							return;
+						} else if (line->size() > 200)
+							break;
+					} else if (++error_count > error) {
+						error_count = 0;
+						auto c = *--line->end();
+						m_x = c.x;
+						moving_y = c.y;
+						if (d == h) {
+							d = v;
+							moving_y += moving_act;
+						} else {
+							d = h;
+							m_x += moving_act;
+						}
+						while (1) {
+							if (search_line(m_x, moving_y, d)) {//search for line_
+								line->push_back(point(m_x, moving_y));
+								if (check_near_boarder(15, a)) {
+									print_line(line->begin(), line->end());
+									return;
+								} else if (line->size() > 200)
+									break;
+							} else if (++error_count > error) {
+								error_count = 0;
+								auto c = *--line->end();
+								m_x = c.x;
+								moving_y = c.y;
+								if (d == h) {
+									d = v;
+									moving_y -= moving_act;
+								} else {
+									d = h;
+									m_x -= moving_act;
+								}
+								while (1) {
+									if (search_line(m_x, moving_y, d)) {//search for line_
+										line->push_back(point(m_x, moving_y));
+										if (check_near_boarder(15, a)) {
+											print_line(line->begin(),
+													line->end());
+											return;
+										} else if (line->size() > 200)
+											break;
+									} else if (++error_count > error)
+										break;
+									if (d == h)
+										m_x -= moving_act;
+									else
+										moving_y -= moving_act;
+								}
+								break;
+							}
+							if (d == h)
+								m_x += moving_act;
+							else
+								moving_y += moving_act;
+						}
+						*search_ptr += act * 10;
+						line->clear();
+						break;
+					}
+					if (d == h)
+						m_x += moving_act;
+					else
+						moving_y += moving_act;
 				}
-				*search_ptr += act * 10;
-				line.clear();
 			}
-		}
 	}
-	return line;
+	line->clear();
 }
 
 void process() {
 	buf = cam->LockBuffer();
 //	find_boarder();
+//	if (line->size() > 0) {
+//		auto first = line->begin();
+//		auto last = --line->end();
+//		int dist = check_dist(*first, *last);
+//		lcd->SetRegion(Lcd::Rect(0, 0, 160, 15));
+//		char data[20] = { };
+//		sprintf(data, "%d , %d", first->x, first->y);
+//		writer->WriteBuffer(data, 20);
+//		lcd->SetRegion(Lcd::Rect(0, 15, 160, 15));
+//		sprintf(data, "%d , %d", last->x, last->y);
+//		writer->WriteBuffer(data, 20);
+//		return;
+//	} else {
+//		lcd->SetRegion(Lcd::Rect(0, 0, 160, 15));
+//		writer->WriteString("No");
+//	}
 	Beacon temp;
 	if ((low_timer && System::Time() - low_time > ir_timeout)
 			|| (high_timer && System::Time() - high_time > ir_timeout)) {

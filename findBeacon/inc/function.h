@@ -44,7 +44,7 @@ void sendInt(int i) {
 
 void sendFloat(float i) {
 	Byte out[4];
-	memcpy(out,&i, sizeof(float));
+	memcpy(out, &i, sizeof(float));
 	bt->SendBuffer(out, 4);
 }
 
@@ -158,47 +158,47 @@ bool bt_listener(const Byte *data, const size_t size) {
 
 	if (data[0] == 's') {
 		run = true;
-		led1->SetEnable(1);
-		comm->SendStrLiteral("s");
+		led0->SetEnable(1);
+//			comm->SendStrLiteral("s");
 		reset_pid();
-
 	}
 	if (data[0] == 'S') {
 		run = false;
-		led1->SetEnable(0);
+		sendFloat(bMeter->GetVoltage());
+		led0->SetEnable(0);
 		L_pid->settarget(0);
 		R_pid->settarget(0);
 		L_motor->SetPower(0);
 		R_motor->SetPower(0);
-		comm->SendStrLiteral("S");
+//			comm->SendStrLiteral("S");
 	}
 
-	if (data[0] == 'r') {
-		BitConsts a;
-		bt->SendBuffer(&a.kSTART, 1);
-		Byte size[1] = {2};
-		bt->SendBuffer(size,1);
-		sendFloat(L_pid->kP);
-		sendFloat(L_pid->kI);
-		sendFloat(L_pid->kD);
-		sendFloat(R_pid->kP);
-		sendFloat(R_pid->kI);
-		sendFloat(R_pid->kD);
-		bt->SendBuffer(&a.kEND, 1);
-	}
+//	if (data[0] == 'r') {
+//		BitConsts a;
+//		bt->SendBuffer(&a.kSTART, 1);
+//		Byte size[1] = {2};
+//		bt->SendBuffer(size,1);
+//		sendFloat(L_pid->kP);
+//		sendFloat(L_pid->kI);
+//		sendFloat(L_pid->kD);
+//		sendFloat(R_pid->kP);
+//		sendFloat(R_pid->kI);
+//		sendFloat(R_pid->kD);
+//		bt->SendBuffer(&a.kEND, 1);
+//	}
 	return true;
 }
 
-inline void sendData(){
+inline void sendData() {
 	BitConsts a;
 	Byte out[4];
 	bt->SendBuffer(&a.kSTART, 1);
 	Byte size[1] = { 4 };
 	bt->SendBuffer(size, 1);
 	out[0] = action & 0xFF;
-	out[1] = ir_target != NULL?1:0;
-	out[2] = tick - o_target.received_time < 200? 1:0;
-	out[3] = tick - ir_target2.received_time < 200?1:0;
+	out[1] = ir_target != NULL ? 1 : 0;
+	out[2] = tick - o_target.received_time < 200 ? 1 : 0;
+	out[3] = tick - ir_target2.received_time < 200 ? 1 : 0;
 	bt->SendBuffer(out, 4);
 	bt->SendBuffer(&a.kEND, 1);
 }
@@ -265,6 +265,10 @@ void FSM() {
 		L_pid->settarget(chasing_speed - diff);
 		R_pid->settarget(chasing_speed + diff);
 		break;
+	case eixt_rotation:
+		L_pid->settarget(rotate_speed / 2);
+		R_pid->settarget(chasing_speed);
+		break;
 	case keep:
 		break;
 	}
@@ -292,26 +296,24 @@ inline void reControl() {
 	if (!(move[0] || move[1] || move[2] || move[3])) {
 		L_pid->settarget(0);
 		R_pid->settarget(0);
-		L_motor->SetPower(0);
-		R_motor->SetPower(0);
 	} else if (move[0]) {	//forward
 		if (move[2]) {
-			L_pid->settarget((int) (chasing_speed * 0.67));
-			R_pid->settarget(chasing_speed);
-		} else if (move[3]) {
 			L_pid->settarget(chasing_speed);
-			R_pid->settarget((int) (chasing_speed * 0.67));
+			R_pid->settarget(chasing_speed * 2);
+		} else if (move[3]) {
+			L_pid->settarget(chasing_speed * 2);
+			R_pid->settarget(chasing_speed);
 		} else {
 			L_pid->settarget(chasing_speed);
 			R_pid->settarget(chasing_speed);
 		}
 	} else if (move[1]) {	//backward
 		if (move[2]) {
-			L_pid->settarget(-(int) (chasing_speed * 0.67));
-			R_pid->settarget(-chasing_speed);
-		} else if (move[3]) {
 			L_pid->settarget(-chasing_speed);
-			R_pid->settarget(-(int) (chasing_speed * 0.67));
+			R_pid->settarget(-(chasing_speed * 2));
+		} else if (move[3]) {
+			L_pid->settarget(-(chasing_speed * 2));
+			R_pid->settarget(-chasing_speed);
 		} else {
 			L_pid->settarget(-chasing_speed);
 			R_pid->settarget(-chasing_speed);

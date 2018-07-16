@@ -16,14 +16,14 @@
 //////////////algo parm///////////////////
 uint8_t x_range = 5;
 uint8_t y_range = 35;
-const uint16_t min_size = 100;
-const uint8_t error = 30;
-const uint16_t critical_density = 30;
+const uint16_t min_size = 10;
+const uint16_t critical_density = 65;
 const uint8_t max_beacon = 30;
 const uint8_t frame = 15;
 const uint8_t min_frame = 3;
-const uint8_t near_dist = 40;
+const uint8_t near_dist = 50;
 const uint32_t timeout = 50;
+const uint8_t error = 30;
 uint8_t frame_count = 0;
 std::list<Record> center_record;
 Beacon beacons[max_beacon];
@@ -41,16 +41,12 @@ int16_t getY(uint16_t m_pos) {
 	return y;
 }
 
-int8_t skip(uint16_t m_pos, int8_t m_bit_pos) {
-	int16_t x = getX(m_pos, m_bit_pos);
-	int16_t y = getY(m_pos);
-	for (uint8_t i = 0; i < beacon_count; i++) {
+int8_t skip(uint16_t x, int8_t y) {
+	for (uint8_t i = 0; i < beacon_count; i++)
 		if (x < beacons[i].right_x + error && y < beacons[i].lower_y + error
 				&& y > beacons[i].upper_y - error
-				&& x > beacons[i].left_x - error) {
+				&& x > beacons[i].left_x - error)
 			return i;
-		}
-	}
 	return -1;
 }
 
@@ -137,11 +133,6 @@ inline void check_target() {
 		beacon_count++;
 }
 
-//inline bool check_target(int no) {
-//	return beacons[no].count > min_size
-//			&& beacons[no].density > critical_density;
-//}
-
 inline void scan(uint16_t m_pos, int8_t m_bit_pos, int mode) {
 
 	int16_t x = getX(m_pos, m_bit_pos);
@@ -159,14 +150,34 @@ inline void scan(uint16_t m_pos, int8_t m_bit_pos, int mode) {
 	}
 
 	beacons[beacon_count].calc();
-//	beacon_count++;
 	check_target();
 }
 
-inline bool check_near(const std::pair<uint16_t, uint16_t> b1,
-		const std::pair<uint16_t, uint16_t> b2) {
-	return abs(b1.first - b2.first) < near_dist
-			&& abs(b1.second - b2.second) < near_dist;
+inline bool check_near(const uint16_t x1, const uint16_t x2) {
+	return abs(x1 - x2) < near_dist;
+}
+
+void add_record() {
+	if (frame_count == 0 || frame_count == frame) {
+		frame_count = 0;
+		center_record.clear();
+	}
+	++frame_count;
+	for (int i = 0; i < beacon_count; i++) {
+		bool add = false;
+		for (auto it = center_record.begin(); it != center_record.end(); ++it)
+			if (check_near(it->record.center.first, beacons[i].center.first)) {
+				add = true;
+				if (++it->count > min_frame) {
+					ir_target = &it->record;
+					frame_count = 0;
+					return;
+				}
+				break;
+			}
+		if (!add)
+			center_record.push_back(Record(beacons[i]));
+	}
 }
 
 inline void process() {
@@ -176,16 +187,16 @@ inline void process() {
 	//////check for beacon with the last recorded pos/////////
 	if (seen) {
 		x_range = 30;
-		y_range = 5;
+		y_range = 10;
 		uint16_t temp_pos = (width * last_beacon.second) / 8
 				+ last_beacon.first / 8;
 		uint16_t temp_bit_pos = 8 - (last_beacon.first % 8 + 1);
 		scan(temp_pos, temp_bit_pos, 1);
-		if (/*check_target(0)*/ beacons->area > 200) {
+		if (beacons->area > 0) {
 			ir_target = beacons;
+			cam->UnlockBuffer();
+			return;
 		}
-		cam->UnlockBuffer();
-		return;
 	}
 
 	bool zero = true;
@@ -201,7 +212,7 @@ inline void process() {
 				++pos;
 			}
 			if (!GET_BIT(buf[pos], bit_pos)) {
-				int8_t i = skip(pos, bit_pos);
+				int8_t i = skip(x, y);
 				if (i != -1) {
 					uint16_t target_pos = beacons[i].right_x + error;
 					if ((zero && target_pos % 2 != 0)
@@ -215,40 +226,18 @@ inline void process() {
 				scan(pos, bit_pos, 0);
 				if (beacon_count == max_beacon
 						|| System::Time() - tick > timeout) {
-					break;
+					if (beacon_count)
+						add_record();
+					cam->UnlockBuffer();
+					return;
 				}
 			}
 		}
 		zero = !zero;
 		pos += width / 8;
-		if (beacon_count == max_beacon || System::Time() - tick > timeout) {
-			break;
-		}
 	}
-	if (beacon_count) { //have possible beacon but not met requirement
-		if (frame_count == 0 || frame_count == frame) {
-			frame_count = 0;
-			center_record.clear();
-		}
-		++frame_count;
-		for (int i = 0; i < beacon_count; i++) {
-			bool add = false;
-			for (auto it = center_record.begin(); it != center_record.end();
-					++it)
-				if (check_near(it->record.center, beacons[i].center)) {
-					add = true;
-					if (++it->count > min_frame) {
-						ir_target = &it->record;
-						frame_count = 0;
-						cam->UnlockBuffer();
-						return;
-					}
-					break;
-				}
-			if (!add)
-				center_record.push_back(Record(beacons[i]));
-		}
-	}
+	if (beacon_count)
+		add_record();
 	cam->UnlockBuffer();
 }
 #endif /* INC_IMAGE_PROCESSING_H_ */

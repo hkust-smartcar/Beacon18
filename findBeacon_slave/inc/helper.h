@@ -40,9 +40,10 @@ bool comm_listener(const Byte *data, const size_t size) {
 
 void send_coord(uint8_t type) {
 	BitConsts a;
-	uint8_t buffer[5];
+	uint8_t buffer[7];
 	buffer[0] = a.kSTART;
 	Beacon *ptr = NULL;
+	bool send_line = false;
 	switch (type) {
 	case PkgType::irTarget:
 		buffer[1] = PkgType::irTarget;
@@ -52,11 +53,34 @@ void send_coord(uint8_t type) {
 		buffer[1] = PkgType::oTarget;
 		ptr = o_target;
 		break;
+	case PkgType::hLine:
+		buffer[1] = PkgType::hLine;
+		send_line = true;
+		break;
+	case PkgType::vLine:
+		buffer[1] = PkgType::vLine;
+		send_line = true;
+		break;
+	case PkgType::corner:
+		buffer[1] = PkgType::corner;
+		send_line = true;
+		break;
 	}
-	buffer[2] = (uint8_t) ptr->center.first;
-	buffer[3] = ptr->center.second;
-	buffer[4] = a.kEND;
-	comm->SendBuffer(buffer, 5);
+	if (send_line) {
+		auto first = line->begin();
+		auto last = --line->end();
+		buffer[2] = first->x;
+		buffer[3] = first->y;
+		buffer[4] = last->x;
+		buffer[5] = last->y;
+		buffer[6] = a.kEND;
+		comm->SendBuffer(buffer, 7);
+	} else {
+		buffer[2] = (uint8_t) ptr->center.first;
+		buffer[3] = ptr->center.second;
+		buffer[4] = a.kEND;
+		comm->SendBuffer(buffer, 5);
+	}
 }
 
 inline void reset_recrod() {
@@ -76,7 +100,7 @@ inline void reset_recrod() {
 inline void display_greyscale_image() {
 	for (uint i = 0; i < height; i++) {
 		lcd->SetRegion(Lcd::Rect(0, i, 160, 1));
-		lcd->FillGrayscalePixel(buf+ offset + width * i, 160);
+		lcd->FillGrayscalePixel(buf + offset + width * i, 160);
 	}
 }
 

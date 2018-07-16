@@ -70,6 +70,8 @@ int main() {
 	/////////var/////////////////
 	int start = 0;
 	irState = no;
+	std::list<point> a;
+	line = &a;
 
 	if (m == word) {
 		lcd->SetRegion(Lcd::Rect(0, 0, 160, 15));

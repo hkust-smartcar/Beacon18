@@ -15,6 +15,7 @@
 #include <libsc/k60/jy_mcu_bt_106.h>
 #include "libsc/lcd_typewriter.h"
 #include "MT9V034.h"
+#include <list>
 
 using libsc::System;
 using namespace libsc;
@@ -26,7 +27,7 @@ enum ir_state {
 };
 
 enum dir {
-	h_minus,h_plus,h, v
+	/*w,a,s,d*/h, v
 };
 
 enum scan_mode {
@@ -45,7 +46,7 @@ enum ptr_mode {
 };
 
 enum PkgType {
-	irTarget = 0, oTarget = 1
+	irTarget = 0, oTarget = 1,hLine,vLine,corner
 };
 
 enum working_mode {
@@ -70,6 +71,11 @@ struct point {
 	}
 };
 
+Beacon avoid_region_up(65, 130, 0, 15);
+Beacon avoid_region_left(0, 20, 30, 120);	//left
+Beacon avoid_region_right(159, 189, 30, 120);	//right
+Beacon no_scan(65, 130, 80, 120);	//car head
+
 bool run = false;
 const Byte* buf = NULL;
 Beacon* ir_record = NULL;
@@ -87,6 +93,7 @@ JyMcuBt106* bt = NULL;
 JyMcuBt106* comm = NULL;
 Joystick* joystick = NULL;
 
+std::list<point>* line;
 uint16_t sobel_value = 200;
 const uint16_t max_size = 5000;
 const uint8_t size = 3;
@@ -99,6 +106,6 @@ uint32_t find_time = 0;
 uint32_t o_find_time = 0;
 uint16_t offset = 0;
 uint16_t ir_timeout = 150;
-uint32_t tick = 0 ;
+uint32_t tick = 0;
 
 #endif /* INC_VAR_H_ */

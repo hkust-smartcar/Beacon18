@@ -68,12 +68,12 @@ enum rotate_state {
 	no, prepare, performing
 };
 enum state_ {
-	forward, chase, rotation, out, keep, avoid, approach, backward, stop
+	forward, chase, rotation, out, keep, avoid, approach, backward, stop,eixt_rotation
 };
 
 int chasing_speed = 200;
 int finding_speed = 200;
-int rotate_speed = 100;
+int rotate_speed = 150;
 int out_speed = 200;
 
 float L_kp = 3;
@@ -97,8 +97,7 @@ bool stop_re = false;
 bool move[4] = { }; //up,down,left,right
 
 //////////////algo parm///////////////////
-// const float target_slope = 0.009855697800993502;
-// const float target_intercept = 172.55532972120778;
+
 const float target_slope = 0.004921767004823744;
 const float target_intercept = 173.05365266783048;
 const float target_slope2 = -1.4209145956223272;
@@ -139,8 +138,6 @@ AlternateMotor *R_motor = NULL;
 DirEncoder* encoder1 = NULL;
 DirEncoder* encoder2 = NULL;
 BatteryMeter* bMeter = NULL;
-//IncrementalPidController<int, int>* L_pid = NULL;
-//IncrementalPidController<int, int>* R_pid = NULL;
 PID* L_pid = NULL;
 PID* R_pid = NULL;
 PID* Dir_pid = NULL;
