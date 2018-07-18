@@ -57,7 +57,7 @@ enum sstate_ {
 	forwards, chases, rotations, turnRights, turnLefts, searchs, avoids, approachs, backwards, stops
 };
 
-bool printLCD = true;
+bool printLCD = false;
 
 void ssend (sstate_ state)
 {
@@ -164,16 +164,6 @@ inline void pid(const uint32_t& tick, uint32_t& pid_time);
 inline void actionTarget(const sstate_& taction);
 void moveCount(const int& cmDis, const sstate_& nowA, const sstate_& nextA);
 
-//void ssend(sstate_ state) {
-//	if (state == keeps)
-//		return;
-//	else {
-//		char data[10];
-//		sprintf(data, "S:%d\n", state);
-//		bt->SendStr(data);
-//	}
-//}
-
 int main(void)
 {
 	System::Init();
@@ -225,19 +215,20 @@ int main(void)
 
 	Joystick::Config j_config;
 	j_config.id = 0;
+	j_config.is_active_low = true;
 	Joystick joyStick(j_config);
 
 
-    Flash::Config flash_config;
-    Flash flash0(flash_config);
 
 	DebugConsole menu(&joyStick, lcd, writer);
-	menu.PushItem("chSP", &chasing_speed, 1);
-	menu.PushItem("fdSP", &finding_speed, 1);
-	menu.PushItem("roSP", &rotate_speed, 1);
-	menu.SetFlash(&flash0);
+	menu.PushItem("chSP", &chasing_speed, 10);
+	menu.PushItem("fdSP", &finding_speed, 10);
+	menu.PushItem("roSP", &rotate_speed, 10);
 
-
+//    Flash::Config flash_config;
+//    Flash flash0(flash_config);
+//	menu.SetFlash(&flash0);
+//
 	auto bFunction = [&menu,&aaction,&seen,&changeSpeedTime,&encoder1,&encoder2](const uint8_t id){
 
 		if(menu.GetFlag()==false && run==false)
@@ -245,6 +236,8 @@ int main(void)
 			run = true;
 			changeSpeedTime = System::Time();
 			display_bMeter();
+			lcd->SetRegion(Lcd::Rect(90, 0, 128, 160));
+			writer->WriteString("star");
 			encoder1->Update();
 			encoder2->Update();
 		}
@@ -259,7 +252,7 @@ int main(void)
 				seen = false;
 				max_area = 0;
 			}
-			menu.EnterDebug("leave");
+			//menu.EnterDebug("leave");
 		}
 		else if(menu.GetFlag()==true && run==true)
 		{
@@ -280,7 +273,7 @@ int main(void)
 	};
 	Button::Config ButtonConfig;
 	ButtonConfig.id = 0;
-	ButtonConfig.is_active_low = false;
+	ButtonConfig.is_active_low = true;
 	ButtonConfig.is_use_pull_resistor = false;
 	ButtonConfig.listener_trigger = Button::Config::Trigger::kUp;
 	ButtonConfig.listener = bFunction;
@@ -304,12 +297,12 @@ int main(void)
 
 //set//////////////////////////////////////
 
-    //run = false;
+    run = false;
     chasing_speed = 250;
     finding_speed = 200;
     rotate_speed = 100;
-	L_pid->settarget(finding_speed);
-	R_pid->settarget(finding_speed);
+//	L_pid->settarget(-100);
+//	R_pid->settarget(-100);
 
 	encoder1->Update();
 	encoder2->Update();
@@ -317,14 +310,15 @@ int main(void)
 	display_bMeter();
 	changeSpeedTime = System::Time();
 
-	menu.EnterDebug("leave");
+	//menu.EnterDebug("leave");
 ///////////////////////////////////////////////
 
 	while (true){
-		if (tick != System::Time() && run==true) {
+		if (tick != System::Time()) {
 			tick = System::Time();
+
 //pid////////////////////////////
-			if (tick - pid_time >= 10) {
+			if (tick - pid_time >= 10 && run==true) {
 				uint32_t time_diff = tick - pid_time;
 				encoder1->Update();
 				encoder2->Update();
@@ -333,6 +327,19 @@ int main(void)
 				SetPower(L_pid->output(L_count), 0);
 				SetPower(R_pid->output(-R_count), 1);
 				pid_time = System::Time();
+
+//				{
+//					char temp[20] = { };
+//					sprintf(temp, "al=%d ar=%d", aCountL,aCountR);
+//					lcd->SetRegion(Lcd::Rect(0, 20, 128, 160));
+//					writer->WriteString(temp);
+//					sprintf(temp, "sl=%d", L_pid->getErrorSum());
+//					lcd->SetRegion(Lcd::Rect(0, 40, 128, 160));
+//					writer->WriteString(temp);
+//					sprintf(temp, "sr=%d", R_pid->getErrorSum());
+//					lcd->SetRegion(Lcd::Rect(0, 60, 128, 160));
+//					writer->WriteString(temp);
+//				}
 
 				if(accCount ==true && firstAcc==true)
 				{
@@ -348,7 +355,7 @@ int main(void)
 				//move dis
 				if(accCount == true && firstAcc==false)
 				{
-//					{
+					{
 //						char temp[20] = { };
 //						sprintf(temp, "al=%d ar=%d", aCountL,aCountR);
 //						lcd->SetRegion(Lcd::Rect(0, 20, 128, 160));
@@ -356,7 +363,7 @@ int main(void)
 //						sprintf(temp, "dis=%d", accDis);
 //						lcd->SetRegion(Lcd::Rect(0, 40, 128, 160));
 //						writer->WriteString(temp);
-//					}
+					}
 					if(accAction == aaction)
 					{
 						ssend(accAction);
@@ -410,7 +417,7 @@ int main(void)
 //pid end/////////////////////////////////
 
 //process///////////////////////////
-			if (tick - process_time >= 29 && atom == false) {
+			if (tick - process_time >= 29 && atom == false && menu.GetFlag()==false) {
 			//if(tick - avoid_past_time>=19){
 				//avoid_past_time = tick;
 
@@ -667,56 +674,62 @@ int main(void)
 
 				ssend(aaction);
 			}
-//process end///////////////////////////////////
-		}
-		else if(run==false && System::Time()-tick>100)
-		{
-			char temp[20];
-			lcd->SetRegion(Lcd::Rect(90, 20, 128, 160));
-			sprintf(temp, "ch%d", chasing_speed);
-			writer->WriteString(temp);
 
-			tick = System::Time();
-			lcd->SetRegion(Lcd::Rect(90, 0, 128, 160));
-			switch(joyStick.GetState())
+//process end///////////////////////////////////
+
+//menu///////////////////////////////////
+			if(run==false && System::Time()-tick>200 && menu.GetFlag()==false)
 			{
-			case Joystick::State::kUp:
-			{
-				writer->WriteString("uppp");
-				break;
+				char temp[20];
+				lcd->SetRegion(Lcd::Rect(90, 20, 128, 160));
+				sprintf(temp, "ch%d", chasing_speed);
+				writer->WriteString(temp);
+
+				//tick = System::Time();
+				lcd->SetRegion(Lcd::Rect(90, 0, 128, 160));
+				switch(joyStick.GetState())
+				{
+				case Joystick::State::kUp:
+				{
+					writer->WriteString("uppp");
+					menu.EnterDebug("leave");
+					break;
+				}
+				case Joystick::State::kDown:
+				{
+					writer->WriteString("down");
+					break;
+				}
+				case Joystick::State::kLeft:
+				{
+					writer->WriteString("left");
+					break;
+				}
+				case Joystick::State::kRight:
+				{
+					writer->WriteString("righ");
+					break;
+				}
+				case Joystick::State::kSelect:
+				{
+					writer->WriteString("sele");
+					break;
+				}
+				case Joystick::State::kIdle:
+				{
+					writer->WriteString("idle");
+					break;
+				}
+				default:
+				{
+					writer->WriteString("oooo");
+					break;
+				}
+				}
 			}
-			case Joystick::State::kDown:
-			{
-				writer->WriteString("down");
-				break;
-			}
-			case Joystick::State::kLeft:
-			{
-				writer->WriteString("left");
-				break;
-			}
-			case Joystick::State::kRight:
-			{
-				writer->WriteString("righ");
-				break;
-			}
-			case Joystick::State::kSelect:
-			{
-				writer->WriteString("sele");
-				break;
-			}
-			case Joystick::State::kIdle:
-			{
-				writer->WriteString("idle");
-				break;
-			}
-			default:
-			{
-				writer->WriteString("oooo");
-				break;
-			}
-			}
+//menu end///////////////////////////////////
 		}
+
 
 
 
@@ -1119,6 +1132,8 @@ void actionTarget(const sstate_& taction)
 		{
 			L_pid->settarget(0);
 			R_pid->settarget(0);
+			L_pid->reset();
+			R_pid->reset();
 			SetPower(0,0);
 			SetPower(0,1);
 			changeSpeedTime = System::Time();
