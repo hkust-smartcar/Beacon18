@@ -300,7 +300,7 @@ int main(void)
     run = false;
     chasing_speed = 250;
     finding_speed = 200;
-    rotate_speed = 100;
+    rotate_speed = 150;
 //	L_pid->settarget(-100);
 //	R_pid->settarget(-100);
 
@@ -678,14 +678,14 @@ int main(void)
 //process end///////////////////////////////////
 
 //menu///////////////////////////////////
-			if(run==false && System::Time()-tick>200 && menu.GetFlag()==false)
+			if(run==false && tick - pid_time>200 && menu.GetFlag()==false)
 			{
 				char temp[20];
 				lcd->SetRegion(Lcd::Rect(90, 20, 128, 160));
 				sprintf(temp, "ch%d", chasing_speed);
 				writer->WriteString(temp);
 
-				//tick = System::Time();
+				pid_time = tick;
 				lcd->SetRegion(Lcd::Rect(90, 0, 128, 160));
 				switch(joyStick.GetState())
 				{
@@ -970,30 +970,32 @@ void setAnglePower(const float& radAngle, const uint32_t& tick, uint32_t& pid_ti
 	//	-ve turn left; +ve turn right
 	if(radAngle<0)
 	{
-		R_pid->settarget(chasing_speed);
+		R_pid->settarget(finding_speed);
 		if(radAngle<=-1||radAngle==0)
 		{
 			L_pid->settarget(0);
+			L_pid->reset();
 			SetPower(0,0);
 		}
 		else
 		{
-			L_pid->settarget(chasing_speed* abs(radAngle));
+			L_pid->settarget(finding_speed* abs(radAngle));
 		}
 
 
 	}
 	else //radAngle>0
 	{
-		L_pid->settarget(chasing_speed);
+		L_pid->settarget(finding_speed);
 		if(radAngle>=1||radAngle==0)
 		{
 			R_pid->settarget(0);
+			R_pid->reset();
 			SetPower(0,1);
 		}
 		else
 		{
-			R_pid->settarget(chasing_speed*radAngle);
+			R_pid->settarget(finding_speed*radAngle);
 		}
 	}
 	if(run&&(tempR != R_pid->getTarget() || tempL!= L_pid->getTarget()))
