@@ -240,6 +240,7 @@ int main(void)
 			writer->WriteString("star");
 			encoder1->Update();
 			encoder2->Update();
+			comm->SendStrLiteral("S");
 		}
 		else if(menu.GetFlag()==false && run==true)
 		{
@@ -252,6 +253,7 @@ int main(void)
 				seen = false;
 				max_area = 0;
 			}
+			comm->SendStrLiteral("S");
 			//menu.EnterDebug("leave");
 		}
 		else if(menu.GetFlag()==true && run==true)
@@ -265,6 +267,7 @@ int main(void)
 				seen = false;
 				max_area = 0;
 			}
+			comm->SendStrLiteral("S");
 		}
 //		else if(menu.GetFlag()==true && run==false)
 //		{
