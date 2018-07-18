@@ -240,7 +240,7 @@ int main(void)
 			writer->WriteString("star");
 			encoder1->Update();
 			encoder2->Update();
-			comm->SendStrLiteral("S");
+			comm->SendStrLiteral("s");
 		}
 		else if(menu.GetFlag()==false && run==true)
 		{
