@@ -74,7 +74,7 @@ struct point {
 Beacon avoid_region_up(65, 130, 0, 15);
 Beacon avoid_region_left(0, 20, 30, 120);	//left
 Beacon avoid_region_right(159, 189, 30, 120);	//right
-Beacon no_scan(65, 130, 80, 120);	//car head
+Beacon no_scan(70, 120, 80, 120);	//car head
 
 bool run = false;
 const Byte* buf = NULL;
@@ -93,8 +93,12 @@ JyMcuBt106* bt = NULL;
 JyMcuBt106* comm = NULL;
 Joystick* joystick = NULL;
 
-std::list<point>* line;
+//std::list<point>* line;
+point begin(0,0);
+point end(0,0);
+point current(0,0);
 uint16_t sobel_value = 200;
+uint16_t line_sobel_value = 250;
 const uint16_t max_size = 5000;
 const uint8_t size = 3;
 uint8_t white = 250;

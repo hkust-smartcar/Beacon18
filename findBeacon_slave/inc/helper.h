@@ -66,21 +66,21 @@ void send_coord(uint8_t type) {
 		send_line = true;
 		break;
 	}
-	if (send_line) {
-		auto first = line->begin();
-		auto last = --line->end();
-		buffer[2] = first->x;
-		buffer[3] = first->y;
-		buffer[4] = last->x;
-		buffer[5] = last->y;
-		buffer[6] = a.kEND;
-		comm->SendBuffer(buffer, 7);
-	} else {
+//	if (send_line) {
+//		auto first = line->begin();
+//		auto last = --line->end();
+//		buffer[2] = first->x;
+//		buffer[3] = first->y;
+//		buffer[4] = last->x;
+//		buffer[5] = last->y;
+//		buffer[6] = a.kEND;
+//		comm->SendBuffer(buffer, 7);
+//	} else {
 		buffer[2] = (uint8_t) ptr->center.first;
 		buffer[3] = ptr->center.second;
 		buffer[4] = a.kEND;
 		comm->SendBuffer(buffer, 5);
-	}
+//	}
 }
 
 inline void reset_recrod() {

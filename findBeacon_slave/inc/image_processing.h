@@ -88,25 +88,6 @@ inline uint8_t check_dist(const point p1, const point p2) {
 	return sqrt(pow(p1.x - p2.x, 2) + pow(p1.y - p2.y, 2));
 }
 
-inline bool check_valid(std::list<point> edges, std::list<point>::iterator it) {
-	uint8_t count = 0;
-	for (auto it2 = edges.begin(); it2 != edges.end(); ++it2)
-		if (check_near(*it, *it2) && it != it2)
-			if (count++ == min_edge)
-				return true;
-	return false;
-}
-
-inline bool check_valid2(std::list<point> edges,
-		std::list<point>::reverse_iterator it) {
-	uint8_t count = 0;
-	for (auto it2 = edges.rbegin(); it2 != edges.rend(); ++it2)
-		if (check_near(*it, *it2) && it != it2)
-			if (count++ == min_edge)
-				return true;
-	return false;
-}
-
 inline bool check_in_middle() {
 	auto x = o_record->center.first;
 	auto y = o_record->center.second;
@@ -119,11 +100,29 @@ inline bool check_in_middle() {
 	return false;
 }
 
+std::list<point> edges;
+inline bool check_valid(std::list<point>::iterator it) {
+	uint8_t count = 0;
+	for (auto it2 = edges.begin(); it2 != edges.end(); ++it2)
+		if (check_near(*it, *it2) && it != it2)
+			if (++count == min_edge)
+				return true;
+	return false;
+}
+
+inline bool check_valid2(std::list<point>::reverse_iterator it) {
+	uint8_t count = 0;
+	for (auto it2 = edges.rbegin(); it2 != edges.rend(); ++it2)
+		if (check_near(*it, *it2) && it != it2)
+			if (++count == min_edge)
+				return true;
+	return false;
+}
+
 void check_beacon_edge(Beacon& temp, scan_mode mode) {
 	Beacon* ptr = NULL;
 	int8_t error = 5;
 	int8_t scan_size = 3;
-	std::list<point> edges;
 	switch (mode) {
 	case beacon:
 		ptr = ir_record;
@@ -193,7 +192,7 @@ void check_beacon_edge(Beacon& temp, scan_mode mode) {
 	edges.sort(sort_x);
 	for (int a = 0; a < 2; a++) {
 		for (auto it = edges.begin(); it != edges.end(); it++)
-			if (check_valid(edges, it)) {
+			if (check_valid(it)) {
 				if (a == 0)
 					temp.left_x = it->x;
 				else
@@ -201,7 +200,7 @@ void check_beacon_edge(Beacon& temp, scan_mode mode) {
 				break;
 			}
 		for (auto rit = edges.rbegin(); rit != edges.rend(); ++rit)
-			if (check_valid2(edges, rit)) {
+			if (check_valid2(rit)) {
 				if (a == 0)
 					temp.right_x = rit->x;
 				else
@@ -210,12 +209,12 @@ void check_beacon_edge(Beacon& temp, scan_mode mode) {
 			}
 		edges.sort(sort_y);
 	}
-
 	temp.calc();
 	int w = temp.right_x - temp.left_x;
 	int h = temp.lower_y - temp.upper_y;
 	if (edges.size() < 5 || temp.area > max_size || w > h * 3)
 		temp.init(0, 0);
+	edges.clear();
 }
 
 void check_beacon_ir(Beacon& temp, uint16_t x, uint16_t y) {
@@ -464,25 +463,35 @@ bool check_same(Beacon t) {
 
 // 0 lower left, 1 lower right, 2 left,3,right, 4up
 inline bool check_near_boarder(const uint8_t boarder_offset, int dir) {
-	auto first = line->begin();
-	auto last = --line->end();
-	if (dir != 2 && last->x < boarder_offset) {
-		if (first->x < boarder_offset)
+//	auto first = line->begin();
+//	auto last = --line->end();
+	if (begin.x < boarder_offset && current.x < boarder_offset)
+		return false;
+	if (begin.x > width - boarder_offset && current.x > width - boarder_offset)
+		return false;
+	if (begin.y < boarder_offset && current.y < boarder_offset)
+		return false;
+	if (begin.y > height - boarder_offset
+			&& current.y > height - boarder_offset)
+		return false;
+
+	if (dir != 2 && current.x < boarder_offset) {
+		if (begin.x < boarder_offset)
 			return false;
 		return true;
 	}
-	if (dir != 3 && last->x > width - boarder_offset) {
-		if (first->x > width - boarder_offset)
+	if (dir != 3 && current.x > width - boarder_offset) {
+		if (begin.x > width - boarder_offset)
 			return false;
 		return true;
 	}
-	if (dir != 4 && (last->y < boarder_offset)) {
-		if (first->y < boarder_offset)
+	if (dir != 4 && (current.y < boarder_offset)) {
+		if (begin.y < boarder_offset)
 			return false;
 		return true;
 	}
-	if (((dir != 0 || dir != 1) && last->y > height - boarder_offset)) {
-		if (first->y > height - boarder_offset)
+	if (((dir != 0 || dir != 1) && current.y > height - boarder_offset)) {
+		if (begin.y > height - boarder_offset)
 			return false;
 		return true;
 	}
@@ -496,7 +505,7 @@ bool search_line(int &x, int &y, dir d) {
 		if (m_x < 0)
 			m_x = 0;
 		while (m_x < x + error && m_x < width) {
-			if (cal_sobel(m_x, y) > sobel_value) {
+			if (cal_sobel(m_x, y) > line_sobel_value) {
 				x = m_x;
 				return true;
 			} else
@@ -507,7 +516,7 @@ bool search_line(int &x, int &y, dir d) {
 		if (m_y < 0)
 			m_y = 0;
 		while (m_y < y + error && m_y < height) {
-			if (cal_sobel(x, m_y) > sobel_value) {
+			if (cal_sobel(x, m_y) > line_sobel_value) {
 				y = m_y;
 				return true;
 			} else
@@ -518,7 +527,7 @@ bool search_line(int &x, int &y, dir d) {
 }
 
 void find_boarder() {
-	line->clear();
+//	line->clear();
 	int* search_ptr = NULL;
 	int x;
 	int y;
@@ -529,7 +538,7 @@ void find_boarder() {
 	const int error = 4;
 	int error_count = 0;
 	const int8_t boarder_offset = 5;
-	for (int a = 0; a < 5; a++) { // 0 lower left, 1 lower right, 2 left,3,right, 4up
+	for (int a = 0; a < 5; a++) { // 0 lower left, 1 car head, 2 lower right, 3 left,4,right
 		switch (a) {
 		case 0:
 			x = boarder_offset;
@@ -541,6 +550,15 @@ void find_boarder() {
 			moving_act = -1;
 			break;
 		case 1:
+			x = no_scan.left_x;
+			bound = no_scan.right_x;
+			y = no_scan.upper_y;
+			search_ptr = &x;
+			act = 1;
+			d = v;
+			moving_act = -1;
+			break;
+		case 2:
 			x = no_scan.right_x;
 			bound = width - boarder_offset;
 			y = height - boarder_offset;
@@ -549,53 +567,59 @@ void find_boarder() {
 			d = v;
 			moving_act = -1;
 			break;
-		case 2:
+		case 3:
 			x = boarder_offset;
-			bound = boarder_offset;
+			bound = 40;
 			y = height - boarder_offset;
 			search_ptr = &y;
 			act = -1;
 			d = h;
 			moving_act = 1;
 			break;
-		case 3:
+		case 4:
 			x = width - boarder_offset;
-			bound = boarder_offset;
+			bound = 40;
 			y = height - boarder_offset;
 			search_ptr = &y;
 			act = -1;
 			d = h;
 			moving_act = -1;
 			break;
-		case 4:
-			x = boarder_offset;
-			bound = width - boarder_offset;
-			y = boarder_offset;
-			search_ptr = &x;
-			act = 1;
-			d = v;
-			moving_act = 1;
-			break;
+//		case 5:
+//			x = boarder_offset;
+//			bound = width - boarder_offset;
+//			y = boarder_offset;
+//			search_ptr = &x;
+//			act = 1;
+//			d = v;
+//			moving_act = 1;
+//			break;
 		}
 		for (; act < 0 ? *search_ptr > bound : *search_ptr < bound;
 				*search_ptr += act)
-			if (cal_sobel(x, y) > sobel_value) {	//edge find
-				line->push_back(point(x, y));
+			if (cal_sobel(x, y) > line_sobel_value) {	//edge find
+//				line->push_back(point(x, y));
+				begin.x = x;
+				begin.y = y;
 				int moving_y = y;
 				int m_x = x;
 				while (1) {
 					if (search_line(m_x, moving_y, d)) {	//search for line
-						line->push_back(point(m_x, moving_y));
+//						line->push_back(point(m_x, moving_y));
+						current.x = m_x;
+						current.y = moving_y;
 						if (check_near_boarder(15, a)) {
-							print_line(line->begin(), line->end());
+//							print_line(line->begin(), line->end());
+							end.x = m_x;
+							end.y = moving_y;
 							return;
-						} else if (line->size() > 200)
-							break;
+						}
+//							else if (line->size() > 200)
+//							break;
 					} else if (++error_count > error) {
 						error_count = 0;
-						auto c = *--line->end();
-						m_x = c.x;
-						moving_y = c.y;
+						m_x = current.x;
+						moving_y = current.y;
 						if (d == h) {
 							d = v;
 							moving_y += moving_act;
@@ -605,17 +629,22 @@ void find_boarder() {
 						}
 						while (1) {
 							if (search_line(m_x, moving_y, d)) {//search for line_
-								line->push_back(point(m_x, moving_y));
+//								line->push_back(point(m_x, moving_y));
+								current.x = m_x;
+								current.y = moving_y;
 								if (check_near_boarder(15, a)) {
-									print_line(line->begin(), line->end());
+//									print_line(line->begin(), line->end());
+									end.x = m_x;
+									end.y = moving_y;
 									return;
-								} else if (line->size() > 200)
-									break;
+								}
+//									else if (line->size() > 200)
+//									break;
 							} else if (++error_count > error) {
 								error_count = 0;
-								auto c = *--line->end();
-								m_x = c.x;
-								moving_y = c.y;
+//								auto c = *--line->end();
+								m_x = current.x;
+								moving_y = current.y;
 								if (d == h) {
 									d = v;
 									moving_y -= moving_act;
@@ -625,13 +654,17 @@ void find_boarder() {
 								}
 								while (1) {
 									if (search_line(m_x, moving_y, d)) {//search for line_
-										line->push_back(point(m_x, moving_y));
+//										line->push_back(point(m_x, moving_y));
+										current.x = m_x;
+										current.y = moving_y;
 										if (check_near_boarder(15, a)) {
-											print_line(line->begin(),
-													line->end());
+											//									print_line(line->begin(), line->end());
+											end.x = m_x;
+											end.y = moving_y;
 											return;
-										} else if (line->size() > 200)
-											break;
+										}
+										//									else if (line->size() > 200)
+										//									break;
 									} else if (++error_count > error)
 										break;
 									if (d == h)
@@ -647,7 +680,7 @@ void find_boarder() {
 								moving_y += moving_act;
 						}
 						*search_ptr += act * 10;
-						line->clear();
+//							line->clear();
 						break;
 					}
 					if (d == h)
@@ -657,18 +690,35 @@ void find_boarder() {
 				}
 			}
 	}
-	line->clear();
+	begin.x = 0;
+	end.x = 0;
+//	line->clear();
 }
 
 void process() {
 	buf = cam->LockBuffer();
 //	find_boarder();
+//	if (!(begin.x == 0 && end.x == 0)) {
+//		char data[20] = { };
+//		lcd->SetRegion(Lcd::Rect(0, 0, 160, 15));
+//		sprintf(data, "%d , %d", begin.x, begin.y);
+//		writer->WriteBuffer(data, 20);
+//		lcd->SetRegion(Lcd::Rect(0, 15, 160, 15));
+//		sprintf(data, "%d , %d", end.x, end.y);
+//		writer->WriteBuffer(data, 20);
+//		lcd->SetRegion(Lcd::Rect(0, 30, 160, 15));
+//		sprintf(data, "%d", (begin.y - end.y) / ( begin.x - end.x));
+//		writer->WriteBuffer(data, 20);
+//		return;
+//	} else {
+//		lcd->SetRegion(Lcd::Rect(0, 0, 160, 15));
+//		writer->WriteString("No");
+//	}
 //	if (line->size() > 0) {
 //		auto first = line->begin();
 //		auto last = --line->end();
-//		int dist = check_dist(*first, *last);
 //		lcd->SetRegion(Lcd::Rect(0, 0, 160, 15));
-//		char data[20] = { };
+//		char data[20] = {};
 //		sprintf(data, "%d , %d", first->x, first->y);
 //		writer->WriteBuffer(data, 20);
 //		lcd->SetRegion(Lcd::Rect(0, 15, 160, 15));
@@ -678,6 +728,7 @@ void process() {
 //	} else {
 //		lcd->SetRegion(Lcd::Rect(0, 0, 160, 15));
 //		writer->WriteString("No");
+//		line->clear();
 //	}
 	Beacon temp;
 	if ((low_timer && System::Time() - low_time > ir_timeout)

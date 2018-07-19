@@ -55,7 +55,7 @@ int main() {
 	St7735r lcd_(init_lcd());
 	lcd = &lcd_;
 	lcd->SetRegion(Lcd::Rect(0, 0, 160, 128));
-	lcd->Clear(Lcd::kWhite);
+	lcd->Clear(Lcd::kBlack);
 	LcdTypewriter writer_(init_writer());
 	writer = &writer_;
 	JyMcuBt106 comm_(init_comm());
@@ -70,8 +70,8 @@ int main() {
 	/////////var/////////////////
 	int start = 0;
 	irState = no;
-	std::list<point> a;
-	line = &a;
+//	std::list<point> a;
+//	line = &a;
 
 	if (m == word) {
 		lcd->SetRegion(Lcd::Rect(0, 0, 160, 15));

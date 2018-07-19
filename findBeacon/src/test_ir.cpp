@@ -72,6 +72,7 @@ int main() {
 	cam->Start();
 	Joystick::Config j_config;
 	j_config.id = 0;
+	j_config.is_active_low = true;
 	Joystick joyStick(j_config);
 	//////////////////PID init////////////////////
 	PID L_pid_(L_kp, L_ki, L_kd, 1000, -1000);
@@ -109,7 +110,7 @@ int main() {
 
 //	////////////////Main loop////////////////////////
 	while (1) {
-		if (tick != System::Time() && run) {
+		if (tick != System::Time()/* && run*/) {
 			tick = System::Time();
 			if (tick - pid_time >= 10) {
 				uint32_t time_diff = tick - pid_time;
@@ -145,14 +146,14 @@ int main() {
 				if (ir_target != NULL) {	//target find
 					led0->SetEnable(1);
 					not_find_time = 0;
-					BitConsts a;
-					Byte out[4];
-					bt->SendBuffer(&a.kSTART, 1);
-					sendInt(ir_target->area);
-					sendInt(ir_target->density);
-					bt->SendBuffer(&a.kEND, 1);
+//					BitConsts a;
+//					Byte out[4];
+//					bt->SendBuffer(&a.kSTART, 1);
+//					sendInt(ir_target->area);
+//					sendInt(ir_target->density);
+//					bt->SendBuffer(&a.kEND, 1);
 					last_beacon = ir_target->center;
-					if (!seen) {
+				if (!seen) {
 						seen = true;
 						Dir_pid->reset();
 					}
