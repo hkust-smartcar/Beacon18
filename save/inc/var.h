@@ -36,8 +36,9 @@ struct BeaconPackage {
 struct Record {
 	Beacon record;
 	uint8_t count = 0;
-	Record(Beacon record_) :
-			record(record_), count(1) {
+	uint8_t frame = 0;
+	Record(Beacon record_, uint8_t frame_no) :
+			record(record_), count(1), frame(frame_no) {
 	}
 };
 
@@ -68,7 +69,16 @@ enum rotate_state {
 	no, prepare, performing
 };
 enum state_ {
-	forward, chase, rotation, out, keep, avoid, approach, backward, stop,eixt_rotation
+	forward,
+	chase,
+	rotation,
+	out,
+	keep,
+	avoid,
+	approach,
+	backward,
+	stop,
+	eixt_rotation
 };
 
 int32_t chasing_speed = 200;
