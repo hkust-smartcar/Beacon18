@@ -233,10 +233,9 @@ int main(void)
 			writer->WriteString("star");
 			encoder1->Update();
 			encoder2->Update();
+			R_pid->reset();
+			L_pid->reset();
 			comm->SendStrLiteral("s");
-			L_pid->settarget(100);
-			R_pid->settarget(50);
-			aaction=rotations;
 		}
 		else if(menu.GetFlag()==false && run==true)
 		{
