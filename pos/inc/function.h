@@ -172,27 +172,27 @@ bool bt_listener(const Byte *data, const size_t size) {
 		R_motor->SetPower(0);
 		comm->SendStrLiteral("S");
 	}
-	if(data[0]==0x10)
-	{
-		if(run==false)
-		{
-			run = true;
-			led0->SetEnable(1);
-			comm->SendStrLiteral("s");
-			reset_pid();
-		}
-		else
-		{
-			run = false;
-			sendFloat(bMeter->GetVoltage());
-			led0->SetEnable(0);
-			L_pid->settarget(0);
-			R_pid->settarget(0);
-			L_motor->SetPower(0);
-			R_motor->SetPower(0);
-			comm->SendStrLiteral("S");
-		}
-	}
+//	if(data[0]==0x10)
+//	{
+//		if(run==false)
+//		{
+//			run = true;
+//			led0->SetEnable(1);
+//			comm->SendStrLiteral("s");
+//			reset_pid();
+//		}
+//		else
+//		{
+//			run = false;
+//			sendFloat(bMeter->GetVoltage());
+//			led0->SetEnable(0);
+//			L_pid->settarget(0);
+//			R_pid->settarget(0);
+//			L_motor->SetPower(0);
+//			R_motor->SetPower(0);
+//			comm->SendStrLiteral("S");
+//		}
+//	}
 
 //	if (data[0] == 'r') {
 //		BitConsts a;
