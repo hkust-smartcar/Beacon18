@@ -418,7 +418,7 @@ int main(void)
 				process_time = tick;
 
 ////crash///////////////////////////////////////////////////////
-				/*
+
 //				if(run==true && aaction!= sstate_::backwards && tick - o_target.received_time < 200 && tick-changeSpeedTime>=200 && (
 				if(run==true && aaction!= sstate_::backwards && tick-changeSpeedTime>=200 && (
 						(!(abs(L_pid->getTarget())<20) && (abs(L_count)<20))
@@ -427,7 +427,7 @@ int main(void)
 				{
 					if(aaction == sstate_::avoids)
 					{
-						moveCount(-30, sstate_::backwards, sstate_::forwards); //avoid again if seen obstacle
+						moveCount(-20, sstate_::backwards, sstate_::forwards); //avoid again if seen obstacle
 						aaction = backwards;
 					}
 //					else if(aaction == sstate_::rotations)
@@ -437,7 +437,7 @@ int main(void)
 //					}
 					else
 					{
-						moveCount(-30, sstate_::backwards, aaction);
+						moveCount(-20, sstate_::backwards, aaction);
 						aaction = backwards;
 					}
 					actionTarget(aaction);
@@ -480,7 +480,7 @@ int main(void)
 
 					continue;
 				}
-				*/
+
 ////crash end/////////////////////////////////
 
 ///null turn/////////////////
@@ -489,7 +489,7 @@ int main(void)
 				{
 					if(aaction == sstate_::avoids || aaction == sstate_::approachs)
 					{
-						moveCount(-30, sstate_::backwards, sstate_::forwards); //avoid again if seen obstacle
+						moveCount(-20, sstate_::backwards, sstate_::forwards); //avoid again if seen obstacle
 						aaction = backwards;
 					}
 
@@ -553,11 +553,11 @@ int main(void)
 
 								aaction = backwards;
 								if(x<CARX){
-									moveCount(-40, sstate_::backwards, sstate_::turnRights);
+									moveCount(-20, sstate_::backwards, sstate_::turnRights);
 								}
 								else
 								{
-									moveCount(-40, sstate_::backwards, sstate_::turnLefts);
+									moveCount(-20, sstate_::backwards, sstate_::turnLefts);
 								}
 								actionTarget(aaction);
 								pid(tick, pid_time);
@@ -589,7 +589,7 @@ int main(void)
 					{
 						//forward some distance before rotation
 						//moveCount(40, sstate_::forwards, sstate_::rotations);
-						moveCount(40, sstate_::forwards, sstate_::forwards);
+						moveCount(20, sstate_::forwards, sstate_::forwards);
 						aaction = forwards;
 						actionTarget(aaction);
 						finding_time = 0; //trigger rotations in not seen condition check
@@ -690,7 +690,7 @@ int main(void)
 
 						if(aaction!=backwards)
 						{
-							moveCount(-40, sstate_::backwards, sstate_::rotations);
+							moveCount(-20, sstate_::backwards, sstate_::rotations);
 							aaction = backwards;
 							actionTarget(aaction);
 							//pid(tick, pid_time);
