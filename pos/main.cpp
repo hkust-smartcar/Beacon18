@@ -508,6 +508,13 @@ int main(void)
 						ssend(aaction);
 					}
 
+					//update seen
+					if(seen)
+					{
+						seen = false;
+						max_area = 0;
+					}
+
 					continue;
 				}
 				else if(run==true && tick-changeSpeedTime<200)
