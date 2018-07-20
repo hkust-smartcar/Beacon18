@@ -23,16 +23,15 @@ public:
 	int32_t min;
 	//assume errorIgnore always positive
 	int32_t errorIgnore;
-	int32_t errorAcc;
 
 	PID() :
 			kP(0), kI(0), kD(0), errorSumBound(0), max(0), min(0), preError(0), errorSum(
-					0), last_time(0), target(0), errorIgnore(70),errorAcc(0) {
+					0), last_time(0), target(0), errorIgnore(70) {
 	}
 
 	PID(const float& p, const float& i, const float& d, int m_max, int m_min) :
 			kP(p), kI(i), kD(d), errorSumBound(0), max(m_max), min(m_min), preError(
-					0), errorSum(0), last_time(0), target(0), errorIgnore(70),errorAcc(0) {
+					0), errorSum(0), last_time(0), target(0), errorIgnore(70) {
 	}
 	void settarget(int32_t t) {
 		target = t;
@@ -67,33 +66,12 @@ public:
 	void reset() {
 		errorSum = 0;
 		preError = 0;
-		errorAcc = 0;
 		last_time = System::Time();
 	}
 
 	int32_t getErrorSum()
 	{
 		return errorSum;
-	}
-
-	int32_t getErrorAcc()
-	{
-		return errorAcc;
-	}
-
-	void resetAcc()
-	{
-		errorAcc=0;
-	}
-
-
-	bool getErrorFull()
-	{
-		if(abs(errorAcc) >= 5000)
-		{
-			return true;
-		}
-		return false;
 	}
 
 private:
@@ -109,14 +87,6 @@ private:
 			errorSum = -errorSumBound;
 		} else {
 			errorSum += e;
-		}
-
-		if ((errorAcc + e) > errorSumBound) {
-			errorAcc = errorSumBound;
-		} else if ((errorSum + e) < -errorSumBound) {
-			errorAcc = -errorSumBound;
-		} else {
-			errorAcc += e;
 		}
 	}
 
