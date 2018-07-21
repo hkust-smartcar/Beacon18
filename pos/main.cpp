@@ -316,6 +316,11 @@ int main(void)
 //pid////////////////////////////
 			if (tick - pid_time >= 10 && run==true) {
 				uint32_t time_diff = tick - pid_time;
+				if(tick-changeSpeedTime>=200 && aaction!=chases && L_pid->getIsAcc()==true)
+				{
+					L_pid->setIsAcc(false);
+					R_pid->setIsAcc(false);
+				}
 				encoder1->Update();
 				encoder2->Update();
 				L_count = encoder1->GetCount() * 50 / (int) time_diff;
@@ -1087,6 +1092,11 @@ void setAnglePower(const float& radAngle, const uint32_t& tick, uint32_t& pid_ti
 void pid(const uint32_t& tick, uint32_t& pid_time)
 {
 	uint32_t time_diff = tick - pid_time;
+	if(tick-changeSpeedTime>=200 && aaction!=chases && L_pid->getIsAcc()==true)
+	{
+		L_pid->setIsAcc(false);
+		R_pid->setIsAcc(false);
+	}
 	encoder1->Update();
 	encoder2->Update();
 	L_count = encoder1->GetCount() * 50 / (int) time_diff;
@@ -1155,6 +1165,12 @@ void actionTarget(const sstate_& taction)
 	if(accCount == true && taction!=accAction)
 	{
 		accCount = false;
+	}
+	if(L_pid->getIsAcc()==false && taction!=accAction)
+	{
+		L_pid->setIsAcc(true);
+		R_pid->setIsAcc(true);
+
 	}
 	switch(taction)
 	{
