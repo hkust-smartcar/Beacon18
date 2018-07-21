@@ -551,7 +551,7 @@ int main(void)
 
 					continue;
 				}
-				else if (aaction == sstate_:: rotations && tick-changeSpeedTime>=1000 && (
+				else if ((aaction == sstate_:: rotations||aaction == sstate_:: searchs) && tick-changeSpeedTime>=500 && (
 						(!(abs(L_pid->getTarget())<20) && (abs(L_count)<20))
 						|| (!(abs(R_pid->getTarget())<20) && (abs(R_count)<20))
 					))
