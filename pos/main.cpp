@@ -324,18 +324,18 @@ int main(void)
 				SetPower(R_pid->output(-R_count), 1);
 				pid_time = System::Time();
 
-				{
-					char temp[20] = { };
-					sprintf(temp, "al=%d ar=%d", aCountL,aCountR);
-					lcd->SetRegion(Lcd::Rect(0, 20, 128, 160));
-					writer->WriteString(temp);
-					sprintf(temp, "nl=%d", L_pid->getNumError());
-					lcd->SetRegion(Lcd::Rect(0, 40, 128, 160));
-					writer->WriteString(temp);
-					sprintf(temp, "nr=%d", R_pid->getNumError());
-					lcd->SetRegion(Lcd::Rect(0, 60, 128, 160));
-					writer->WriteString(temp);
-				}
+//				{
+//					char temp[20] = { };
+//					sprintf(temp, "al=%d ar=%d", aCountL,aCountR);
+//					lcd->SetRegion(Lcd::Rect(0, 20, 128, 160));
+//					writer->WriteString(temp);
+//					sprintf(temp, "nl=%d", L_pid->getNumError());
+//					lcd->SetRegion(Lcd::Rect(0, 40, 128, 160));
+//					writer->WriteString(temp);
+//					sprintf(temp, "nr=%d", R_pid->getNumError());
+//					lcd->SetRegion(Lcd::Rect(0, 60, 128, 160));
+//					writer->WriteString(temp);
+//				}
 
 				if(accCount ==true && firstAcc==true)
 				{
@@ -459,12 +459,12 @@ int main(void)
 				{
 					if(abs(L_count)>abs(R_count))
 					{
-						moveCount(50, sstate_::turnLefts, sstate_::forwards);
+						moveCount(30, sstate_::turnLefts, sstate_::forwards);
 						aaction = turnLefts;
 					}
 					else
 					{
-						moveCount(50, sstate_::turnRights, sstate_::forwards);
+						moveCount(30, sstate_::turnRights, sstate_::forwards);
 						aaction = turnRights;
 					}
 					actionTarget(aaction);
@@ -485,7 +485,7 @@ int main(void)
 
 ///null turn/////////////////
 				//else
-				if(run==true && tick-changeSpeedTime>=200 && (L_pid->getNumError()>crash_cycle || R_pid->getNumError()>crash_cycle) && aaction!=rotations)
+				if(run==true && tick-changeSpeedTime>=200 && (L_pid->getNumError()>crash_cycle || R_pid->getNumError()>crash_cycle) && aaction!=rotations && aaction!= searchs)
 				{
 					if(aaction == sstate_::avoids || aaction == sstate_::approachs)
 					{
