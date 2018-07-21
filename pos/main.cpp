@@ -298,7 +298,7 @@ int main(void)
     run = false;
     chasing_speed = 250;
     finding_speed = 200;
-    rotate_speed = 150;
+    rotate_speed = 100;
 
 	encoder1->Update();
 	encoder2->Update();
@@ -427,7 +427,7 @@ int main(void)
 				{
 					if(aaction == sstate_::avoids)
 					{
-						moveCount(-20, sstate_::backwards, sstate_::forwards); //avoid again if seen obstacle
+						moveCount(-30, sstate_::backwards, sstate_::forwards); //avoid again if seen obstacle
 						aaction = backwards;
 					}
 //					else if(aaction == sstate_::rotations)
@@ -437,7 +437,7 @@ int main(void)
 //					}
 					else
 					{
-						moveCount(-20, sstate_::backwards, aaction);
+						moveCount(-30, sstate_::backwards, aaction);
 						aaction = backwards;
 					}
 					actionTarget(aaction);
@@ -495,7 +495,7 @@ int main(void)
 
 					else if(aaction!= sstate_::backwards && ((L_pid->getNumError()>crash_cycle && L_pid->getTarget()>0)|| (R_pid->getNumError()>crash_cycle && R_pid->getTarget()>0)))
 					{
-						moveCount(-20, sstate_::backwards, aaction);
+						moveCount(-30, sstate_::backwards, aaction);
 						aaction = backwards;
 						actionTarget(aaction);
 						ssend(aaction);
@@ -517,7 +517,10 @@ int main(void)
 
 					continue;
 				}
-				else if (aaction!= sstate_:: rotations && tick-changeSpeedTime>=1000)
+				else if (aaction == sstate_:: rotations && tick-changeSpeedTime>=1000 && (
+						(!(abs(L_pid->getTarget())<20) && (abs(L_count)<20))
+						|| (!(abs(R_pid->getTarget())<20) && (abs(R_count)<20))
+					))
 				{
 					if(abs(L_count)>abs(R_count))
 					{
