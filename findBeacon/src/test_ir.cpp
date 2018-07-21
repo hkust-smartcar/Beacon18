@@ -112,17 +112,7 @@ int main() {
 	while (1) {
 		if (tick != System::Time()/* && run*/) {
 			tick = System::Time();
-			if (tick - pid_time >= 10) {
-				uint32_t time_diff = tick - pid_time;
-				encoder1->Update();
-				encoder2->Update();
-				L_count = encoder1->GetCount() * 50 / (int) time_diff;
-				R_count = encoder2->GetCount() * 50 / (int) time_diff;
-				SetPower(L_pid->output(L_count), 0);
-				SetPower(R_pid->output(-R_count), 1);
-				pid_time = System::Time();
-			}
-//			if (tick - pid_time >=30) {
+//			if (tick - pid_time >=50) {
 //				pid_time = System::Time();
 //				buf = cam->LockBuffer();
 //				lcd->SetRegion(Lcd::Rect(0, 0, 80, 60));
@@ -141,19 +131,29 @@ int main() {
 
 			if (tick - process_time >= 30) {
 				process_time = tick;
+//				lcd->SetRegion(Lcd::Rect(0, 0, 80, 60));
+//				lcd->FillColor(Lcd::kBlack);
+//				for (uint16_t y = 0; y < height; y += 4)
+//					for (uint16_t x = 0; x < width; x += 4) {
+//						uint16_t pos = (width * y) / 8 + x / 8;
+//						uint16_t bit_pos = 8 - (x % 8 + 1);
+//						if (!GET_BIT(buf[pos], bit_pos)) {
+//							lcd->SetRegion(Lcd::Rect(x / 4, y / 4, 1, 1));
+//							lcd->FillColor(Lcd::kWhite);
+//						}
+//					}
 				process();
 				tick = System::Time();
+//				for(int i = 0 ; i < beacon_count ; i++){
+//					auto c = beacons[i].center;
+//					lcd->SetRegion(Lcd::Rect(c.first / 4,c.second /4,5,5));
+//					lcd->FillColor(Lcd::kBlue);
+//				}
 				if (ir_target != NULL) {	//target find
 					led0->SetEnable(1);
 					not_find_time = 0;
-//					BitConsts a;
-//					Byte out[4];
-//					bt->SendBuffer(&a.kSTART, 1);
-//					sendInt(ir_target->area);
-//					sendInt(ir_target->density);
-//					bt->SendBuffer(&a.kEND, 1);
 					last_beacon = ir_target->center;
-				if (!seen) {
+					if (!seen) {
 						seen = true;
 						Dir_pid->reset();
 					}

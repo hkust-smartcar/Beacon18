@@ -1,1 +1,1 @@
- forward, chase, rotation, out, keep, avoid, approach, backward, stop
+forwards, chases, rotations, turnRights, turnLefts, searchs, avoids, approachs, backwards, stops

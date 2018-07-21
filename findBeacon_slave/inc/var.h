@@ -71,10 +71,10 @@ struct point {
 	}
 };
 
-Beacon avoid_region_up(65, 130, 0, 15);
+Beacon avoid_region_up(65, 125, 0, 15);
 Beacon avoid_region_left(0, 20, 30, 120);	//left
 Beacon avoid_region_right(159, 189, 30, 120);	//right
-Beacon no_scan(70, 120, 80, 120);	//car head
+Beacon no_scan(65, 125, 80, 120);	//car head
 
 bool run = false;
 const Byte* buf = NULL;

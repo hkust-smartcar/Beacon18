@@ -84,21 +84,13 @@ inline bool check_near(const point p1, const point p2) {
 	return sqrt(pow(p1.x - p2.x, 2) + pow(p1.y - p2.y, 2)) < near_dist;
 }
 
-inline uint8_t check_dist(const point p1, const point p2) {
-	return sqrt(pow(p1.x - p2.x, 2) + pow(p1.y - p2.y, 2));
-}
-
-inline bool check_in_middle() {
-	auto x = o_record->center.first;
-	auto y = o_record->center.second;
-//	if ((x > avoid_region_left.right_x && x < avoid_region_right.left_x
-//			&& y > avoid_region_up.lower_y)
-//			|| (x < avoid_region_up.right_x && x > avoid_region_up.left_x
-//					&& y < avoid_region_up.lower_y))
-	if (y < no_scan.upper_y && x > no_scan.left_x && x < no_scan.right_x)
-		return true;
-	return false;
-}
+//inline bool check_in_middle() {
+//	auto x = o_record->center.first;
+//	auto y = o_record->center.second;
+//	if (y < no_scan.upper_y && x > no_scan.left_x && x < no_scan.right_x)
+//		return true;
+//	return false;
+//}
 
 std::list<point> edges;
 inline bool check_valid(std::list<point>::iterator it) {
@@ -165,25 +157,20 @@ void check_beacon_edge(Beacon& temp, scan_mode mode) {
 		}
 		for (uint8_t y = y_start; y < y_bound; y += scan_size) {
 			for (uint8_t x = x_start; x < x_bound; x += scan_size)
-				if (cal_sobel(x, y) > sobel_value) {
-					point p(x, y);
-					edges.push_back(p);
-				}
+				if (cal_sobel(x, y) > sobel_value)
+					edges.push_back(point(x, y));
 			if (edges.size() > 150)
 				break;
 		}
 	} else {
-		uint16_t x_start = no_scan.left_x;
-		uint16_t x_bound = no_scan.right_x;
+		uint16_t x_start = no_scan.left_x - 10;
+		uint16_t x_bound = no_scan.right_x + 10;
 		uint16_t y_start = 0;
 		uint16_t y_bound = no_scan.upper_y;
 		for (uint8_t y = y_start; y < y_bound; y += 3) {
-			for (uint8_t x = x_start; x < x_bound; x += 3) {
-				if (cal_sobel(x, y) > sobel_value) {
-					point p(x, y);
-					edges.push_back(p);
-				}
-			}
+			for (uint8_t x = x_start; x < x_bound; x += 3)
+				if (cal_sobel(x, y) > sobel_value)
+					edges.push_back(point(x, y));
 			if (edges.size() > 150)
 				break;
 		}
@@ -280,186 +267,6 @@ bool check_same(Beacon t) {
 	}
 	return false;
 }
-
-//bool search(int &x, int &y, std::list<point>::iterator begin,
-//		std::list<point>::iterator end, dir Dir) {
-//	int x_move = 0;
-//	int y_move = 0;
-//	point *p = NULL;
-//	auto it = --end;
-//	int start;
-//	point p_(0, 0);
-//	switch (Dir) {
-//	case w:
-//		start = 1;
-//		break;
-//	case a:
-//		start = 7;
-//		break;
-//	case s:
-//		start = 5;
-//		break;
-//	case d:
-//		start = 3;
-//		break;
-//	}
-//	if (it != begin)
-//		--it;
-//	for (int i = 1; i < 4; i++) {
-//		if (check_dist(point(x, y), *it) == i) {
-//			p = &p_;
-//			*p = *it;
-//			if (it != begin)
-//				--it;
-//		} else
-//			p = NULL;
-//		int t = start;
-//		int m_x;
-//		int m_y;
-//		while (1) {
-//			if (t > 7)
-//				t = 0;
-//			switch (t) {
-//			case 0:
-//				x_move = -i;
-//				y_move = 0;
-//				break;
-//			case 1:
-//				x_move = -i;
-//				y_move = -i;
-//				break;
-//			case 2:
-//				x_move = 0;
-//				y_move = -i;
-//				break;
-//			case 3:
-//				x_move = i;
-//				y_move = -i;
-//				break;
-//			case 4:
-//				x_move = i;
-//				y_move = 0;
-//				break;
-//			case 5:
-//				x_move = i;
-//				y_move = i;
-//				break;
-//			case 6:
-//				x_move = 0;
-//				y_move = i;
-//				break;
-//			case 7:
-//				x_move = -i;
-//				y_move = i;
-//				break;
-//			default:
-//				x_move = 0;
-//				y_move = 0;
-//			}
-//			m_x = x + x_move;
-//			m_y = y + y_move;
-//			if (m_x > width - 2 || m_x < 0 || m_y > height - 2 || m_y < 0)
-//				;
-//			else if (cal_sobel(m_x, m_y) > sobel_value) {
-//				if (p != NULL && m_x == p->x && m_y == p->y) {
-//
-//				} else {
-//					x = m_x;
-//					y = m_y;
-//					return true;
-//				}
-//			}
-//			if (++t == start)
-//				break;
-//		}
-//	}
-//	return false;
-//}
-//
-//inline bool check_near_boarder(const int x, const int y,
-//		const uint8_t boarder_offset) {
-//	if (x < boarder_offset || x > width - boarder_offset)
-//		return true;
-//	if (y < boarder_offset || y > height - boarder_offset)
-//		return true;
-//	return false;
-//}
-//
-////	std::list<regression_line> lines;
-//std::list<point> find_boarder() {
-//	std::list<point> line_;
-//	int* search_ptr = NULL;
-//	int x;
-//	int y;
-//	int bound;
-//	int act;
-//	dir Dir;
-//	const int8_t boarder_offset = 2;
-//	for (int side = 0; side < 1; side++) { // 0 lower left, 1 lower right, 2 left,3,right, 4up
-//		switch (side) {
-//		case 0:
-//			x = 0;
-//			bound = no_scan.left_x;
-//			y = height - boarder_offset;
-//			search_ptr = &x;
-//			act = 1;
-//			Dir = w;
-//			break;
-//		case 1:
-//			x = no_scan.right_x;
-//			bound = width;
-//			y = height - boarder_offset;
-//			search_ptr = &x;
-//			act = 1;
-//			Dir = w;
-//			break;
-//		case 2:
-//			x = boarder_offset;
-//			bound = 0;
-//			y = height - boarder_offset;
-//			search_ptr = &y;
-//			act = -1;
-//			Dir = d;
-//			break;
-//		case 3:
-//			x = width - boarder_offset;
-//			bound = 0;
-//			y = height - boarder_offset;
-//			search_ptr = &y;
-//			act = -1;
-//			Dir = a;
-//			break;
-//		case 4:
-//			x = 0;
-//			bound = width;
-//			y = boarder_offset;
-//			search_ptr = &x;
-//			act = 1;
-//			Dir = s;
-//			break;
-//		}
-//		for (; act < 0 ? *search_ptr > bound : *search_ptr < bound;
-//				*search_ptr += act)
-//			if (cal_sobel(x, y) > sobel_value) {	//edge find
-//				line->push_back(point(x, y));
-//				int moving_y = y;
-//				int m_x = x;
-//				while (search(m_x, moving_y, line->begin(), line->end(), Dir)) {//search for line_
-//					line->push_back(point(m_x, moving_y));
-//					if (m_x < 160) {
-//						lcd->SetRegion(Lcd::Rect(m_x, moving_y, 1, 1));
-//						lcd->FillColor(Lcd::kBlue);
-//					}
-//					if (line->size() > 40
-//							&& check_near_boarder(m_x, moving_y, 15))
-//						return line_;
-//				}
-//				*search_ptr += act * 10;
-//				line->clear();
-//			}
-//	}
-//	return line_;
-//}
 
 // 0 lower left, 1 lower right, 2 left,3,right, 4up
 inline bool check_near_boarder(const uint8_t boarder_offset, int dir) {
@@ -698,22 +505,6 @@ void find_boarder() {
 void process() {
 	buf = cam->LockBuffer();
 //	find_boarder();
-//	if (!(begin.x == 0 && end.x == 0)) {
-//		char data[20] = { };
-//		lcd->SetRegion(Lcd::Rect(0, 0, 160, 15));
-//		sprintf(data, "%d , %d", begin.x, begin.y);
-//		writer->WriteBuffer(data, 20);
-//		lcd->SetRegion(Lcd::Rect(0, 15, 160, 15));
-//		sprintf(data, "%d , %d", end.x, end.y);
-//		writer->WriteBuffer(data, 20);
-//		lcd->SetRegion(Lcd::Rect(0, 30, 160, 15));
-//		sprintf(data, "%d", (begin.y - end.y) / ( begin.x - end.x));
-//		writer->WriteBuffer(data, 20);
-//		return;
-//	} else {
-//		lcd->SetRegion(Lcd::Rect(0, 0, 160, 15));
-//		writer->WriteString("No");
-//	}
 //	if (line->size() > 0) {
 //		auto first = line->begin();
 //		auto last = --line->end();
@@ -766,7 +557,7 @@ void process() {
 		timer_switch(false);
 	}
 
-	if (System::Time() - full_screen_check > 250 && !check_in_middle()) {
+	if (System::Time() - full_screen_check > 250) {
 		full_screen_check = System::Time();
 		check_beacon_edge(temp, scan_mode::full_screen);
 		if (temp.area > min_area) {

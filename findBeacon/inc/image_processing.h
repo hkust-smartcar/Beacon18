@@ -21,9 +21,9 @@ const uint16_t critical_density = 65;
 const uint8_t max_beacon = 30;
 const uint8_t frame = 15;
 const uint8_t min_frame = 3;
-const uint8_t near_dist = 50;
+const uint8_t near_dist = 25;
 const uint32_t timeout = 50;
-const uint8_t error = 60;
+const uint8_t error = 10;
 uint8_t frame_count = 0;
 std::list<Record> center_record;
 Beacon beacons[max_beacon];
@@ -142,17 +142,16 @@ inline void scan(uint16_t m_pos, int8_t m_bit_pos, int mode) {
 	}
 
 	ptr->calc();
-	if (ptr->count > min_size && ptr->density > critical_density) {
-		int i = 0;
-		for (; i < beacon_count; i++) {
-			auto a = ptr->center;
-			auto b = beacons[i].center;
-			if (a.first == b.first && a.second == b.second)
-				break;
-		}
-		if (i == beacon_count)
-			beacon_count++;
-	}
+	beacon_count++;
+//	int i = 0;
+//	for (; i < beacon_count; i++) {
+//		auto a = ptr->center;
+//		auto b = beacons[i].center;
+//		if (a.first == b.first && a.second == b.second)
+//			break;
+//	}
+//	if (i == beacon_count)
+//		beacon_count++;
 }
 
 void add_record() {
@@ -162,12 +161,15 @@ void add_record() {
 	}
 	++frame_count;
 	for (int i = 0; i < beacon_count; i++) {
+		if (beacons[i].count < min_size || beacons[i].density < critical_density)
+			continue;
 		bool add = false;
 		for (auto it = center_record.begin(); it != center_record.end(); ++it)
 			if (abs(it->record.center.first - beacons[i].center.first)
 					< near_dist) {
 				add = true;
-				if (++it->count > min_frame && it->count + it->frame < frame_count - 2) {
+				if (++it->count > min_frame
+						&& it->count + it->frame < frame_count - 2) {
 					ir_target = &it->record;
 					frame_count = 0;
 					return;
@@ -176,7 +178,7 @@ void add_record() {
 				break;
 			}
 		if (!add)
-			center_record.push_back(Record(beacons[i],frame_count));
+			center_record.push_back(Record(beacons[i], frame_count));
 	}
 }
 
