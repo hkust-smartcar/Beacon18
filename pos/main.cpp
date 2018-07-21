@@ -484,7 +484,7 @@ int main(void)
 ////crash end/////////////////////////////////
 
 ///null turn/////////////////
-				//else
+				else
 				if(run==true && tick-changeSpeedTime>=200 && (L_pid->getNumError()>crash_cycle || R_pid->getNumError()>crash_cycle) && aaction!=rotations && aaction!= searchs)
 				{
 					if(aaction == sstate_::avoids || aaction == sstate_::approachs)
@@ -516,6 +516,19 @@ int main(void)
 					}
 
 					continue;
+				}
+				else if (aaction!= sstate_:: rotations && tick-changeSpeedTime>=1000)
+				{
+					if(abs(L_count)>abs(R_count))
+					{
+						moveCount(30, sstate_::backwards, sstate_::turnLefts);
+						aaction = backwards;
+					}
+					else
+					{
+						moveCount(30, sstate_::backwards, sstate_::turnRights);
+						aaction = backwards;
+					}
 				}
 				else if(run==true && tick-changeSpeedTime<200)
 				{
