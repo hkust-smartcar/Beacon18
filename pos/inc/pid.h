@@ -54,11 +54,11 @@ public:
 		uint32_t time_diff = System::Time() - last_time;
 		int32_t error = target - current;
 
-		if(isAcc && System::Time() -changeTime>200)
-		{
-			isAcc = false;
-			errorAcc = 0;
-		}
+//		if(isAcc && System::Time() -changeTime>200)
+//		{
+//			isAcc = false;
+//			errorAcc = 0;
+//		}
 
 
 		accuError(error);
@@ -107,7 +107,7 @@ public:
 		preError = error;
 		last_time = System::Time();
 		//assume errorIgnore always positive
-		if(abs(error)>errorIgnore)
+		if(!isAcc && abs(error)>errorIgnore)
 		{
 			delError(error);
 		}
@@ -140,36 +140,36 @@ public:
 //		return errorAcc;
 //	}
 
-//	int32_t getIsAcc()
-//	{
-//		return isAcc;
-//	}
-//
-//	void setIsAcc(bool f)
-//	{
-//		if(f==true && isAcc==false)
-//		{
-//			isAcc = f;
-//			errorAcc=0;
-//		}
-//		else if(f==false && isAcc==true)
-//		{
-//			isAcc = f;
-//			errorAcc=0;
-//		}
-//
-//	}
+	int32_t getIsAcc()
+	{
+		return isAcc;
+	}
+
+	void setIsAcc(bool f)
+	{
+		if(f==true && isAcc==false)
+		{
+			isAcc = true;
+			errorAcc=0;
+		}
+		else if(f==false && isAcc==true)
+		{
+			isAcc = false;
+			errorAcc=0;
+		}
+
+	}
 
 	void setIsCount(bool f)
 	{
 		if(f==true && isCount==false)
 		{
-			isCount = f;
+			isCount = true;
 			numOfLower= 0;
 		}
 		else if(f==false && isCount==true)
 		{
-			isCount = f;
+			isCount = false;
 			numOfLower= 0;
 		}
 	}
@@ -200,14 +200,6 @@ private:
 	bool isCount;
 
 	void accuError(const int32_t& e) {
-		//assume errorSumBound always positive
-		if ((errorSum + e) > errorSumBound) {
-			errorSum = errorSumBound;
-		} else if ((errorSum + e) < -errorSumBound) {
-			errorSum = -errorSumBound;
-		} else {
-			errorSum += e;
-		}
 
 		if(isAcc)
 		{
@@ -217,6 +209,17 @@ private:
 				errorAcc = -errorSumBound;
 			} else {
 				errorAcc += e;
+			}
+		}
+		else
+		{
+			//assume errorSumBound always positive
+			if ((errorSum + e) > errorSumBound) {
+				errorSum = errorSumBound;
+			} else if ((errorSum + e) < -errorSumBound) {
+				errorSum = -errorSumBound;
+			} else {
+				errorSum += e;
 			}
 		}
 	}
