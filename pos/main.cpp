@@ -137,6 +137,7 @@ const int16_t A_Y = 70;
 int32_t L_count = 0;
 int32_t R_count = 0;
 const uint16_t crash_cycle=15;
+bool atom = false;
 
 //move
 int32_t aCountL = 0;
@@ -289,8 +290,6 @@ int main(void)
     uint32_t finding_time = 0;
 
     bool irSeen = false;
-
-    bool atom = false;
 ////////////////////////////////////////////
 
 //set//////////////////////////////////////
@@ -374,6 +373,11 @@ int main(void)
 							if(aCountL>=accDis || aCountR<= - (accDis))
 							{
 								accCount = false;
+								if(aaction==chases)
+								{
+									L_pid->reset();
+									R_pid->reset();
+								}
 								aaction = actionAfterMove;
 								actionTarget(actionAfterMove);
 
@@ -386,6 +390,11 @@ int main(void)
 							if(aCountL<=accDis || aCountR>= abs (accDis))
 							{
 								accCount = false;
+								if(aaction==chases)
+								{
+									L_pid->reset();
+									R_pid->reset();
+								}
 								aaction = actionAfterMove;
 								actionTarget(actionAfterMove);
 
@@ -408,7 +417,12 @@ int main(void)
 			{
 				if(aaction != stops)
 				{
-					aaction ==stops;
+					if(aaction==chases)
+					{
+						L_pid->reset();
+						R_pid->reset();
+					}
+					aaction = stops;
 					encoder1->Update();
 					encoder2->Update();
 				}
@@ -442,6 +456,11 @@ int main(void)
 //					}
 					else
 					{
+						if(aaction==chases)
+						{
+							L_pid->reset();
+							R_pid->reset();
+						}
 						moveCount(-30, sstate_::backwards, aaction);
 						aaction = backwards;
 					}
@@ -500,6 +519,11 @@ int main(void)
 
 					else if(aaction!= sstate_::backwards && ((L_pid->getNumError()>crash_cycle && L_pid->getTarget()>0)|| (R_pid->getNumError()>crash_cycle && R_pid->getTarget()<0)))
 					{
+						if(aaction==chases)
+						{
+							L_pid->reset();
+							R_pid->reset();
+						}
 						moveCount(-30, sstate_::backwards, aaction);
 						aaction = backwards;
 						actionTarget(aaction);
@@ -507,6 +531,11 @@ int main(void)
 					}
 					else if(aaction!= sstate_::forwards && ((L_pid->getNumError()>crash_cycle && L_pid->getTarget()<0)|| (R_pid->getNumError()>crash_cycle && R_pid->getTarget()>0)))
 					{
+						if(aaction==chases)
+						{
+							L_pid->reset();
+							R_pid->reset();
+						}
 						moveCount(20, sstate_::forwards, aaction);
 						aaction = forwards;
 						actionTarget(aaction);
@@ -527,16 +556,17 @@ int main(void)
 						|| (!(abs(R_pid->getTarget())<20) && (abs(R_count)<20))
 					))
 				{
-					if(abs(L_count)>abs(R_count))
+//					if(abs(L_count)>abs(R_count))
 					{
 						moveCount(30, sstate_::backwards, sstate_::turnLefts);
 						aaction = backwards;
 					}
-					else
-					{
-						moveCount(30, sstate_::backwards, sstate_::turnRights);
-						aaction = backwards;
-					}
+//					else
+//					{
+//						moveCount(30, sstate_::backwards, sstate_::turnRights);
+//						aaction = backwards;
+//					}
+					actionTarget(aaction);
 				}
 				else if(run==true && tick-changeSpeedTime<200)
 				{
@@ -571,7 +601,11 @@ int main(void)
 						if (y> 60){
 							if(aaction!=backwards)
 							{
-
+								if(aaction==chases)
+								{
+									L_pid->reset();
+									R_pid->reset();
+								}
 								aaction = backwards;
 								if(x<CARX){
 									moveCount(-20, sstate_::backwards, sstate_::turnRights);
@@ -587,6 +621,11 @@ int main(void)
 						}
 						else
 						{
+							if(aaction==chases)
+							{
+								L_pid->reset();
+								R_pid->reset();
+							}
 							setAnglePower(BeaconAvoidAngleCalculate(x, y), tick, pid_time);
 							//avoid_past_time = System::Time();
 							aaction = avoids;
@@ -655,6 +694,11 @@ int main(void)
 //					}
 //					else
 					{
+						if(aaction==chases)
+						{
+							L_pid->reset();
+							R_pid->reset();
+						}
 						setAnglePower(BeaconApproachAngleCalculate(x, y), tick, pid_time);
 						aaction = approachs;
 						changeSpeedTime = System::Time();
@@ -711,6 +755,11 @@ int main(void)
 
 						if(aaction!=backwards)
 						{
+							if(aaction==chases)
+							{
+								L_pid->reset();
+								R_pid->reset();
+							}
 							moveCount(-20, sstate_::backwards, sstate_::rotations);
 							aaction = backwards;
 							actionTarget(aaction);
@@ -726,6 +775,11 @@ int main(void)
 					led1->SetEnable(0);
 					if (finding_time == 0 && aaction!=sstate_::forwards)
 					{
+						if(aaction==chases)
+						{
+							L_pid->reset();
+							R_pid->reset();
+						}
 						moveCount(30, sstate_::forwards, sstate_::rotations);
 						aaction = forwards;
 						actionTarget(aaction);
@@ -1105,6 +1159,19 @@ void pid(const uint32_t& tick, uint32_t& pid_time)
 	SetPower(R_pid->output(-R_count), 1);
 	pid_time = System::Time();
 
+//				{
+//					char temp[20] = { };
+//					sprintf(temp, "al=%d ar=%d", aCountL,aCountR);
+//					lcd->SetRegion(Lcd::Rect(0, 20, 128, 160));
+//					writer->WriteString(temp);
+//					sprintf(temp, "nl=%d", L_pid->getNumError());
+//					lcd->SetRegion(Lcd::Rect(0, 40, 128, 160));
+//					writer->WriteString(temp);
+//					sprintf(temp, "nr=%d", R_pid->getNumError());
+//					lcd->SetRegion(Lcd::Rect(0, 60, 128, 160));
+//					writer->WriteString(temp);
+//				}
+
 	if(accCount ==true && firstAcc==true)
 	{
 		firstAcc=false;
@@ -1119,7 +1186,7 @@ void pid(const uint32_t& tick, uint32_t& pid_time)
 	//move dis
 	if(accCount == true && firstAcc==false)
 	{
-//					{
+		{
 //						char temp[20] = { };
 //						sprintf(temp, "al=%d ar=%d", aCountL,aCountR);
 //						lcd->SetRegion(Lcd::Rect(0, 20, 128, 160));
@@ -1127,7 +1194,7 @@ void pid(const uint32_t& tick, uint32_t& pid_time)
 //						sprintf(temp, "dis=%d", accDis);
 //						lcd->SetRegion(Lcd::Rect(0, 40, 128, 160));
 //						writer->WriteString(temp);
-//					}
+		}
 		if(accAction == aaction)
 		{
 			ssend(accAction);
@@ -1137,8 +1204,15 @@ void pid(const uint32_t& tick, uint32_t& pid_time)
 				if(aCountL>=accDis || aCountR<= - (accDis))
 				{
 					accCount = false;
+					if(aaction==chases)
+					{
+						L_pid->reset();
+						R_pid->reset();
+					}
 					aaction = actionAfterMove;
 					actionTarget(actionAfterMove);
+
+					atom = false;
 				}
 			}
 			//move backward
@@ -1147,8 +1221,15 @@ void pid(const uint32_t& tick, uint32_t& pid_time)
 				if(aCountL<=accDis || aCountR>= abs (accDis))
 				{
 					accCount = false;
+					if(aaction==chases)
+					{
+						L_pid->reset();
+						R_pid->reset();
+					}
 					aaction = actionAfterMove;
 					actionTarget(actionAfterMove);
+
+					atom = false;
 				}
 			}
 		}
@@ -1156,8 +1237,10 @@ void pid(const uint32_t& tick, uint32_t& pid_time)
 		else
 		{
 			accCount = false;
+			atom = false;
 		}
 	}
+
 }
 
 void actionTarget(const sstate_& taction)
