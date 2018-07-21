@@ -160,6 +160,12 @@ public:
 
 	}
 
+	void resetAcc()
+	{
+		isAcc = false;
+		errorAcc=0;
+	}
+
 	void setIsCount(bool f)
 	{
 		if(f==true && isCount==false)
@@ -172,12 +178,6 @@ public:
 			isCount = false;
 			numOfLower= 0;
 		}
-	}
-
-	void resetAcc()
-	{
-		errorAcc=0;
-
 	}
 
 
