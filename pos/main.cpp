@@ -423,7 +423,7 @@ int main(void)
 				if(run==true && aaction!= sstate_::backwards && tick-changeSpeedTime>=200 && (
 						(!(abs(L_pid->getTarget())<20) && (abs(L_count)<20))
 						|| (!(abs(R_pid->getTarget())<20) && (abs(R_count)<20))
-					))
+					)  && aaction!=rotations && aaction!= searchs)
 				{
 					if(aaction == sstate_::avoids)
 					{
@@ -455,7 +455,7 @@ int main(void)
 				else if(run==true && aaction==sstate_::backwards && tick-changeSpeedTime>=200 && (
 						(!(abs(L_pid->getTarget())<20) && (abs(L_count)<20))
 						|| (!(abs(R_pid->getTarget())<20) && (abs(R_count)<20))
-					))
+					)  && aaction!=rotations && aaction!= searchs)
 				{
 					if(abs(L_count)>abs(R_count))
 					{
