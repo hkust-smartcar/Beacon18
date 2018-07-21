@@ -53,8 +53,8 @@ using namespace libbase::k60;
 
 
 enum sstate_ {
-	//0       1           2            3         4      5           6   7          8          9
-	forwards, chases, rotations, turnRights, turnLefts, searchs, avoids, approachs, backwards, stops
+	//0       1           2            3         4      5           6   7          8          9      10
+	forwards, chases, rotations, turnRights, turnLefts, keeps, avoids, approachs, backwards, stops, searchs
 };
 
 bool printLCD = false;
@@ -296,8 +296,8 @@ int main(void)
 //set//////////////////////////////////////
 
     run = false;
-    chasing_speed = 250;
-    finding_speed = 200;
+    chasing_speed = 370;
+    finding_speed = 300;
     rotate_speed = 100;
 
 	encoder1->Update();
@@ -498,14 +498,14 @@ int main(void)
 						aaction = backwards;
 					}
 
-					else if(aaction!= sstate_::backwards && ((L_pid->getNumError()>crash_cycle && L_pid->getTarget()>0)|| (R_pid->getNumError()>crash_cycle && R_pid->getTarget()>0)))
+					else if(aaction!= sstate_::backwards && ((L_pid->getNumError()>crash_cycle && L_pid->getTarget()>0)|| (R_pid->getNumError()>crash_cycle && R_pid->getTarget()<0)))
 					{
 						moveCount(-30, sstate_::backwards, aaction);
 						aaction = backwards;
 						actionTarget(aaction);
 						ssend(aaction);
 					}
-					else if(aaction!= sstate_::forwards && ((L_pid->getNumError()>crash_cycle && L_pid->getTarget()<0)|| (R_pid->getNumError()>crash_cycle && R_pid->getTarget()<0)))
+					else if(aaction!= sstate_::forwards && ((L_pid->getNumError()>crash_cycle && L_pid->getTarget()<0)|| (R_pid->getNumError()>crash_cycle && R_pid->getTarget()>0)))
 					{
 						moveCount(20, sstate_::forwards, aaction);
 						aaction = forwards;
