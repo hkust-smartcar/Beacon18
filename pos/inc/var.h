@@ -19,6 +19,7 @@
 #include "libsc/alternate_motor.h"
 #include "libutil/incremental_pid_controller.h"
 #include "pid.h"
+#include "motor_pid.h"
 #include "libbase/k60/pit.h"
 #include "libutil/misc.h"
 
@@ -148,8 +149,8 @@ AlternateMotor *R_motor = NULL;
 DirEncoder* encoder1 = NULL;
 DirEncoder* encoder2 = NULL;
 BatteryMeter* bMeter = NULL;
-PID* L_pid = NULL;
-PID* R_pid = NULL;
+Motor_PID* L_pid = NULL;
+Motor_PID* R_pid = NULL;
 PID* Dir_pid = NULL;
 PID* avoid_pid = NULL;
 
