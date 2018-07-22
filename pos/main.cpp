@@ -588,7 +588,7 @@ int main(void)
 //null turn end//////////////////
 
 //otarget/////////////////////////////
-				if (tick - o_target.received_time < 200 && o_target.target->center.first > 40 && o_target.target->center.first < 170 && aaction!=sstate_::rotations && aaction!=searchs && aaction!=backwards) {
+				if (tick - o_target.received_time < 200 && o_target.target->center.first > 40 && o_target.target->center.first < 170 && aaction!=sstate_::rotations && aaction!=searchs && aaction!=backwards && aaction!=chases) {
 					uint16_t x = o_target.target->center.first;
 					uint16_t y = o_target.target->center.second;
 					led0->SetEnable(true);
@@ -761,19 +761,37 @@ int main(void)
 						irSeen = false;
 						max_area = 0;
 
-						if(aaction!=backwards)
+						if(Dir_pid->getTarget()>0)
 						{
-							if(aaction==chases)
+							if(aaction!=turnLefts)
 							{
-								Dir_pid->reset();
-								L_pid->reset();
-								R_pid->reset();
+								moveCount(30, sstate_::turnLefts, turnRights);
+								aaction = turnLefts;
 							}
-							moveCount(-20, sstate_::backwards, sstate_::rotations);
-							aaction = backwards;
-							actionTarget(aaction);
-							//pid(tick, pid_time);
 						}
+						else
+						{
+							if(aaction!=turnRights)
+							{
+								moveCount(30, sstate_::turnRights, turnLefts);
+								aaction = turnRights;
+							}
+						}
+
+
+//						if(aaction!=backwards)
+//						{
+//							if(aaction==chases)
+//							{
+//								Dir_pid->reset();
+//								L_pid->reset();
+//								R_pid->reset();
+//							}
+//							moveCount(-20, sstate_::backwards, sstate_::rotations);
+//							aaction = backwards;
+//							actionTarget(aaction);
+//							//pid(tick, pid_time);
+//						}
 
 					}
 				}
