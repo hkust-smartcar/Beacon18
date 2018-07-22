@@ -1254,7 +1254,7 @@ void actionTarget(const sstate_& taction)
 		L_pid->setIsCount(false);
 		R_pid->setIsCount(false);
 	}
-	if(L_pid->getIsAcc()==false && taction!=accAction)
+	if(L_pid->getIsAcc()==false && taction!=accAction && (aaction == chases||aaction==rotations))
 	{
 		L_pid->setIsAcc(true);
 		R_pid->setIsAcc(true);
