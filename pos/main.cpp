@@ -379,7 +379,7 @@ int main(void)
 					}
 				}
 
-				if(tick-changeSpeedTime>=200 && aaction!=chases && L_pid->getIsAcc()==true)
+				if(tick-changeSpeedTime>=200 && aaction!=chases && aaction!=rotations && L_pid->getIsAcc()==true)
 				{
 					L_pid->setIsAcc(false);
 					R_pid->setIsAcc(false);
@@ -1238,7 +1238,7 @@ void pid(const uint32_t& tick, uint32_t& pid_time)
 		}
 	}
 
-	if(tick-changeSpeedTime>=200 && aaction!=chases && L_pid->getIsAcc()==true)
+	if(tick-changeSpeedTime>=200 && aaction!=chases && aaction!= rotations && L_pid->getIsAcc()==true)
 	{
 		L_pid->setIsAcc(false);
 		R_pid->setIsAcc(false);
