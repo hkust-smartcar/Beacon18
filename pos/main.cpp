@@ -284,7 +284,7 @@ int main(void)
 
 	//time
     uint32_t process_time = 0;
-    //uint32_t avoid_past_time = 0;
+    uint32_t first_chases_time = 0;
     uint32_t pid_time = 0;
     uint32_t not_find_time = 0;
     uint32_t finding_time = 0;
@@ -577,13 +577,19 @@ int main(void)
 				}
 				else if(run==true && tick-changeSpeedTime<200)
 				{
-					L_pid->setIsCount(false);
-					R_pid->setIsCount(false);
+					if(aaction != chases)
+					{
+						L_pid->setIsCount(false);
+						R_pid->setIsCount(false);
+					}
 				}
 				else if(run==true && tick-changeSpeedTime>200)
 				{
-					L_pid->setIsCount(true);
-					R_pid->setIsCount(true);
+					if(aaction != chases)
+					{
+						L_pid->setIsCount(true);
+						R_pid->setIsCount(true);
+					}
 				}
 //null turn end//////////////////
 
@@ -747,6 +753,17 @@ int main(void)
 					}
 					else
 					{
+						if(aaction != chases)
+						{
+							L_pid->setIsCount(false);
+							R_pid->setIsCount(false);
+							first_chases_time = tick;
+						}
+						else if(tick - first_chases_time >=200)
+						{
+							L_pid->setIsCount(true);
+							R_pid->setIsCount(true);
+						}
 						aaction = chases;
 						actionTarget(aaction);
 					}
