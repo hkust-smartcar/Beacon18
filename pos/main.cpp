@@ -1278,6 +1278,12 @@ void actionTarget(const sstate_& taction)
 		R_pid->setIsAcc(true);
 
 	}
+	if(L_pid->getIsAcc()==true && taction!=accAction && (aaction != chases||aaction!=rotations))
+	{
+		L_pid->setIsAcc(false);
+		R_pid->setIsAcc(false);
+	}
+
 	switch(taction)
 	{
 		case forwards:
