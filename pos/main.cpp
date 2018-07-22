@@ -145,9 +145,9 @@ int32_t aCountR = 0;
 bool accCount = false;
 bool firstAcc = false;
 int32_t accDis = 0;
-sstate_ accAction = stops;
-sstate_ actionAfterMove = stops;
-sstate_ aaction = stops;
+sstate_ accAction = keeps;
+sstate_ actionAfterMove = keeps;
+sstate_ aaction = keeps;
 uint32_t changeSpeedTime = 0;
 
 inline float BeaconAvoidAngleCalculate(const uint16_t& bx, const uint16_t& by);
@@ -192,10 +192,10 @@ int main(void)
 	cam->Start();
 
 
-	PID L_pid_(L_kp, L_ki, L_kd, 1000, -1000);
+	Motor_PID L_pid_(L_kp, L_ki, L_kd, 1000, -1000);
 	L_pid = &L_pid_;
 	L_pid->errorSumBound = 100000;
-	PID R_pid_(R_kp, R_ki, R_kd, 1000, -1000);
+	Motor_PID R_pid_(R_kp, R_ki, R_kd, 1000, -1000);
 	R_pid = &R_pid_;
 	R_pid->errorSumBound = 100000;
 
@@ -315,15 +315,75 @@ int main(void)
 //pid////////////////////////////
 			if (tick - pid_time >= 10 && run==true) {
 				uint32_t time_diff = tick - pid_time;
+
+				encoder1->Update();
+				encoder2->Update();
+				L_count = encoder1->GetCount() * 50 / (int) time_diff;
+				R_count = encoder2->GetCount() * 50 / (int) time_diff;
+
+				if(accCount ==true && firstAcc==true)
+				{
+					firstAcc=false;
+				}
+				else if(accCount ==true && firstAcc==false)
+				{
+					aCountL += L_count;
+					aCountR += R_count;
+
+					//move dist
+					if(accAction == aaction)
+					{
+
+						//move forward
+						if(accDis>0)
+						{
+							if(aCountL>=accDis || aCountR<= - (accDis))
+							{
+								accCount = false;
+								if(aaction==chases)
+								{
+									Dir_pid->reset();
+									L_pid->reset();
+									R_pid->reset();
+								}
+								aaction = actionAfterMove;
+								actionTarget(actionAfterMove);
+								ssend(accAction);
+								atom = false;
+							}
+						}
+						//move backward
+						else //(accDis<0)
+						{
+							if(aCountL<=accDis || aCountR>= abs (accDis))
+							{
+								accCount = false;
+								if(aaction==chases)
+								{
+									Dir_pid->reset();
+									L_pid->reset();
+									R_pid->reset();
+								}
+								aaction = actionAfterMove;
+								actionTarget(actionAfterMove);
+								ssend(accAction);
+								atom = false;
+							}
+						}
+					}
+					//action is changed, move is outdated
+					else
+					{
+						accCount = false;
+						atom = false;
+					}
+				}
+
 				if(tick-changeSpeedTime>=200 && aaction!=chases && L_pid->getIsAcc()==true)
 				{
 					L_pid->setIsAcc(false);
 					R_pid->setIsAcc(false);
 				}
-				encoder1->Update();
-				encoder2->Update();
-				L_count = encoder1->GetCount() * 50 / (int) time_diff;
-				R_count = encoder2->GetCount() * 50 / (int) time_diff;
 				SetPower(L_pid->output(L_count), 0);
 				SetPower(R_pid->output(-R_count), 1);
 				pid_time = System::Time();
@@ -341,77 +401,6 @@ int main(void)
 //					writer->WriteString(temp);
 //				}
 
-				if(accCount ==true && firstAcc==true)
-				{
-					firstAcc=false;
-					continue;
-				}
-				else if(accCount ==true && firstAcc==false)
-				{
-					aCountL += L_count;
-					aCountR += R_count;
-				}
-
-				//move dis
-				if(accCount == true && firstAcc==false)
-				{
-					{
-//						char temp[20] = { };
-//						sprintf(temp, "al=%d ar=%d", aCountL,aCountR);
-//						lcd->SetRegion(Lcd::Rect(0, 20, 128, 160));
-//						writer->WriteString(temp);
-//						sprintf(temp, "dis=%d", accDis);
-//						lcd->SetRegion(Lcd::Rect(0, 40, 128, 160));
-//						writer->WriteString(temp);
-					}
-					if(accAction == aaction)
-					{
-						ssend(accAction);
-						//move forward
-						if(accDis>0)
-						{
-							if(aCountL>=accDis || aCountR<= - (accDis))
-							{
-								accCount = false;
-								if(aaction==chases)
-								{
-									L_pid->reset();
-									R_pid->reset();
-								}
-								aaction = actionAfterMove;
-								actionTarget(actionAfterMove);
-
-								atom = false;
-							}
-						}
-						//move backward
-						else //(accDis<0)
-						{
-							if(aCountL<=accDis || aCountR>= abs (accDis))
-							{
-								accCount = false;
-								if(aaction==chases)
-								{
-									L_pid->reset();
-									R_pid->reset();
-								}
-								aaction = actionAfterMove;
-								actionTarget(actionAfterMove);
-
-								atom = false;
-							}
-						}
-					}
-					 //action is changed, move is outdated
-					else
-					{
-						accCount = false;
-						atom = false;
-					}
-				}
-
-
-
 			}
 			else if(run==false)
 			{
@@ -419,6 +408,7 @@ int main(void)
 				{
 					if(aaction==chases)
 					{
+						Dir_pid->reset();
 						L_pid->reset();
 						R_pid->reset();
 					}
@@ -454,13 +444,23 @@ int main(void)
 //						moveCount(40, sstate_::turnLefts, sstate_::rotations);
 //						aaction = turnLefts;
 //					}
+					else if(aaction==chases)
+					{
+						Dir_pid->reset();
+						L_pid->reset();
+						R_pid->reset();
+						if(Dir_pid->getTarget()>0)
+						{
+							moveCount(-30, sstate_::backwards, turnLefts);
+						}
+						else
+						{
+							moveCount(-30, sstate_::backwards, turnRights);
+						}
+						aaction = backwards;
+					}
 					else
 					{
-						if(aaction==chases)
-						{
-							L_pid->reset();
-							R_pid->reset();
-						}
 						moveCount(-30, sstate_::backwards, aaction);
 						aaction = backwards;
 					}
@@ -517,13 +517,25 @@ int main(void)
 						aaction = backwards;
 					}
 
+					else if(aaction==chases)
+					{
+						Dir_pid->reset();
+						L_pid->reset();
+						R_pid->reset();
+						if(Dir_pid->getTarget()>0)
+						{
+							moveCount(-30, sstate_::backwards, turnLefts);
+						}
+						else
+						{
+							moveCount(-30, sstate_::backwards, turnRights);
+						}
+						aaction = backwards;
+					}
+
 					else if(aaction!= sstate_::backwards && ((L_pid->getNumError()>crash_cycle && L_pid->getTarget()>0)|| (R_pid->getNumError()>crash_cycle && R_pid->getTarget()<0)))
 					{
-						if(aaction==chases)
-						{
-							L_pid->reset();
-							R_pid->reset();
-						}
+
 						moveCount(-30, sstate_::backwards, aaction);
 						aaction = backwards;
 						actionTarget(aaction);
@@ -531,11 +543,6 @@ int main(void)
 					}
 					else if(aaction!= sstate_::forwards && ((L_pid->getNumError()>crash_cycle && L_pid->getTarget()<0)|| (R_pid->getNumError()>crash_cycle && R_pid->getTarget()>0)))
 					{
-						if(aaction==chases)
-						{
-							L_pid->reset();
-							R_pid->reset();
-						}
 						moveCount(20, sstate_::forwards, aaction);
 						aaction = forwards;
 						actionTarget(aaction);
@@ -580,7 +587,6 @@ int main(void)
 				}
 //null turn end//////////////////
 
-
 //otarget/////////////////////////////
 				if (tick - o_target.received_time < 200 && o_target.target->center.first > 40 && o_target.target->center.first < 170 && aaction!=sstate_::rotations && aaction!=searchs && aaction!=backwards) {
 					uint16_t x = o_target.target->center.first;
@@ -603,6 +609,7 @@ int main(void)
 							{
 								if(aaction==chases)
 								{
+									Dir_pid->reset();
 									L_pid->reset();
 									R_pid->reset();
 								}
@@ -623,6 +630,7 @@ int main(void)
 						{
 							if(aaction==chases)
 							{
+								Dir_pid->reset();
 								L_pid->reset();
 								R_pid->reset();
 							}
@@ -657,7 +665,6 @@ int main(void)
 					}
 				}
 //otarget end//////////////////////////////
-
 
 //irtarget2////////////////////////
 				process();
@@ -696,6 +703,7 @@ int main(void)
 					{
 						if(aaction==chases)
 						{
+							Dir_pid->reset();
 							L_pid->reset();
 							R_pid->reset();
 						}
@@ -757,6 +765,7 @@ int main(void)
 						{
 							if(aaction==chases)
 							{
+								Dir_pid->reset();
 								L_pid->reset();
 								R_pid->reset();
 							}
@@ -777,6 +786,7 @@ int main(void)
 					{
 						if(aaction==chases)
 						{
+							Dir_pid->reset();
 							L_pid->reset();
 							R_pid->reset();
 						}
@@ -1146,15 +1156,75 @@ void setAnglePower(const float& radAngle, const uint32_t& tick, uint32_t& pid_ti
 void pid(const uint32_t& tick, uint32_t& pid_time)
 {
 	uint32_t time_diff = tick - pid_time;
+
+	encoder1->Update();
+	encoder2->Update();
+	L_count = encoder1->GetCount() * 50 / (int) time_diff;
+	R_count = encoder2->GetCount() * 50 / (int) time_diff;
+
+	if(accCount ==true && firstAcc==true)
+	{
+		firstAcc=false;
+	}
+	else if(accCount ==true && firstAcc==false)
+	{
+		aCountL += L_count;
+		aCountR += R_count;
+
+		//move dist
+		if(accAction == aaction)
+		{
+
+			//move forward
+			if(accDis>0)
+			{
+				if(aCountL>=accDis || aCountR<= - (accDis))
+				{
+					accCount = false;
+					if(aaction==chases)
+					{
+						Dir_pid->reset();
+						L_pid->reset();
+						R_pid->reset();
+					}
+					aaction = actionAfterMove;
+					actionTarget(actionAfterMove);
+					ssend(accAction);
+					atom = false;
+				}
+			}
+			//move backward
+			else //(accDis<0)
+			{
+				if(aCountL<=accDis || aCountR>= abs (accDis))
+				{
+					accCount = false;
+					if(aaction==chases)
+					{
+						Dir_pid->reset();
+						L_pid->reset();
+						R_pid->reset();
+					}
+					aaction = actionAfterMove;
+					actionTarget(actionAfterMove);
+					ssend(accAction);
+					atom = false;
+				}
+			}
+		}
+		//action is changed, move is outdated
+		else
+		{
+			accCount = false;
+			atom = false;
+		}
+	}
+
 	if(tick-changeSpeedTime>=200 && aaction!=chases && L_pid->getIsAcc()==true)
 	{
 		L_pid->setIsAcc(false);
 		R_pid->setIsAcc(false);
 	}
-	encoder1->Update();
-	encoder2->Update();
-	L_count = encoder1->GetCount() * 50 / (int) time_diff;
-	R_count = encoder2->GetCount() * 50 / (int) time_diff;
 	SetPower(L_pid->output(L_count), 0);
 	SetPower(R_pid->output(-R_count), 1);
 	pid_time = System::Time();
@@ -1171,76 +1241,6 @@ void pid(const uint32_t& tick, uint32_t& pid_time)
 //					lcd->SetRegion(Lcd::Rect(0, 60, 128, 160));
 //					writer->WriteString(temp);
 //				}
-
-	if(accCount ==true && firstAcc==true)
-	{
-		firstAcc=false;
-		return;
-	}
-	else if(accCount ==true && firstAcc==false)
-	{
-		aCountL += L_count;
-		aCountR += R_count;
-	}
-
-	//move dis
-	if(accCount == true && firstAcc==false)
-	{
-		{
-//						char temp[20] = { };
-//						sprintf(temp, "al=%d ar=%d", aCountL,aCountR);
-//						lcd->SetRegion(Lcd::Rect(0, 20, 128, 160));
-//						writer->WriteString(temp);
-//						sprintf(temp, "dis=%d", accDis);
-//						lcd->SetRegion(Lcd::Rect(0, 40, 128, 160));
-//						writer->WriteString(temp);
-		}
-		if(accAction == aaction)
-		{
-			ssend(accAction);
-			//move forward
-			if(accDis>0)
-			{
-				if(aCountL>=accDis || aCountR<= - (accDis))
-				{
-					accCount = false;
-					if(aaction==chases)
-					{
-						L_pid->reset();
-						R_pid->reset();
-					}
-					aaction = actionAfterMove;
-					actionTarget(actionAfterMove);
-
-					atom = false;
-				}
-			}
-			//move backward
-			else //(accDis<0)
-			{
-				if(aCountL<=accDis || aCountR>= abs (accDis))
-				{
-					accCount = false;
-					if(aaction==chases)
-					{
-						L_pid->reset();
-						R_pid->reset();
-					}
-					aaction = actionAfterMove;
-					actionTarget(actionAfterMove);
-
-					atom = false;
-				}
-			}
-		}
-		 //action is changed, move is outdated
-		else
-		{
-			accCount = false;
-			atom = false;
-		}
-	}
-
 }
 
 void actionTarget(const sstate_& taction)
