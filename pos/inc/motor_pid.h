@@ -4,14 +4,14 @@
  *  Created on: Mar 29, 2018
  *      Author: Sheldon
  */
-#ifndef PID_H
-#define PID_H
+#ifndef MOTOR_PID_H
+#define MOTOR_PID_H
 
 #include <cstdint>
 #include <libsc/system.h>
 using namespace libsc;
 
-class PID {
+class Motor_PID {
 public:
 	float kP;
 	float kI;
@@ -27,12 +27,12 @@ public:
 	uint16_t numOfLower;
 	int32_t errorAccept;
 
-	PID() :
+	Motor_PID() :
 			kP(0), kI(0), kD(0), errorSumBound(0), max(0), min(0), preError(0), errorSum(0),
 			last_time(0), target(0), errorIgnore(70),errorAcc(0),isAcc(false),numOfLower(0),errorAccept(0), isCount(false),changeTime(0) {
 	}
 
-	PID(const float& p, const float& i, const float& d, int m_max, int m_min) :
+	Motor_PID(const float& p, const float& i, const float& d, int m_max, int m_min) :
 			kP(p), kI(i), kD(d), errorSumBound(0), max(m_max), min(m_min), preError(0),
 			errorSum(0), last_time(0), target(0), errorIgnore(70),errorAcc(0),isAcc(false),numOfLower(0),errorAccept(0), isCount(false), changeTime(0){
 	}
