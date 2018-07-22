@@ -1249,6 +1249,11 @@ void actionTarget(const sstate_& taction)
 	{
 		accCount = false;
 	}
+	if(taction!=accAction)
+	{
+		L_pid->setIsCount(false);
+		R_pid->setIsCount(false);
+	}
 	if(L_pid->getIsAcc()==false && taction!=accAction)
 	{
 		L_pid->setIsAcc(true);
