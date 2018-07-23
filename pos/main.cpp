@@ -95,7 +95,7 @@ inline void actionTarget(const sstate_& taction);
 inline void moveCount(const int& cmDis, const sstate_& nowA, const sstate_& nextA);
 
 int main(void)
-{
+ {
 	System::Init();
 
 //init/////////////////////////////////////
@@ -228,10 +228,13 @@ int main(void)
  //   run = false;
 //    chasing_speed = 370;
 //    finding_speed = 300;
-    rotate_speed = 100;
+    rotate_speed = 150;
 
 	encoder1->Update();
 	encoder2->Update();
+
+//	aaction = forwards;
+//	actionTarget(forwards);
 
 	display_bMeter();
 	changeSpeedTime = System::Time();
@@ -277,6 +280,13 @@ int main(void)
 								}
 								aaction = actionAfterMove;
 								actionTarget(actionAfterMove);
+								if(actionAfterMove==turnRights|| actionAfterMove==turnLefts)
+								{
+									L_pid->setIsAcc(true);
+									R_pid->setIsAcc(true);
+									L_pid->addErrorAcc(5000);
+									L_pid->addErrorAcc(5000);
+								}
 								ssend(accAction);
 								atom = false;
 							}
@@ -327,7 +337,23 @@ int main(void)
 
 				SetPower(L_pid->output(L_count), 0);
 				SetPower(R_pid->output(-R_count), 1);
+
+
 				pid_time = System::Time();
+
+//								{
+//									char temp[20] = { };
+//									sprintf(temp,"time=%d",tick-changeSpeedTime);
+//									//sprintf(temp, "al=%d ar=%d", aCountL,aCountR);
+//									lcd->SetRegion(Lcd::Rect(0, 20, 128, 160));
+//									writer->WriteString(temp);
+//									sprintf(temp, "nl=%d", L_pid->getNumError());
+//									lcd->SetRegion(Lcd::Rect(0, 40, 128, 160));
+//									writer->WriteString(temp);
+//									sprintf(temp, "nr=%d", R_pid->getNumError());
+//									lcd->SetRegion(Lcd::Rect(0, 60, 128, 160));
+//									writer->WriteString(temp);
+//								}
 
 			}
 //pid end/////////////////////////////////
@@ -362,13 +388,15 @@ int main(void)
 						R_pid->reset();
 						if(Dir_pid->getTarget()>0)
 						{
-							moveCount(-20, sstate_::backwards, turnLefts);
+							moveCount(-30, sstate_::backwards, turnLefts);
 						}
 						else
 						{
-							moveCount(-20, sstate_::backwards, turnRights);
+							moveCount(-30, sstate_::backwards, turnRights);
 						}
 						aaction = backwards;
+						actionTarget(aaction);
+						ssend(aaction);
 						chases_crash_time=0;
 						first_chases_time=0;
 						//update seen
@@ -397,13 +425,15 @@ int main(void)
 					R_pid->reset();
 					if(Dir_pid->getTarget()>0)
 					{
-						moveCount(-20, sstate_::backwards, turnLefts);
+						moveCount(-30, sstate_::backwards, turnLefts);
 					}
 					else
 					{
-						moveCount(-20, sstate_::backwards, turnRights);
+						moveCount(-30, sstate_::backwards, turnRights);
 					}
 					aaction = backwards;
+					actionTarget(aaction);
+					ssend(aaction);
 					chases_crash_time=0;
 					first_chases_time=0;
 					//update seen
@@ -412,6 +442,7 @@ int main(void)
 						seen = false;
 						max_area = 0;
 					}
+
 					continue;
 				}
 ///chases crash end///////////////////////////////
@@ -429,12 +460,12 @@ int main(void)
 //						aaction = backwards;
 						if(abs(L_count)>abs(R_count))
 						{
-							moveCount(-30, sstate_::backwards, sstate_::turnLefts);
+							moveCount(-40, sstate_::backwards, sstate_::turnLefts);
 							aaction = turnLefts;
 						}
 						else
 						{
-							moveCount(-30, sstate_::backwards, sstate_::turnRights);
+							moveCount(-40, sstate_::backwards, sstate_::turnRights);
 							aaction = turnRights;
 						}
 					}
@@ -483,7 +514,7 @@ int main(void)
 //					}
 					else
 					{
-						moveCount(-20, sstate_::backwards, aaction);
+						moveCount(-30, sstate_::backwards, aaction);
 						aaction = backwards;
 					}
 					actionTarget(aaction);
@@ -530,7 +561,7 @@ int main(void)
 ////crash end/////////////////////////////////
 
 ///null turn/////////////////
-				else
+				//else
 				if(run==true && tick-changeSpeedTime>200 && (L_pid->getNumError()>crash_cycle || R_pid->getNumError()>crash_cycle)
 						&& aaction!=rotations && aaction!= searchs && aaction!=chases)
 				{
@@ -546,14 +577,16 @@ int main(void)
 //						aaction = backwards;
 						if(abs(L_count)>abs(R_count))
 						{
-							moveCount(-20, sstate_::backwards, sstate_::turnLefts);
+							moveCount(-40, sstate_::backwards, sstate_::turnLefts);
 							aaction = backwards;
 						}
 						else
 						{
-							moveCount(-20, sstate_::backwards, sstate_::turnRights);
+							moveCount(-40, sstate_::backwards, sstate_::turnRights);
 							aaction = backwards;
 						}
+						actionTarget(aaction);
+						ssend(aaction);
 					}
 
 //					else if(aaction==chases)
@@ -578,12 +611,12 @@ int main(void)
 						{
 							if(abs(L_count)>abs(R_count))
 							{
-								moveCount(-30, sstate_::backwards, sstate_::turnLefts);
+								moveCount(-40, sstate_::backwards, sstate_::turnLefts);
 								aaction = turnLefts;
 							}
 							else
 							{
-								moveCount(-30, sstate_::backwards, sstate_::turnRights);
+								moveCount(-40, sstate_::backwards, sstate_::turnRights);
 								aaction = turnRights;
 							}
 						}
@@ -638,6 +671,7 @@ int main(void)
 //						aaction = backwards;
 //					}
 					actionTarget(aaction);
+					ssend(aaction);
 
 					//update seen
 					if(seen)
@@ -1304,6 +1338,13 @@ void pid(const uint32_t& tick, uint32_t& pid_time)
 					}
 					aaction = actionAfterMove;
 					actionTarget(actionAfterMove);
+					if(actionAfterMove==turnRights|| actionAfterMove==turnLefts)
+					{
+						L_pid->setIsAcc(true);
+						R_pid->setIsAcc(true);
+						L_pid->addErrorAcc(5000);
+						L_pid->addErrorAcc(5000);
+					}
 					ssend(accAction);
 					atom = false;
 				}
@@ -1354,6 +1395,8 @@ void pid(const uint32_t& tick, uint32_t& pid_time)
 
 	SetPower(L_pid->output(L_count), 0);
 	SetPower(R_pid->output(-R_count), 1);
+
+
 	pid_time = System::Time();
 }
 
@@ -1379,10 +1422,10 @@ void actionTarget(const sstate_& taction)
 			//0.67
 		case turnRights:
 			L_pid->settarget(finding_speed);
-			R_pid->settarget((int) (finding_speed * 0.50));
+			R_pid->settarget((int) (finding_speed * 0.30));
 			break;
 		case turnLefts:
-			L_pid->settarget((int) (finding_speed * 0.50));
+			L_pid->settarget((int) (finding_speed * 0.30));
 			R_pid->settarget(finding_speed);
 			break;
 		case searchs:
@@ -1436,6 +1479,13 @@ void actionTarget(const sstate_& taction)
 			R_pid->setIsCount(false);
 		}
 	}
+
+	if(L_pid->getIsAcc()==true && (pastAction!=taction) && (aaction != chases||aaction!=rotations||aaction==chases))
+	{
+		L_pid->setIsAcc(false);
+		R_pid->setIsAcc(false);
+	}
+
 	if(L_pid->getIsAcc()==false && (pastAction!=taction) && (aaction == chases||aaction==rotations||aaction==chases))
 	{
 		L_pid->setIsAcc(true);
@@ -1445,11 +1495,6 @@ void actionTarget(const sstate_& taction)
 			L_pid->addErrorAcc(5000);
 			R_pid->addErrorAcc(5000);
 		}
-	}
-	if(L_pid->getIsAcc()==true && (pastAction!=taction) && (aaction != chases||aaction!=rotations||aaction==chases))
-	{
-		L_pid->setIsAcc(false);
-		R_pid->setIsAcc(false);
 	}
 	pastAction = aaction;
 }
