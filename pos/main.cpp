@@ -461,12 +461,12 @@ int main(void)
 						if(abs(L_count)>abs(R_count))
 						{
 							moveCount(-40, sstate_::backwards, sstate_::turnLefts);
-							aaction = turnLefts;
+							aaction = backwards;
 						}
 						else
 						{
 							moveCount(-40, sstate_::backwards, sstate_::turnRights);
-							aaction = turnRights;
+							aaction = backwards;
 						}
 					}
 //					else if(aaction == sstate_::rotations)
@@ -612,12 +612,12 @@ int main(void)
 							if(abs(L_count)>abs(R_count))
 							{
 								moveCount(-40, sstate_::backwards, sstate_::turnLefts);
-								aaction = turnLefts;
+								aaction = backwards;
 							}
 							else
 							{
 								moveCount(-40, sstate_::backwards, sstate_::turnRights);
-								aaction = turnRights;
+								aaction = backwards;
 							}
 						}
 						else
@@ -632,8 +632,17 @@ int main(void)
 					{
 						if(aaction==backwards)
 						{
-							moveCount(20, sstate_::forwards, aaction);
-							aaction = forwards;
+							if(abs(L_count)>abs(R_count))
+							{
+								moveCount(30, sstate_::forwards,  sstate_::turnLefts);
+								aaction = forwards;
+							}
+							else
+							{
+								moveCount(30, sstate_::forwards,  sstate_::turnRights);
+								aaction = forwards;
+							}
+							finding_time = 0; //trigger rotations in not seen condition check
 							actionTarget(aaction);
 							ssend(aaction);
 						}
@@ -731,16 +740,17 @@ int main(void)
 									L_pid->reset();
 									R_pid->reset();
 								}
-								aaction = backwards;
+
 								if(x<CARX){
-									moveCount(-20, sstate_::backwards, sstate_::turnRights);
+									moveCount(-30, sstate_::backwards, sstate_::turnRights);
 								}
 								else
 								{
-									moveCount(-20, sstate_::backwards, sstate_::turnLefts);
+									moveCount(-30, sstate_::backwards, sstate_::turnLefts);
 								}
+								aaction = backwards;
 								actionTarget(aaction);
-								pid(tick, pid_time);
+								//pid(tick, pid_time);
 							}
 
 						}
@@ -755,7 +765,7 @@ int main(void)
 							setAnglePower(BeaconAvoidAngleCalculate(x, y), tick, pid_time);
 							//avoid_past_time = System::Time();
 							aaction = avoids;
-							actionTarget(avoids);
+							actionTarget(aaction);
 							//changeSpeedTime = System::Time();
 						}
 						ssend(aaction);
@@ -828,7 +838,7 @@ int main(void)
 						}
 						setAnglePower(BeaconApproachAngleCalculate(x, y), tick, pid_time);
 						aaction = approachs;
-						actionTarget(approachs);
+						actionTarget(aaction);
 						//changeSpeedTime = System::Time();
 					}
 					ssend(aaction);
@@ -909,7 +919,7 @@ int main(void)
 								aaction = turnRights;
 							}
 						}
-
+						actionTarget(aaction);
 
 //						if(aaction!=backwards)
 //						{
