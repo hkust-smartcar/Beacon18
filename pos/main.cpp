@@ -926,7 +926,7 @@ int main(void)
 					}
 					if (ir_target->area > max_area)
 						max_area = (ir_target->area + max_area) / 2;
-					target_x = target_slope * max_area + target_intercept;
+//					target_x = target_slope * max_area + target_intercept;
 					if (target_x > 320)
 						target_x = 320;
 					if ((aaction == rotations||aaction == searchs)
