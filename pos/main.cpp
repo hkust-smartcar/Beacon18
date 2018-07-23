@@ -386,14 +386,29 @@ int main(void)
 						Dir_pid->reset();
 						L_pid->reset();
 						R_pid->reset();
-						if(Dir_pid->getTarget()>0)
+						if(tick - o_target.received_time < 200)
 						{
-							moveCount(-30, sstate_::backwards, turnLefts);
+							if(Dir_pid->getTarget()>0)
+							{
+								moveCount(-30, sstate_::backwards, turnLefts);
+							}
+							else
+							{
+								moveCount(-30, sstate_::backwards, turnRights);
+							}
 						}
 						else
 						{
-							moveCount(-30, sstate_::backwards, turnRights);
+							if(Dir_pid->getTarget()>0)
+							{
+								moveCount(-60, sstate_::backwards, turnLefts);
+							}
+							else
+							{
+								moveCount(-60, sstate_::backwards, turnRights);
+							}
 						}
+
 						aaction = backwards;
 						actionTarget(aaction);
 						ssend(aaction);
@@ -423,13 +438,28 @@ int main(void)
 					Dir_pid->reset();
 					L_pid->reset();
 					R_pid->reset();
-					if(Dir_pid->getTarget()>0)
+
+					if(tick - o_target.received_time < 200)
 					{
-						moveCount(-30, sstate_::backwards, turnLefts);
+						if(Dir_pid->getTarget()>0)
+						{
+							moveCount(-30, sstate_::backwards, turnLefts);
+						}
+						else
+						{
+							moveCount(-30, sstate_::backwards, turnRights);
+						}
 					}
 					else
 					{
-						moveCount(-30, sstate_::backwards, turnRights);
+						if(Dir_pid->getTarget()>0)
+						{
+							moveCount(-60, sstate_::backwards, turnLefts);
+						}
+						else
+						{
+							moveCount(-60, sstate_::backwards, turnRights);
+						}
 					}
 					aaction = backwards;
 					actionTarget(aaction);
@@ -458,64 +488,47 @@ int main(void)
 					{
 //						moveCount(-30, sstate_::backwards, sstate_::forwards); //avoid again if seen obstacle
 //						aaction = backwards;
-						if(abs(L_count)>abs(R_count))
+						if(tick - o_target.received_time < 200)
 						{
-							moveCount(-40, sstate_::backwards, sstate_::turnLefts);
+							if(abs(L_count)>abs(R_count))
+							{
+								moveCount(-40, sstate_::backwards, sstate_::turnLefts);
+								aaction = backwards;
+							}
+							else
+							{
+								moveCount(-40, sstate_::backwards, sstate_::turnRights);
+								aaction = backwards;
+							}
+						}
+						else
+						{
+							if(abs(L_count)>abs(R_count))
+							{
+								moveCount(-60, sstate_::backwards, sstate_::turnLefts);
+								aaction = backwards;
+							}
+							else
+							{
+								moveCount(-60, sstate_::backwards, sstate_::turnRights);
+								aaction = backwards;
+							}
+						}
+
+					}
+					else
+					{
+						if(tick - o_target.received_time < 200)
+						{
+							moveCount(-30, sstate_::backwards, aaction);
 							aaction = backwards;
 						}
 						else
 						{
-							moveCount(-40, sstate_::backwards, sstate_::turnRights);
+							moveCount(-60, sstate_::backwards, aaction);
 							aaction = backwards;
 						}
-					}
-//					else if(aaction == sstate_::rotations)
-//					{
-//						moveCount(40, sstate_::turnLefts, sstate_::rotations);
-//						aaction = turnLefts;
-//					}
-//					else if(aaction==chases && avoidCrashWhileChase == true)
-//					{
-//						Dir_pid->reset();
-//						L_pid->reset();
-//						R_pid->reset();
-//						if(Dir_pid->getTarget()>0)
-//						{
-//							moveCount(-20, sstate_::backwards, turnLefts);
-//						}
-//						else
-//						{
-//							moveCount(-20, sstate_::backwards, turnRights);
-//						}
-//						aaction = backwards;
-//					}
-//					else if(aaction==chases)
-//					{
-//						if(chases_crash_time==0)
-//						{
-//							chases_crash_time = System::Time();
-//						}
-//						else if(tick-chases_crash_time>500)
-//						{
-//							Dir_pid->reset();
-//							L_pid->reset();
-//							R_pid->reset();
-//							if(Dir_pid->getTarget()>0)
-//							{
-//								moveCount(-20, sstate_::backwards, turnLefts);
-//							}
-//							else
-//							{
-//								moveCount(-20, sstate_::backwards, turnRights);
-//							}
-//							aaction = backwards;
-//							chases_crash_time=0;
-//						}
-//					}
-					else
-					{
-						moveCount(-30, sstate_::backwards, aaction);
-						aaction = backwards;
+
 					}
 					actionTarget(aaction);
 					ssend(aaction);
@@ -575,16 +588,33 @@ int main(void)
 					{
 //						moveCount(-30, sstate_::backwards, sstate_::forwards); //avoid again if seen obstacle
 //						aaction = backwards;
-						if(abs(L_count)>abs(R_count))
+						if(tick - o_target.received_time < 200)
 						{
-							moveCount(-40, sstate_::backwards, sstate_::turnLefts);
-							aaction = backwards;
+							if(abs(L_count)>abs(R_count))
+							{
+								moveCount(-40, sstate_::backwards, sstate_::turnLefts);
+								aaction = backwards;
+							}
+							else
+							{
+								moveCount(-40, sstate_::backwards, sstate_::turnRights);
+								aaction = backwards;
+							}
 						}
 						else
 						{
-							moveCount(-40, sstate_::backwards, sstate_::turnRights);
-							aaction = backwards;
+							if(abs(L_count)>abs(R_count))
+							{
+								moveCount(-60, sstate_::backwards, sstate_::turnLefts);
+								aaction = backwards;
+							}
+							else
+							{
+								moveCount(-60, sstate_::backwards, sstate_::turnRights);
+								aaction = backwards;
+							}
 						}
+
 						actionTarget(aaction);
 						ssend(aaction);
 					}
@@ -609,21 +639,46 @@ int main(void)
 					{
 						if(aaction == forwards)
 						{
-							if(abs(L_count)>abs(R_count))
+							if(tick - o_target.received_time < 200)
 							{
-								moveCount(-40, sstate_::backwards, sstate_::turnLefts);
+								if(abs(L_count)>abs(R_count))
+								{
+									moveCount(-40, sstate_::backwards, sstate_::turnLefts);
+									aaction = backwards;
+								}
+								else
+								{
+									moveCount(-40, sstate_::backwards, sstate_::turnRights);
+									aaction = backwards;
+								}
+							}
+							else
+							{
+								if(abs(L_count)>abs(R_count))
+								{
+									moveCount(-60, sstate_::backwards, sstate_::turnLefts);
+									aaction = backwards;
+								}
+								else
+								{
+									moveCount(-60, sstate_::backwards, sstate_::turnRights);
+									aaction = backwards;
+								}
+							}
+
+						}
+						else
+						{
+							if(tick - o_target.received_time < 200)
+							{
+								moveCount(-30, sstate_::backwards, aaction);
 								aaction = backwards;
 							}
 							else
 							{
-								moveCount(-40, sstate_::backwards, sstate_::turnRights);
+								moveCount(-60, sstate_::backwards, aaction);
 								aaction = backwards;
 							}
-						}
-						else
-						{
-							moveCount(-30, sstate_::backwards, aaction);
-							aaction = backwards;
 						}
 						actionTarget(aaction);
 						ssend(aaction);
@@ -671,8 +726,17 @@ int main(void)
 				{
 //					if(abs(L_count)>abs(R_count))
 					{
-						moveCount(-20, sstate_::backwards, sstate_::turnLefts);
-						aaction = backwards;
+						if(tick - o_target.received_time < 200)
+						{
+							moveCount(-30, sstate_::backwards, sstate_::turnLefts);
+							aaction = backwards;
+						}
+						else
+						{
+							moveCount(-60, sstate_::backwards, sstate_::turnLefts);
+							aaction = backwards;
+						}
+
 					}
 //					else
 //					{
