@@ -623,18 +623,18 @@ int main(void)
 //						(!(abs(L_pid->getTarget())<20) && (abs(L_count)<20))
 //						|| (!(abs(R_pid->getTarget())<20) && (abs(R_count)<20))
 //					))
-				if (run==true && (aaction == sstate_:: rotations||aaction == sstate_:: searchs) && tick-changeSpeedTime>500 && (
+				if (run==true && (aaction == sstate_:: rotations||aaction == sstate_:: searchs) && tick-changeSpeedTime>1000 && (
 						(L_pid->getNumError()>crash_cycle || R_pid->getNumError()>crash_cycle)
 					))
 				{
 //					if(abs(L_count)>abs(R_count))
 					{
-						moveCount(30, sstate_::backwards, sstate_::turnLefts);
+						moveCount(-20, sstate_::backwards, sstate_::turnLefts);
 						aaction = backwards;
 					}
 //					else
 //					{
-//						moveCount(30, sstate_::backwards, sstate_::turnRights);
+//						moveCount(-30, sstate_::backwards, sstate_::turnRights);
 //						aaction = backwards;
 //					}
 					actionTarget(aaction);
@@ -1376,12 +1376,13 @@ void actionTarget(const sstate_& taction)
 			L_pid->settarget(rotate_speed);
 			R_pid->settarget(-rotate_speed);
 			break;
+			//0.67
 		case turnRights:
 			L_pid->settarget(finding_speed);
-			R_pid->settarget((int) (finding_speed * 0.67));
+			R_pid->settarget((int) (finding_speed * 0.50));
 			break;
 		case turnLefts:
-			L_pid->settarget((int) (finding_speed * 0.67));
+			L_pid->settarget((int) (finding_speed * 0.50));
 			R_pid->settarget(finding_speed);
 			break;
 		case searchs:
@@ -1441,8 +1442,8 @@ void actionTarget(const sstate_& taction)
 		R_pid->setIsAcc(true);
 		if(aaction==rotations)
 		{
-			L_pid->addErrorAcc(1000);
-			R_pid->addErrorAcc(1000);
+			L_pid->addErrorAcc(5000);
+			R_pid->addErrorAcc(5000);
 		}
 	}
 	if(L_pid->getIsAcc()==true && (pastAction!=taction) && (aaction != chases||aaction!=rotations||aaction==chases))
