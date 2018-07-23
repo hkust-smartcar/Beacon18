@@ -131,17 +131,17 @@ int main() {
 
 			if (tick - process_time >= 30) {
 				process_time = tick;
-//				lcd->SetRegion(Lcd::Rect(0, 0, 80, 60));
-//				lcd->FillColor(Lcd::kBlack);
-//				for (uint16_t y = 0; y < height; y += 4)
-//					for (uint16_t x = 0; x < width; x += 4) {
-//						uint16_t pos = (width * y) / 8 + x / 8;
-//						uint16_t bit_pos = 8 - (x % 8 + 1);
-//						if (!GET_BIT(buf[pos], bit_pos)) {
-//							lcd->SetRegion(Lcd::Rect(x / 4, y / 4, 1, 1));
-//							lcd->FillColor(Lcd::kWhite);
-//						}
-//					}
+				lcd->SetRegion(Lcd::Rect(0, 0, 80, 60));
+				lcd->FillColor(Lcd::kBlack);
+				for (uint16_t y = 0; y < height; y += 4)
+					for (uint16_t x = 0; x < width; x += 4) {
+						uint16_t pos = (width * y) / 8 + x / 8;
+						uint16_t bit_pos = 8 - (x % 8 + 1);
+						if (!GET_BIT(buf[pos], bit_pos)) {
+							lcd->SetRegion(Lcd::Rect(x / 4, y / 4, 1, 1));
+							lcd->FillColor(Lcd::kWhite);
+						}
+					}
 				process();
 				tick = System::Time();
 //				for(int i = 0 ; i < beacon_count ; i++){

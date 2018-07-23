@@ -21,6 +21,7 @@
 #include "config.h"
 #include "debug.h"
 #include <libsc/button.h>
+//#include <libbase/k60/flash.h>
 
 namespace libbase {
 namespace k60 {
@@ -63,10 +64,34 @@ int main() {
 	Joystick::Config j_config;
 	j_config.id = 0;
 	j_config.is_active_low = true;
+	bool checked = false;
+	j_config.dispatcher = [&checked](const uint8_t id, const Joystick::State which) {
+		if(run || !checked)
+		return;
+		switch(which) {
+			case Joystick::State::kUp:
+			m = image;
+			break;
+			case Joystick::State::kDown:
+			m = close;
+			break;
+			case Joystick::State::kLeft:
+				System::DelayMs(200);
+			menu->EnterDebug("leave");
+			break;
+		}
+	};
 	Joystick joyStick_(j_config);
 	joystick = &joyStick_;
 
+	DebugConsole menu_(joystick, lcd, writer);
+	menu_.PushItem("Sobel", &sobel_value, 10);
+	menu_.PushItem("LSobel", &line_sobel_value, 10);
+	menu_.PushItem("IR", &white, 5);
+	menu_.PushItem("IrTime", &ir_timeout, 5);
+	menu = &menu_;
 	check_cam();
+	checked = true;
 	/////////var/////////////////
 	int start = 0;
 	irState = no;
@@ -86,7 +111,7 @@ int main() {
 				process();
 				tick = System::Time();
 				cam->UnlockBuffer();
-				if (ir_target != NULL && irState == checked && tick - find_time > 100) {
+				if (ir_target != NULL && irState == checked) {
 					send_coord(PkgType::irTarget);
 					led0->SetEnable(true);
 				} else
@@ -99,7 +124,7 @@ int main() {
 					led1->SetEnable(false);
 				}
 
-				if(m != close)
+				if (m != close)
 					display_state(m);
 				reset_recrod();
 //				display_time(start);

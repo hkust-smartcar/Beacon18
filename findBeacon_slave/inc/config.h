@@ -19,7 +19,7 @@ Led::Config init_led(uint16_t id) {
 
 St7735r::Config init_lcd() {
 	St7735r::Config lcd_config;
-	lcd_config.orientation = 1;
+	lcd_config.orientation = 3;
 	lcd_config.fps = 60;
 	return lcd_config;
 }

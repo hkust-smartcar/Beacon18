@@ -16,6 +16,7 @@
 #include "libsc/lcd_typewriter.h"
 #include "MT9V034.h"
 #include <list>
+#include "debug_console.h"
 
 using libsc::System;
 using namespace libsc;
@@ -74,7 +75,7 @@ struct point {
 Beacon avoid_region_up(65, 125, 0, 15);
 Beacon avoid_region_left(0, 20, 30, 120);	//left
 Beacon avoid_region_right(159, 189, 30, 120);	//right
-Beacon no_scan(65, 125, 80, 120);	//car head
+Beacon no_scan(65, 128, 85, 120);	//car head
 
 bool run = false;
 const Byte* buf = NULL;
@@ -92,6 +93,7 @@ MT9V034* cam = NULL;
 JyMcuBt106* bt = NULL;
 JyMcuBt106* comm = NULL;
 Joystick* joystick = NULL;
+DebugConsole* menu = NULL;
 
 //std::list<point>* line;
 point begin(0,0);
@@ -101,9 +103,9 @@ uint16_t sobel_value = 200;
 uint16_t line_sobel_value = 250;
 const uint16_t max_size = 5000;
 const uint8_t size = 3;
-uint8_t white = 250;
+uint16_t white = 250;
 const uint8_t min_area = 30;
-const uint16_t near_dist = 20;
+const uint16_t near_dist = 30;
 const uint8_t min_edge = 5;
 ir_state irState = no;
 uint32_t find_time = 0;

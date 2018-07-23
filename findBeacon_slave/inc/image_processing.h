@@ -148,15 +148,21 @@ void check_beacon_edge(Beacon& temp, scan_mode mode) {
 		if (mode < 2) {
 			x_bound = x_bound > width ? width : x_bound;
 			y_bound = y_bound > height ? height : y_bound;
-			if (y_bound > no_scan.upper_y) {
-				if (x_start < no_scan.right_x)
-					x_start = no_scan.right_x;
-				else if (x_bound > no_scan.left_x)
-					x_bound = no_scan.left_x;
-			}
+			if (y_bound > no_scan.upper_y)
+				if ((x_start < no_scan.left_x && x_bound > no_scan.right_x)
+						|| (x_start > no_scan.left_x
+								&& x_bound < no_scan.right_x))
+					y_bound = no_scan.upper_y;
 		}
 		for (uint8_t y = y_start; y < y_bound; y += scan_size) {
-			for (uint8_t x = x_start; x < x_bound; x += scan_size)
+			uint8_t x = x_start;
+			if (y > no_scan.upper_y) {
+				if (x_start > no_scan.left_x && x_start < no_scan.right_x)
+					x = no_scan.right_x;
+				else if (x_bound > no_scan.left_x && x_bound < no_scan.right_x)
+					x_bound = no_scan.left_x;
+			}
+			for (; x < x_bound; x += scan_size)
 				if (cal_sobel(x, y) > sobel_value)
 					edges.push_back(point(x, y));
 			if (edges.size() > 150)
@@ -257,9 +263,11 @@ void check_beacon_ir(Beacon& temp, uint16_t x, uint16_t y) {
 bool check_same(Beacon t) {
 	Beacon temp;
 	check_beacon_ir(temp, t.center.first, t.center.second);
+	if (temp.area < 100)
+		return false;
 	int diff = abs(temp.right_x - temp.left_x - (t.right_x - t.left_x));
 	diff += abs(temp.lower_y - temp.upper_y - (t.lower_y - t.upper_y));
-	if (diff < 30) {
+	if (diff < 100) {
 		insert(temp, ptr_mode::ir_Target);
 		irState = seen;
 		timer_switch(true);
@@ -333,7 +341,7 @@ bool search_line(int &x, int &y, dir d) {
 	return false;
 }
 
-void find_boarder() {
+bool find_boarder() {
 //	line->clear();
 	int* search_ptr = NULL;
 	int x;
@@ -419,7 +427,7 @@ void find_boarder() {
 //							print_line(line->begin(), line->end());
 							end.x = m_x;
 							end.y = moving_y;
-							return;
+							return true;
 						}
 //							else if (line->size() > 200)
 //							break;
@@ -443,7 +451,7 @@ void find_boarder() {
 //									print_line(line->begin(), line->end());
 									end.x = m_x;
 									end.y = moving_y;
-									return;
+									return true;
 								}
 //									else if (line->size() > 200)
 //									break;
@@ -468,7 +476,7 @@ void find_boarder() {
 											//									print_line(line->begin(), line->end());
 											end.x = m_x;
 											end.y = moving_y;
-											return;
+											return true;
 										}
 										//									else if (line->size() > 200)
 										//									break;
@@ -499,28 +507,70 @@ void find_boarder() {
 	}
 	begin.x = 0;
 	end.x = 0;
+	return false;
 //	line->clear();
+}
+
+bool search_line_record() {
+	begin.x -= 3;
+	if (begin.x < 0)
+		begin.x = 0;
+	begin.y -= 3;
+	if (begin.y < 0)
+		begin.y = 0;
+	end.x -= 3;
+	if (end.x < 0)
+		end.x = 0;
+	end.y -= 3;
+	if (end.y < 0)
+		end.y = 0;
+	point* ptr = &begin;
+	bool find = false;
+	for (int i = 0; i < 2; i++) {
+		for (int y = 0; y < 7; y++, ptr->y++) {
+			for (int x = 0; x < 7; x++, ptr->x++)
+				if (cal_sobel(ptr->x, ptr->y) > line_sobel_value) {
+					if (i == 0) {
+						find = true;
+						break;
+					} else
+						return true;
+				}
+			if (find)
+				break;
+		}
+		ptr = &end;
+	}
+	return false;
 }
 
 void process() {
 	buf = cam->LockBuffer();
-//	find_boarder();
-//	if (line->size() > 0) {
-//		auto first = line->begin();
-//		auto last = --line->end();
-//		lcd->SetRegion(Lcd::Rect(0, 0, 160, 15));
-//		char data[20] = {};
-//		sprintf(data, "%d , %d", first->x, first->y);
-//		writer->WriteBuffer(data, 20);
-//		lcd->SetRegion(Lcd::Rect(0, 15, 160, 15));
-//		sprintf(data, "%d , %d", last->x, last->y);
-//		writer->WriteBuffer(data, 20);
-//		return;
-//	} else {
-//		lcd->SetRegion(Lcd::Rect(0, 0, 160, 15));
-//		writer->WriteString("No");
-//		line->clear();
-//	}
+	//	if (begin.x != 0 && end.x != 0) {
+	//		if (search_line_record()) {
+	//			lcd->SetRegion(Lcd::Rect(0, 0, 160, 15));
+	//			char data[20] = { };
+	//			sprintf(data, "%d , %d", begin.x, begin.y);
+	//			writer->WriteBuffer(data, 20);
+	//			lcd->SetRegion(Lcd::Rect(0, 15, 160, 15));
+	//			sprintf(data, "%d , %d", end.x, end.y);
+	//			writer->WriteBuffer(data, 20);
+	//			return;
+	//		}
+	//	}
+	//	if (find_boarder()) {
+	//		lcd->SetRegion(Lcd::Rect(0, 0, 160, 15));
+	//		char data[20] = { };
+	//		sprintf(data, "%d , %d", begin.x, begin.y);
+	//		writer->WriteBuffer(data, 20);
+	//		lcd->SetRegion(Lcd::Rect(0, 15, 160, 15));
+	//		sprintf(data, "%d , %d", end.x, end.y);
+	//		writer->WriteBuffer(data, 20);
+	//		return;
+	//	} else {
+	//		lcd->SetRegion(Lcd::Rect(0, 0, 160, 15));
+	//		writer->WriteString("No");
+	//	}
 	Beacon temp;
 	if ((low_timer && System::Time() - low_time > ir_timeout)
 			|| (high_timer && System::Time() - high_time > ir_timeout)) {
@@ -540,7 +590,7 @@ void process() {
 			if (temp.area > min_area) {	// 0 for ir scan, 1 for edge scan
 				if (i == 0) {
 					if (irState == flash) {
-						find_time = System::Time();
+//						find_time = System::Time();
 						irState = checked;
 					}
 					timer_switch(true);
