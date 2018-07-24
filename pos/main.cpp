@@ -1870,6 +1870,11 @@ void pid(const uint32_t& tick, uint32_t& pid_time)
 						L_pid->reset();
 						R_pid->reset();
 					}
+					if(aaction==rotations && actionAfterMove == forwards)
+					{
+						L_motor->SetClockwise(false);
+						R_motor->SetClockwise(true);
+					}
 					aaction = actionAfterMove;
 					actionTarget(actionAfterMove);
 					if(actionAfterMove == rotations)
