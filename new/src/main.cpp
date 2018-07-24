@@ -85,6 +85,7 @@ bool firstAcc = false;
 int32_t accDis = 0;
 sstate_ accAction = keeps;
 sstate_ actionAfterMove = keeps;
+bool rotCount = false;
 
 
 inline float BeaconAvoidAngleCalculate(const uint16_t& bx, const uint16_t& by);
@@ -154,6 +155,8 @@ int main(void)
 	menu.PushItem("fdSP", &finding_speed, 10);
 	menu.PushItem("roSP", &rotate_speed, 10);
 	menu.PushItem("CHavoid ",&avoidCrashWhileChase,"Y","N");
+	menu.PushItem("roForDis",&rotForDis,10);
+	menu.PushItem("roTime",&rotation_time,100);
 	menu.PushItem("FDist",&firstForwardDis, 10);
 
 //    Flash::Config flash_config;
@@ -233,7 +236,7 @@ int main(void)
  //   run = false;
 //    chasing_speed = 370;
 //    finding_speed = 300;
-    rotate_speed = 150;
+  //  rotate_speed = 100;
 
 	encoder1->Update();
 	encoder2->Update();
@@ -270,7 +273,12 @@ int main(void)
 				L_count = encoder1->GetCount() * 50 / (int) time_diff;
 				R_count = encoder2->GetCount() * 50 / (int) time_diff;
 
-				if(accCount ==true && firstAcc==true)
+				if(rotCount==true)
+				{
+					aCountL += L_count;
+					aCountR += R_count;
+				}
+				else if(accCount ==true && firstAcc==true)
 				{
 					firstAcc=false;
 				}
@@ -727,13 +735,14 @@ int main(void)
 				}
 //null turn end/////////////////////////
 
+
 //rotation and searchs crash/////////////
 				else
 //				if (run==true && (aaction == sstate_:: rotations||aaction == sstate_:: searchs) && tick-changeSpeedTime>500 && (
 //						(!(abs(L_pid->getTarget())<20) && (abs(L_count)<20))
 //						|| (!(abs(R_pid->getTarget())<20) && (abs(R_count)<20))
 //					))
-				if (run==true && (aaction == sstate_:: rotations||aaction == sstate_:: searchs) && tick-changeSpeedTime>1000 && (
+				if (run==true && (aaction == sstate_:: rotations||aaction == sstate_:: searchs) && tick-changeSpeedTime>2000 && (
 						(L_pid->getNumError()>crash_cycle || R_pid->getNumError()>crash_cycle)
 					))
 				{
@@ -769,6 +778,8 @@ int main(void)
 					continue;
 				}
 //rotation and searchs crash//////////////////
+
+
 
 
 //otarget/////////////////////////////
@@ -1007,22 +1018,26 @@ int main(void)
 						actionTarget(aaction);
 						needRot = false;
 						finding_time = System::Time();
+						rotCount = true;
 					}
-					else if(needRot==false && aaction==rotations && tick-finding_time>3040)
+					//else if(needRot==false && aaction==rotations && tick-finding_time>rotation_time)
+					else if(needRot==false && rotCount == true && aaction==rotations && aCountL>rotationCount)
 					{
+						rotCount = false;
 						if(aaction==chases)
 						{
 							Dir_pid->reset();
 							L_pid->reset();
 							R_pid->reset();
 						}
-						moveCount(30, sstate_::forwards, sstate_::rotations);
+						moveCount(rotForDis, sstate_::forwards, sstate_::rotations);
 						aaction = forwards;
 						actionTarget(aaction);
 						//finding_time = System::Time();
 					}
 					else if(needRot==false && aaction!=rotations && aaction!=forwards)
 					{
+						rotCount = false;
 						aaction = rotations;
 						actionTarget(aaction);
 						finding_time = System::Time();
@@ -1556,8 +1571,8 @@ void actionTarget(const sstate_& taction)
 			break;
 		case searchs:
 		{
-			L_pid->settarget(80);
-			R_pid->settarget(-80);
+			L_pid->settarget(rotate_speed*0.9);
+			R_pid->settarget(-(rotate_speed*0.9));
 			break;
 		}
 		case chases:
@@ -1606,7 +1621,7 @@ void actionTarget(const sstate_& taction)
 		}
 	}
 
-	if(L_pid->getIsAcc()==true && (pastAction!=taction) && (aaction != chases||aaction!=rotations||aaction==chases|| aaction!=searchs))
+	if(L_pid->getIsAcc()==true && (pastAction!=taction))
 	{
 		L_pid->setIsAcc(false);
 		R_pid->setIsAcc(false);
@@ -1618,7 +1633,7 @@ void actionTarget(const sstate_& taction)
 		R_pid->setIsAcc(true);
 		if(aaction==rotations || aaction==searchs)
 		{
-			L_pid->addErrorAcc(5000);
+			L_pid->addErrorAcc(5000); //5000
 			R_pid->addErrorAcc(5000);
 		}
 	}
@@ -1635,3 +1650,4 @@ void moveCount(const int32_t& cmDis, const sstate_& nowA, const sstate_& nextA)
 	accAction = nowA;
 	actionAfterMove = nextA;
 }
+

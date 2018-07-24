@@ -159,6 +159,9 @@ bool bt_listener(const Byte *data, const size_t size) {
 
 	if (data[0] == 's') {
 		run = true;
+		firstRun = true;
+		L_motor->SetClockwise(false);
+		R_motor->SetClockwise(true);
 		changeSpeedTime = System::Time();
 		chases_crash_time = 0;
 		led0->SetEnable(1);

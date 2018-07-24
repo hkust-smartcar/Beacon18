@@ -76,7 +76,7 @@ struct BitConsts {
 
 int32_t chasing_speed = 370;
 int32_t finding_speed = 300;
-int32_t rotate_speed = 150;
+int32_t rotate_speed = 100;
 
 float L_kp = 3;
 float L_ki = 0.015;
@@ -152,5 +152,8 @@ bool avoidCrashWhileChase = false;
 bool firstRun = true;
 int32_t firstForwardDis = 50;
 uint32_t finding_time = 0;
+int32_t rotForDis = 60;
+int32_t rotation_time = 1940;
+int32_t rotationCount = 1884;
 
 #endif /* INC_VAR_H_ */
