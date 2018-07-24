@@ -105,7 +105,7 @@ const float target_intercept = 173.05365266783048;
 const float target_slope2 = -1.4209145956223272;
 const float target_intercept2 = 98.18294250176507;
 
-int16_t target_x = 165;
+int16_t target_x = 0;
 bool run = false;
 bool seen = false;
 uint32_t tick = 0;
@@ -149,5 +149,7 @@ uint32_t first_chases_time = 0;
 uint32_t chases_crash_time = 0;
 sstate_ aaction = keeps;
 bool avoidCrashWhileChase = false;
+bool firstRun = true;
+int32_t firstForwardDis = 50;
 
 #endif /* INC_VAR_H_ */
