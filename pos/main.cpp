@@ -221,7 +221,6 @@ int main(void)
     uint32_t process_time = 0;
     uint32_t pid_time = 0;
     uint32_t not_find_time = 0;
-    uint32_t finding_time = 0;
 
     bool irSeen = false;
     bool needRot = true;
@@ -1401,6 +1400,18 @@ void setAnglePower(const float& radAngle, const uint32_t& tick, uint32_t& pid_ti
 
 void pid(const uint32_t& tick, uint32_t& pid_time)
 {
+	if(firstRun==true)
+	{
+		moveCount(firstForwardDis, sstate_::forwards, rotations);
+		firstRun=false;
+		aaction = forwards;
+		actionTarget(aaction);
+		L_pid->addErrorAcc(5000);
+		R_pid->addErrorAcc(5000);
+		L_pid->setIsAcc(true);
+		R_pid->setIsAcc(true);
+	}
+
 	uint32_t time_diff = tick - pid_time;
 	encoder1->Update();
 	encoder2->Update();
@@ -1434,6 +1445,10 @@ void pid(const uint32_t& tick, uint32_t& pid_time)
 					}
 					aaction = actionAfterMove;
 					actionTarget(actionAfterMove);
+					if(actionAfterMove == rotations)
+					{
+						finding_time = System::Time();
+					}
 					if(actionAfterMove==turnRights|| actionAfterMove==turnLefts)
 					{
 						L_pid->setIsAcc(true);
@@ -1494,6 +1509,21 @@ void pid(const uint32_t& tick, uint32_t& pid_time)
 
 
 	pid_time = System::Time();
+
+//	{
+//		char temp[20] = { };
+//		sprintf(temp,"time=%d",tick-changeSpeedTime);
+//		//sprintf(temp, "al=%d ar=%d", aCountL,aCountR);
+//		lcd->SetRegion(Lcd::Rect(0, 20, 128, 160));
+//		writer->WriteString(temp);
+//		sprintf(temp, "nl=%d", L_pid->getNumError());
+//		lcd->SetRegion(Lcd::Rect(0, 40, 128, 160));
+//		writer->WriteString(temp);
+//		sprintf(temp, "nr=%d", R_pid->getNumError());
+//		lcd->SetRegion(Lcd::Rect(0, 60, 128, 160));
+//		writer->WriteString(temp);
+//	}
+
 }
 
 void actionTarget(const sstate_& taction)
