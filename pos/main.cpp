@@ -1827,6 +1827,7 @@ void setAnglePower(const float& radAngle, const uint32_t& tick, uint32_t& pid_ti
 
 void pid(const uint32_t& tick, uint32_t& pid_time)
 {
+	bool nextActionNeedAcc = false;
 	if(firstRun==true)
 	{
 		moveCount(firstForwardDis, sstate_::forwards, rotations);
@@ -1872,8 +1873,7 @@ void pid(const uint32_t& tick, uint32_t& pid_time)
 					}
 					if(aaction==rotations && actionAfterMove == forwards)
 					{
-						L_motor->SetClockwise(false);
-						R_motor->SetClockwise(true);
+						nextActionNeedAcc = true;
 					}
 					aaction = actionAfterMove;
 					actionTarget(actionAfterMove);
@@ -1882,6 +1882,13 @@ void pid(const uint32_t& tick, uint32_t& pid_time)
 						finding_time = System::Time();
 					}
 					if(actionAfterMove==turnRights|| actionAfterMove==turnLefts)
+					{
+						L_pid->setIsAcc(true);
+						R_pid->setIsAcc(true);
+						L_pid->addErrorAcc(5000);
+						L_pid->addErrorAcc(5000);
+					}
+					if(nextActionNeedAcc==true && aaction == forwards)
 					{
 						L_pid->setIsAcc(true);
 						R_pid->setIsAcc(true);
