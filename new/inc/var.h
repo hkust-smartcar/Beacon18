@@ -149,5 +149,8 @@ uint32_t first_chases_time = 0;
 uint32_t chases_crash_time = 0;
 sstate_ aaction = keeps;
 bool avoidCrashWhileChase = false;
+bool firstRun = true;
+int32_t firstForwardDis = 50;
+uint32_t finding_time = 0;
 
 #endif /* INC_VAR_H_ */
