@@ -53,9 +53,9 @@ obj/main-d-2018-beacon-master.o: src/main.cpp \
  C:\Users\Sheldon\git\libsccc\inc/libutil/pid_controller.tcc \
  C:\Users\Sheldon\git\libsccc\inc/libutil/misc.h \
  C:\Users\Sheldon\git\libsccc\inc/libutil/incremental_pid_controller.tcc \
- inc/pid.h C:\Users\Sheldon\git\libsccc\inc/libbase/k60/pit.h \
- inc/function.h inc/config.h \
- C:\Users\Sheldon\git\libsccc\inc/libbase/k60/vectors.h \
+ inc/pid.h inc/motor_pid.h \
+ C:\Users\Sheldon\git\libsccc\inc/libbase/k60/pit.h inc/function.h \
+ inc/config.h C:\Users\Sheldon\git\libsccc\inc/libbase/k60/vectors.h \
  C:\Users\Sheldon\git\libsccc\inc/libbase/k60/hardware.h \
  C:\Users\Sheldon\git\libsccc\inc/libbase/k60/cmsis/mk60f15.h \
  C:\Users\Sheldon\git\libsccc\inc/libbase/cmsis/core_cm4.h inc/var.h \

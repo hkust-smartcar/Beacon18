@@ -17,13 +17,13 @@
 uint8_t x_range = 5;
 uint8_t y_range = 35;
 const uint16_t min_size = 10;
-const uint16_t critical_density = 65;
+uint16_t critical_density = 65; //tune
 const uint8_t max_beacon = 30;
 const uint8_t frame = 15;
-const uint8_t min_frame = 3;
-const uint8_t near_dist = 50;
+uint8_t min_frame = 2;	//tune
+uint8_t near_dist = 25; // beacon and beacon tune
 const uint32_t timeout = 50;
-const uint8_t error = 30;
+const uint8_t error = 10;
 uint8_t frame_count = 0;
 std::list<Record> center_record;
 Beacon beacons[max_beacon];
@@ -41,7 +41,7 @@ int16_t getY(uint16_t m_pos) {
 	return y;
 }
 
-int8_t skip(uint16_t x, int8_t y) {
+inline int8_t skip(uint16_t x, uint16_t y) {
 	for (uint8_t i = 0; i < beacon_count; i++)
 		if (x < beacons[i].right_x + error && y < beacons[i].lower_y + error
 				&& y > beacons[i].upper_y - error
@@ -71,7 +71,6 @@ void sub_scan(uint16_t m_pos, int8_t m_bit_pos, int dir) {
 			++m_pos;
 		}
 	}
-
 	uint8_t x_count = 0;
 	uint8_t y_count = 0;
 	uint8_t i = 0;
@@ -100,7 +99,6 @@ void sub_scan(uint16_t m_pos, int8_t m_bit_pos, int dir) {
 						current->lower_y = temp_y;
 				} else if (temp_y < current->upper_y) //scan upper
 					current->upper_y = temp_y;
-				//	y_count = 0;
 			} else
 				y_count++;
 			i++;
@@ -108,8 +106,7 @@ void sub_scan(uint16_t m_pos, int8_t m_bit_pos, int dir) {
 
 		if (all_black)
 			x_count++;
-		//		else
-		//			x_count = 0;
+
 		if (dir % 2 != 0) { //scan left
 			if (++m_bit_pos > 7) {
 				m_bit_pos = 0;
@@ -127,17 +124,12 @@ void sub_scan(uint16_t m_pos, int8_t m_bit_pos, int dir) {
 	}
 }
 
-inline void check_target() {
-	if (beacons[beacon_count].count > min_size
-			&& beacons[beacon_count].density > critical_density)
-		beacon_count++;
-}
-
 inline void scan(uint16_t m_pos, int8_t m_bit_pos, int mode) {
 
 	int16_t x = getX(m_pos, m_bit_pos);
 	int16_t y = getY(m_pos);
-	beacons[beacon_count].init(x, y);
+	Beacon* ptr = beacons + beacon_count;
+	ptr->init(x, y);
 
 	//scan lower left
 	sub_scan(m_pos, m_bit_pos, 3);
@@ -149,12 +141,17 @@ inline void scan(uint16_t m_pos, int8_t m_bit_pos, int mode) {
 		sub_scan(m_pos, m_bit_pos, 2);
 	}
 
-	beacons[beacon_count].calc();
-	check_target();
-}
-
-inline bool check_near(const uint16_t x1, const uint16_t x2) {
-	return abs(x1 - x2) < near_dist;
+	ptr->calc();
+	beacon_count++;
+//	int i = 0;
+//	for (; i < beacon_count; i++) {
+//		auto a = ptr->center;
+//		auto b = beacons[i].center;
+//		if (a.first == b.first && a.second == b.second)
+//			break;
+//	}
+//	if (i == beacon_count)
+//		beacon_count++;
 }
 
 void add_record() {
@@ -164,19 +161,24 @@ void add_record() {
 	}
 	++frame_count;
 	for (int i = 0; i < beacon_count; i++) {
+		if (beacons[i].count < min_size || beacons[i].density < critical_density)
+			continue;
 		bool add = false;
 		for (auto it = center_record.begin(); it != center_record.end(); ++it)
-			if (check_near(it->record.center.first, beacons[i].center.first)) {
+			if (abs(it->record.center.first - beacons[i].center.first)
+					< near_dist) {
 				add = true;
-				if (++it->count > min_frame) {
+				if (++it->count > min_frame
+						&& it->count + it->frame < frame_count - 2) {
 					ir_target = &it->record;
 					frame_count = 0;
 					return;
 				}
+				it->record.center = beacons[i].center;
 				break;
 			}
 		if (!add)
-			center_record.push_back(Record(beacons[i]));
+			center_record.push_back(Record(beacons[i], frame_count));
 	}
 }
 
@@ -186,7 +188,7 @@ inline void process() {
 	beacon_count = 0;
 	//////check for beacon with the last recorded pos/////////
 	if (seen) {
-		x_range = 30;
+		x_range = 50;
 		y_range = 10;
 		uint16_t temp_pos = (width * last_beacon.second) / 8
 				+ last_beacon.first / 8;
@@ -226,8 +228,7 @@ inline void process() {
 				scan(pos, bit_pos, 0);
 				if (beacon_count == max_beacon
 						|| System::Time() - tick > timeout) {
-					if (beacon_count)
-						add_record();
+					add_record();
 					cam->UnlockBuffer();
 					return;
 				}
@@ -236,8 +237,7 @@ inline void process() {
 		zero = !zero;
 		pos += width / 8;
 	}
-	if (beacon_count)
-		add_record();
+	add_record();
 	cam->UnlockBuffer();
 }
 #endif /* INC_IMAGE_PROCESSING_H_ */

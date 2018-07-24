@@ -64,9 +64,9 @@ int main() {
 	Joystick::Config j_config;
 	j_config.id = 0;
 	j_config.is_active_low = true;
-	bool checked = false;
-	j_config.dispatcher = [&checked](const uint8_t id, const Joystick::State which) {
-		if(run || !checked)
+	bool check = false;
+	j_config.dispatcher = [&check](const uint8_t id, const Joystick::State which) {
+		if(run || !check)
 		return;
 		switch(which) {
 			case Joystick::State::kUp:
@@ -85,13 +85,17 @@ int main() {
 	joystick = &joyStick_;
 
 	DebugConsole menu_(joystick, lcd, writer);
-	menu_.PushItem("Sobel", &sobel_value, 10);
-	menu_.PushItem("LSobel", &line_sobel_value, 10);
-	menu_.PushItem("IR", &white, 5);
-	menu_.PushItem("IrTime", &ir_timeout, 5);
+//	menu_.PushItem("Sobel", &sobel_value, 10);
+//	menu_.PushItem("LSobel", &line_sobel_value, 10);
+//	menu_.PushItem("IR", &white, 5);
+//	menu_.PushItem("IrTime", &ir_timeout, 5);
+	menu_.PushItem("LL", &avoid_region_left.left_x, 10);
+	menu_.PushItem("LR", &avoid_region_left.right_x, 10);
+	menu_.PushItem("RL", &avoid_region_right.left_x, 10);
+	menu_.PushItem("RR", &avoid_region_right.right_x, 10);
 	menu = &menu_;
 	check_cam();
-	checked = true;
+	check = true;
 	/////////var/////////////////
 	int start = 0;
 	irState = no;
@@ -104,7 +108,7 @@ int main() {
 	}
 
 	while (1) {
-		if (tick != System::Time() && run) {
+		if (tick != System::Time() /*&& run*/) {
 			tick = System::Time();
 			if (tick - start > 30) {
 				start = tick;
@@ -116,7 +120,7 @@ int main() {
 					led0->SetEnable(true);
 				} else
 					led0->SetEnable(false);
-				if (o_target != NULL && tick - o_find_time > 100) {
+				if (o_target != NULL && tick - o_find_time > 200) {
 					send_coord(PkgType::oTarget);
 					led1->SetEnable(true);
 				} else {

@@ -123,6 +123,7 @@ void reset_pid() {
 	Dir_pid->reset();
 	avoid_pid->reset();
 }
+
 bool receiving = false;
 bool bt_listener(const Byte *data, const size_t size) {
 	BitConsts a;
@@ -158,9 +159,13 @@ bool bt_listener(const Byte *data, const size_t size) {
 
 	if (data[0] == 's') {
 		run = true;
+		changeSpeedTime = System::Time();
+		chases_crash_time = 0;
 		led0->SetEnable(1);
-//			comm->SendStrLiteral("s");
+		comm->SendStrLiteral("s");
 		reset_pid();
+		encoder1->Update();
+		encoder2->Update();
 	}
 	if (data[0] == 'S') {
 		run = false;
@@ -170,23 +175,71 @@ bool bt_listener(const Byte *data, const size_t size) {
 		R_pid->settarget(0);
 		L_motor->SetPower(0);
 		R_motor->SetPower(0);
-//			comm->SendStrLiteral("S");
+		aaction = stops;
+		if(seen)
+		{
+			seen = false;
+			max_area = 0;
+		}
+		comm->SendStrLiteral("S");
 	}
-
-//	if (data[0] == 'r') {
-//		BitConsts a;
-//		bt->SendBuffer(&a.kSTART, 1);
-//		Byte size[1] = {2};
-//		bt->SendBuffer(size,1);
-//		sendFloat(L_pid->kP);
-//		sendFloat(L_pid->kI);
-//		sendFloat(L_pid->kD);
-//		sendFloat(R_pid->kP);
-//		sendFloat(R_pid->kI);
-//		sendFloat(R_pid->kD);
-//		bt->SendBuffer(&a.kEND, 1);
-//	}
 	return true;
+}
+
+void ssend (sstate_ state)
+{
+	BitConsts a;
+	Byte out[4];
+	bt->SendBuffer(&a.kSTART, 1);
+	Byte size[1] = { 4 };
+	bt->SendBuffer(size, 1);
+	out[0] = state & 0xFF;
+	out[1] = ir_target != NULL?1:0;
+	out[2] = tick - o_target.received_time < 200? 1:0;
+	out[3] = tick - ir_target2.received_time < 200?1:0;
+	bt->SendBuffer(out, 4);
+	bt->SendBuffer(&a.kEND, 1);
+
+	if(printLCD)
+	{
+		char temp[20] = { };
+		switch(state)
+		{
+		case 0:
+			sprintf(temp, "s=for");
+			break;
+		case 1:
+			sprintf(temp, "s=chase");
+			break;
+		case 2:
+			sprintf(temp, "s=rot");
+			break;
+		case 3:
+			sprintf(temp, "s=turnR");
+			break;
+		case 4:
+			sprintf(temp, "s=turnL");
+			break;
+		case 5:
+			break;
+		case 6:
+			sprintf(temp, "s=avoid");
+			break;
+		case 7:
+			sprintf(temp, "s=app");
+			break;
+		case 8:
+			sprintf(temp, "s=back");
+			break;
+		case 9:
+			sprintf(temp, "s=stop");
+			break;
+		default:
+			sprintf(temp, "s=");
+		}
+		lcd->SetRegion(Lcd::Rect(100, 110, 128, 160));
+		writer->WriteString(temp);
+	}
 }
 
 inline void sendData() {
@@ -195,7 +248,7 @@ inline void sendData() {
 	bt->SendBuffer(&a.kSTART, 1);
 	Byte size[1] = { 4 };
 	bt->SendBuffer(size, 1);
-	out[0] = action & 0xFF;
+	out[0] = aaction & 0xFF;
 	out[1] = ir_target != NULL ? 1 : 0;
 	out[2] = tick - o_target.received_time < 200 ? 1 : 0;
 	out[3] = tick - ir_target2.received_time < 200 ? 1 : 0;
@@ -203,87 +256,6 @@ inline void sendData() {
 	bt->SendBuffer(&a.kEND, 1);
 }
 
-void FSM() {
-	int diff;
-	std::pair<uint16_t, uint16_t> p;
-	int speed;
-	sendData();
-	switch (action) {
-	case forward:
-		L_pid->settarget(finding_speed);
-		R_pid->settarget(finding_speed);
-		break;
-	case backward:
-		L_pid->settarget(-finding_speed);
-		R_pid->settarget(-finding_speed);
-		break;
-	case rotation:
-		L_pid->settarget(rotate_speed);
-		R_pid->settarget(-rotate_speed);
-		break;
-	case chase:
-		Dir_pid->settarget(target_x);
-		diff = Dir_pid->output(ir_target->center.first);
-		diff = chasing_speed * diff / 100;
-		L_pid->settarget(chasing_speed - diff);
-		R_pid->settarget(chasing_speed + diff);
-		if (chasing_speed < 150)
-			L_pid->settarget(chasing_speed);
-		break;
-	case stop:
-		L_pid->settarget(0);
-		R_pid->settarget(0);
-		break;
-	case out:
-		if (last_beacon.first < 170) {
-			L_pid->settarget(out_speed);
-			R_pid->settarget(out_speed + out_speed * 0.67);
-		} else {
-			L_pid->settarget(out_speed + out_speed * 0.67);
-			R_pid->settarget(out_speed);
-		}
-		break;
-	case avoid:
-		p = o_target.target->center;
-		if (p.first < 90)
-			avoid_pid->settarget(0);
-		else
-			avoid_pid->settarget(189);
-		diff = avoid_pid->output(p.first);
-		diff = chasing_speed * diff / 100;
-		L_pid->settarget(chasing_speed - diff);
-		R_pid->settarget(chasing_speed + diff);
-		break;
-	case approach:
-		p = ir_target2.target->center;
-		if (p.first < 90)
-			avoid_pid->settarget(10);
-		else
-			avoid_pid->settarget(180);
-		diff = avoid_pid->output(p.first);
-		diff = chasing_speed * diff / 100;
-		L_pid->settarget(chasing_speed - diff);
-		R_pid->settarget(chasing_speed + diff);
-		break;
-	case eixt_rotation:
-		L_pid->settarget(rotate_speed / 2);
-		R_pid->settarget(chasing_speed);
-		break;
-	case keep:
-		break;
-	}
-}
-
-inline void send(uint8_t &state) {
-	if (action == keep)
-		return;
-	if (state != action) {
-		state = action;
-		char data[10];
-		sprintf(data, "S:%d\n", state);
-		bt->SendStr(data);
-	}
-}
 
 inline void display_bMeter() {
 	lcd->SetRegion(Lcd::Rect(0, 0, 160, 15));
@@ -326,5 +298,76 @@ inline void reControl() {
 		R_pid->settarget(-chasing_speed);
 	}
 }
+
+//void FSM() {
+//	int diff;
+//	std::pair<uint16_t, uint16_t> p;
+//	int speed;
+//	sendData();
+//	switch (action) {
+//	case forward:
+//		L_pid->settarget(finding_speed);
+//		R_pid->settarget(finding_speed);
+//		break;
+//	case backward:
+//		L_pid->settarget(-finding_speed);
+//		R_pid->settarget(-finding_speed);
+//		break;
+//	case rotation:
+//		L_pid->settarget(rotate_speed);
+//		R_pid->settarget(-rotate_speed);
+//		break;
+//	case chase:
+//		Dir_pid->settarget(target_x);
+//		diff = Dir_pid->output(ir_target->center.first);
+//		diff = chasing_speed * diff / 100;
+//		L_pid->settarget(chasing_speed - diff);
+//		R_pid->settarget(chasing_speed + diff);
+//		if (chasing_speed < 150)
+//			L_pid->settarget(chasing_speed);
+//		break;
+//	case stop:
+//		L_pid->settarget(0);
+//		R_pid->settarget(0);
+//		break;
+//	case out:
+//		if (last_beacon.first < 170) {
+//			L_pid->settarget(out_speed);
+//			R_pid->settarget(out_speed + out_speed * 0.67);
+//		} else {
+//			L_pid->settarget(out_speed + out_speed * 0.67);
+//			R_pid->settarget(out_speed);
+//		}
+//		break;
+//	case avoid:
+//		p = o_target.target->center;
+//		if (p.first < 90)
+//			avoid_pid->settarget(0);
+//		else
+//			avoid_pid->settarget(189);
+//		diff = avoid_pid->output(p.first);
+//		diff = chasing_speed * diff / 100;
+//		L_pid->settarget(chasing_speed - diff);
+//		R_pid->settarget(chasing_speed + diff);
+//		break;
+//	case approach:
+//		p = ir_target2.target->center;
+//		if (p.first < 90)
+//			avoid_pid->settarget(10);
+//		else
+//			avoid_pid->settarget(180);
+//		diff = avoid_pid->output(p.first);
+//		diff = chasing_speed * diff / 100;
+//		L_pid->settarget(chasing_speed - diff);
+//		R_pid->settarget(chasing_speed + diff);
+//		break;
+//	case eixt_rotation:
+//		L_pid->settarget(rotate_speed / 2);
+//		R_pid->settarget(chasing_speed);
+//		break;
+//	case keep:
+//		break;
+//	}
+//}
 
 #endif

@@ -74,36 +74,36 @@ inline void show_avoid_region() {
 	//#scan region
 
 	int len = avoid_region_up.right_x - avoid_region_up.left_x;
-//	lcd->SetRegion(
-//			Lcd::Rect(avoid_region_up.left_x, avoid_region_up.lower_y, len, 1));
-//	lcd->FillColor(Lcd::kRed);
-//	len = avoid_region_up.lower_y - avoid_region_up.upper_y;
-//	lcd->SetRegion(Lcd::Rect(avoid_region_up.right_x - offset, 0, 1, len));
-//	lcd->FillColor(Lcd::kRed);
-//	lcd->SetRegion(Lcd::Rect(avoid_region_up.left_x - offset, 0, 1, len));
-//	lcd->FillColor(Lcd::kRed);
-//
-//	len = avoid_region_left.lower_y - avoid_region_left.upper_y;
-//	lcd->SetRegion(
-//			Lcd::Rect(avoid_region_left.right_x - offset,
-//					avoid_region_left.upper_y, 1, len));
-//	lcd->FillColor(Lcd::kRed);
-//	len = avoid_region_right.lower_y - avoid_region_right.upper_y;
-//	lcd->SetRegion(
-//			Lcd::Rect(avoid_region_right.left_x - offset,
-//					avoid_region_right.upper_y, 1, len));
-//	lcd->FillColor(Lcd::kRed);
-//	len = avoid_region_left.right_x - avoid_region_left.left_x;
-//	lcd->SetRegion(
-//			Lcd::Rect(avoid_region_left.left_x, avoid_region_left.upper_y, len,
-//					1));
-//	lcd->FillColor(Lcd::kRed);
-//	len = avoid_region_right.right_x - avoid_region_right.left_x;
-//	lcd->SetRegion(
-//			Lcd::Rect(avoid_region_right.left_x, avoid_region_right.upper_y,
-//					len, 1));
-//	lcd->FillColor(Lcd::kRed);
-//
+	lcd->SetRegion(
+			Lcd::Rect(avoid_region_up.left_x, avoid_region_up.lower_y, len, 1));
+	lcd->FillColor(Lcd::kRed);
+	len = avoid_region_up.lower_y - avoid_region_up.upper_y;
+	lcd->SetRegion(Lcd::Rect(avoid_region_up.right_x - offset, avoid_region_up.upper_y, 1, len));
+	lcd->FillColor(Lcd::kRed);
+	lcd->SetRegion(Lcd::Rect(avoid_region_up.left_x - offset, avoid_region_up.upper_y, 1, len));
+	lcd->FillColor(Lcd::kRed);
+
+	len = avoid_region_left.lower_y - avoid_region_left.upper_y;
+	lcd->SetRegion(
+			Lcd::Rect(avoid_region_left.right_x - offset,
+					avoid_region_left.upper_y, 1, len));
+	lcd->FillColor(Lcd::kRed);
+	len = avoid_region_right.lower_y - avoid_region_right.upper_y;
+	lcd->SetRegion(
+			Lcd::Rect(avoid_region_right.left_x - offset,
+					avoid_region_right.upper_y, 1, len));
+	lcd->FillColor(Lcd::kRed);
+	len = avoid_region_left.right_x - avoid_region_left.left_x;
+	lcd->SetRegion(
+			Lcd::Rect(avoid_region_left.left_x, avoid_region_left.upper_y, len,
+					1));
+	lcd->FillColor(Lcd::kRed);
+	len = avoid_region_right.right_x - avoid_region_right.left_x;
+	lcd->SetRegion(
+			Lcd::Rect(avoid_region_right.left_x, avoid_region_right.upper_y,
+					len, 1));
+	lcd->FillColor(Lcd::kRed);
+
 //	//#car head
 	len = no_scan.right_x - no_scan.left_x;
 	lcd->SetRegion(Lcd::Rect(no_scan.left_x - offset, no_scan.upper_y, len, 1));

@@ -21,26 +21,23 @@ public:
 	int32_t errorSumBound;
 	int32_t max;
 	int32_t min;
-	//assume errorIgnore always positive
-	int32_t errorIgnore;
 
 	PID() :
 			kP(0), kI(0), kD(0), errorSumBound(0), max(0), min(0), preError(0), errorSum(
-					0), last_time(0), target(0), errorIgnore(70) {
+					0), last_time(0), target(0) {
 	}
 
 	PID(const float& p, const float& i, const float& d, int m_max, int m_min) :
 			kP(p), kI(i), kD(d), errorSumBound(0), max(m_max), min(m_min), preError(
-					0), errorSum(0), last_time(0), target(0), errorIgnore(70) {
+					0), errorSum(0), last_time(0), target(0) {
 	}
-	void settarget(int32_t t) {
+	void settarget(int t) {
 		target = t;
 	}
 	int32_t getTarget() {
 		return target;
 	}
 	int32_t output(const int32_t& current) {
-		uint32_t time_diff = System::Time() - last_time;
 		int32_t error = target - current;
 		accuError(error);
 		float ki = errorSum * kI /** time_diff*/;
@@ -55,11 +52,6 @@ public:
 		}
 		preError = error;
 		last_time = System::Time();
-		//assume errorIgnore always positive
-		if(abs(error)>errorIgnore)
-		{
-			delError(error);
-		}
 		return out;
 	}
 
@@ -67,11 +59,6 @@ public:
 		errorSum = 0;
 		preError = 0;
 		last_time = System::Time();
-	}
-
-	int32_t getErrorSum()
-	{
-		return errorSum;
 	}
 
 private:
@@ -87,17 +74,6 @@ private:
 			errorSum = -errorSumBound;
 		} else {
 			errorSum += e;
-		}
-	}
-
-	void delError(const int32_t& e) {
-		//assume errorSumBound always positive
-		if ((errorSum - e) > errorSumBound) {
-			errorSum = errorSumBound;
-		} else if ((errorSum - e) < -errorSumBound) {
-			errorSum = -errorSumBound;
-		} else {
-			errorSum -= e;
 		}
 	}
 };

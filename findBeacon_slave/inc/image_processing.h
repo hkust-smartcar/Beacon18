@@ -22,6 +22,7 @@ uint32_t high_time = 0;
 bool low_timer = false;
 bool high_timer = false;
 uint32_t full_screen_check = 0;
+uint32_t ir_screen_check = 0;
 const int8_t y_mask[3][3] = { { -1, 0, 1 }, { -2, 0, 2 }, { -1, 0, 1 } };
 const int8_t x_mask[3][3] = { { -1, -2, -1 }, { 0, 0, 0 }, { 1, 2, 1 } };
 
@@ -309,6 +310,53 @@ inline bool check_near_boarder(const uint8_t boarder_offset, int dir) {
 		if (begin.y > height - boarder_offset)
 			return false;
 		return true;
+	}
+	return false;
+}
+
+inline void check_skip_area(uint16_t &y, uint16_t &y_bound, uint16_t &x_start,
+		uint16_t &x_bound, uint16_t i) {
+	switch (i) {
+	case 0:
+		y = 0;
+		y_bound = no_scan.upper_y;
+		x_start = 0;
+		x_bound = width;
+		break;
+	case 1:
+		y = no_scan.upper_y;
+		y_bound = height;
+		x_start = 0;
+		x_bound = no_scan.left_x;
+		break;
+	case 2:
+		y = no_scan.upper_y;
+		y_bound = height;
+		x_start = no_scan.right_x;
+		x_bound = width;
+		break;
+	}
+}
+
+bool loop_full_screen() {
+	Beacon temp;
+	uint16_t y;
+	uint16_t y_bound;
+	uint16_t x_start;
+	uint16_t x_bound;
+	for (int i = 0; i < 3; i++) {
+		check_skip_area(y, y_bound, x_start, x_bound, i);
+		for (; y < y_bound; y += size)
+			for (uint16_t x = x_start; x < x_bound; x += size)
+				if (cal_mean(x, y) > white) {
+					check_beacon_ir(temp, x, y);
+					if (temp.area > min_area) {
+						insert(temp, ptr_mode::ir_Target);
+						irState = seen;
+						timer_switch(true);
+						return true;
+					}
+				}
 	}
 	return false;
 }
@@ -607,6 +655,11 @@ void process() {
 		timer_switch(false);
 	}
 
+	if (System::Time() - ir_screen_check > 150) {
+		ir_screen_check = System::Time();
+		if (loop_full_screen())
+			return;
+	}
 	if (System::Time() - full_screen_check > 250) {
 		full_screen_check = System::Time();
 		check_beacon_edge(temp, scan_mode::full_screen);

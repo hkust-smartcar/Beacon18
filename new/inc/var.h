@@ -19,6 +19,7 @@
 #include "libsc/alternate_motor.h"
 #include "libutil/incremental_pid_controller.h"
 #include "pid.h"
+#include "motor_pid.h"
 #include "libbase/k60/pit.h"
 #include "libutil/misc.h"
 
@@ -28,6 +29,14 @@ using namespace libsc::k60;
 using namespace libbase::k60;
 using namespace libutil;
 
+enum sstate_ {
+	//0       1           2            3         4      5           6   7          8          9      10
+	forwards, chases, rotations, turnRights, turnLefts, keeps, avoids, approachs, backwards, stops, searchs
+};
+
+bool printLCD = false;
+
+
 struct BeaconPackage {
 	Beacon* target = NULL;
 	uint32_t received_time = 0;
@@ -36,8 +45,9 @@ struct BeaconPackage {
 struct Record {
 	Beacon record;
 	uint8_t count = 0;
-	Record(Beacon record_) :
-			record(record_), count(1) {
+	uint8_t frame = 0;
+	Record(Beacon record_, uint8_t frame_no) :
+			record(record_), count(1), frame(frame_no) {
 	}
 };
 
@@ -45,36 +55,28 @@ enum PkgType {
 	irTarget = 0, oTarget = 1
 };
 
-class distance_recorder {
-public:
-	distance_recorder() :
-			distance(0), start(false) {
-	}
-	void init() {
-		distance = 0;
-		start = true;
-	}
-
-	uint32_t distance;
-	bool start;
-};
+//class distance_recorder {
+//public:
+//	distance_recorder() :
+//			distance(0), start(false) {
+//	}
+//	void init() {
+//		distance = 0;
+//		start = true;
+//	}
+//
+//	uint32_t distance;
+//	bool start;
+//};
 
 struct BitConsts {
 	uint8_t kSTART = 0xF0;
 	uint8_t kEND = 0xFF;
 };
 
-enum rotate_state {
-	no, prepare, performing
-};
-enum state_ {
-	forward, chase, rotation, out, keep, avoid, approach, backward, stop,eixt_rotation
-};
-
-int32_t chasing_speed = 200;
-int32_t finding_speed = 200;
+int32_t chasing_speed = 370;
+int32_t finding_speed = 300;
 int32_t rotate_speed = 150;
-int32_t out_speed = 200;
 
 float L_kp = 3;
 float L_ki = 0.015;
@@ -103,8 +105,7 @@ const float target_intercept = 173.05365266783048;
 const float target_slope2 = -1.4209145956223272;
 const float target_intercept2 = 98.18294250176507;
 
-int16_t target_x = 0;
-state_ action = keep;
+int16_t target_x = 165;
 bool run = false;
 bool seen = false;
 uint32_t tick = 0;
@@ -138,9 +139,15 @@ AlternateMotor *R_motor = NULL;
 DirEncoder* encoder1 = NULL;
 DirEncoder* encoder2 = NULL;
 BatteryMeter* bMeter = NULL;
-PID* L_pid = NULL;
-PID* R_pid = NULL;
+Motor_PID* L_pid = NULL;
+Motor_PID* R_pid = NULL;
 PID* Dir_pid = NULL;
 PID* avoid_pid = NULL;
+
+uint32_t changeSpeedTime = 0;
+uint32_t first_chases_time = 0;
+uint32_t chases_crash_time = 0;
+sstate_ aaction = keeps;
+bool avoidCrashWhileChase = false;
 
 #endif /* INC_VAR_H_ */

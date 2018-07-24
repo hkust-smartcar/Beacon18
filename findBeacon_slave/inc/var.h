@@ -72,9 +72,9 @@ struct point {
 	}
 };
 
-Beacon avoid_region_up(65, 125, 0, 15);
-Beacon avoid_region_left(0, 20, 30, 120);	//left
-Beacon avoid_region_right(159, 189, 30, 120);	//right
+Beacon avoid_region_up(65, 125, 15, 30);
+Beacon avoid_region_left(30, 50, 30, 90);	//left
+Beacon avoid_region_right(148, 160, 30, 90);	//right
 Beacon no_scan(65, 128, 85, 120);	//car head
 
 bool run = false;

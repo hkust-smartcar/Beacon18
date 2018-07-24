@@ -44,7 +44,7 @@ void DebugConsole::EnterDebug(char* leave_msg) {
     Save();
   }
   items.erase(items.begin());
-  Clear();
+//  Clear();
 }
 
 void DebugConsole::Listen() {
