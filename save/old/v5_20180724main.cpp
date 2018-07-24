@@ -1606,7 +1606,7 @@ void actionTarget(const sstate_& taction)
 		}
 	}
 
-	if(L_pid->getIsAcc()==true && (pastAction!=taction) && (aaction != chases||aaction!=rotations||aaction!=searchs))
+	if(L_pid->getIsAcc()==true && (pastAction!=taction))
 	{
 		L_pid->setIsAcc(false);
 		R_pid->setIsAcc(false);
