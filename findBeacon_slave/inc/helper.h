@@ -31,7 +31,7 @@ void insert(Beacon t, ptr_mode m) {
 bool comm_listener(const Byte *data, const size_t size) {
 	if (data[0] == 's') {
 		run = true;
-			led0->SetEnable(1);
+		lcd->Clear(Lcd::kBlack);
 	}
 	if (data[0] == 'S')
 		run = false;

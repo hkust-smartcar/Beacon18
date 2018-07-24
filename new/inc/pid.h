@@ -38,6 +38,7 @@ public:
 		return target;
 	}
 	int32_t output(const int32_t& current) {
+		uint32_t time_diff = System::Time() - last_time;
 		int32_t error = target - current;
 		accuError(error);
 		float ki = errorSum * kI /** time_diff*/;

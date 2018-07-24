@@ -1,0 +1,35 @@
+v2
+-------------------------------
+v3 20180722
+chases no backwards
+
+aactiontarget funtion: same action will have new change speed time;; 
+=> change time when differnt target
+
+
+every chases: reset count error num => cant accumalte error num when null turn
+=>first chases time>200 to accumulte error
+
+rotation and search 500ms change speed time';;
+=> add acc error
+
+avoid and approach
+=>acctiontarget break
+
+
+------------
+v4 20180723
+backwards wall need more
+=>tick - o_target.received_time < 200
+
+targetx
+
+....ok
+--------------------------
+v5 201807242245
+
+rotation first
+=> bool firstRun = true; int32_t firstForwardDis = 50;
+---------
+change to chase need to reset acc sum? (in actionTarget)
+null turn  wheel forward backward turn

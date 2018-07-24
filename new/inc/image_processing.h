@@ -17,11 +17,11 @@
 uint8_t x_range = 5;
 uint8_t y_range = 35;
 const uint16_t min_size = 10;
-uint16_t critical_density = 65; //tune
+const uint16_t critical_density = 65;
 const uint8_t max_beacon = 30;
 const uint8_t frame = 15;
-uint8_t min_frame = 2;	//tune
-uint8_t near_dist = 25; // beacon and beacon tune
+const uint8_t min_frame = 2;
+const uint8_t near_dist = 25;
 const uint32_t timeout = 50;
 const uint8_t error = 10;
 uint8_t frame_count = 0;
