@@ -171,6 +171,8 @@ int main(void)
 			display_bMeter();
 			lcd->SetRegion(Lcd::Rect(90, 0, 128, 160));
 			writer->WriteString("star");
+			L_motor->SetClockwise(false);
+			R_motor->SetClockwise(true);
 			encoder1->Update();
 			encoder2->Update();
 			reset_pid();
