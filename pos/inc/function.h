@@ -159,6 +159,7 @@ bool bt_listener(const Byte *data, const size_t size) {
 
 	if (data[0] == 's') {
 		run = true;
+		firstRun = true;
 		changeSpeedTime = System::Time();
 		chases_crash_time = 0;
 		led0->SetEnable(1);
