@@ -2033,17 +2033,17 @@ void actionTarget(const sstate_& taction)
 		}
 	}
 
-	if(L_pid->getIsAcc()==true && (pastAction!=taction) && (aaction != chases||aaction!=rotations||aaction==chases))
+	if(L_pid->getIsAcc()==true && (pastAction!=taction))
 	{
 		L_pid->setIsAcc(false);
 		R_pid->setIsAcc(false);
 	}
 
-	if(L_pid->getIsAcc()==false && (pastAction!=taction) && (aaction == chases||aaction==rotations||aaction==chases))
+	if(L_pid->getIsAcc()==false && (pastAction!=taction) && (aaction == chases||aaction==rotations||aaction==searchs))
 	{
 		L_pid->setIsAcc(true);
 		R_pid->setIsAcc(true);
-		if(aaction==rotations)
+		if(aaction==rotations || aaction==searchs)
 		{
 			L_pid->addErrorAcc(5000);
 			R_pid->addErrorAcc(5000);
