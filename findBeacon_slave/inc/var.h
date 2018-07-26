@@ -65,8 +65,8 @@ struct BitConsts {
 };
 
 struct point {
-	uint8_t x;
-	uint8_t y;
+	int16_t x;
+	int16_t y;
 	point(uint8_t m_x, uint8_t m_y) :
 			x(m_x), y(m_y) {
 	}

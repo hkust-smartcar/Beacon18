@@ -448,15 +448,6 @@ bool find_boarder() {
 			d = h;
 			moving_act = -1;
 			break;
-//		case 5:
-//			x = boarder_offset;
-//			bound = width - boarder_offset;
-//			y = boarder_offset;
-//			search_ptr = &x;
-//			act = 1;
-//			d = v;
-//			moving_act = 1;
-//			break;
 		}
 		for (; act < 0 ? *search_ptr > bound : *search_ptr < bound;
 				*search_ptr += act)
@@ -551,6 +542,7 @@ bool find_boarder() {
 					else
 						moving_y += moving_act;
 				}
+				search_ptr += act * 10;
 			}
 	}
 	begin.x = 0;
@@ -592,33 +584,46 @@ bool search_line_record() {
 	return false;
 }
 
+void process_line() {
+//	lcd->SetRegion(Lcd::Rect(0, 0, 160, 15));
+//	char data[20] = { };
+//	sprintf(data, "%d , %d", begin.x, begin.y);
+//	writer->WriteBuffer(data, 20);
+//	lcd->SetRegion(Lcd::Rect(0, 15, 160, 15));
+//	sprintf(data, "%d , %d", end.x, end.y);
+//	writer->WriteBuffer(data, 20);
+	int dy = abs(begin.y - end.y);
+	int dx = abs(begin.x - end.x);
+	if (dx == 0)
+		send_coord(PkgType::hLine);
+	else if (dy == 0)
+		send_coord(PkgType::vLine);
+	else {
+		float slope = (float)dy / dx;
+		char data[20] = { };
+		lcd->SetRegion(Lcd::Rect(0, 45, 160, 15));
+		sprintf(data, "%f", slope);
+		writer->WriteBuffer(data, 20);
+		if (slope < 1 && slope > 0)
+			send_coord(PkgType::hLine);
+	}
+}
+
 void process() {
 	buf = cam->LockBuffer();
-	//	if (begin.x != 0 && end.x != 0) {
-	//		if (search_line_record()) {
-	//			lcd->SetRegion(Lcd::Rect(0, 0, 160, 15));
-	//			char data[20] = { };
-	//			sprintf(data, "%d , %d", begin.x, begin.y);
-	//			writer->WriteBuffer(data, 20);
-	//			lcd->SetRegion(Lcd::Rect(0, 15, 160, 15));
-	//			sprintf(data, "%d , %d", end.x, end.y);
-	//			writer->WriteBuffer(data, 20);
-	//			return;
-	//		}
-	//	}
-	//	if (find_boarder()) {
-	//		lcd->SetRegion(Lcd::Rect(0, 0, 160, 15));
-	//		char data[20] = { };
-	//		sprintf(data, "%d , %d", begin.x, begin.y);
-	//		writer->WriteBuffer(data, 20);
-	//		lcd->SetRegion(Lcd::Rect(0, 15, 160, 15));
-	//		sprintf(data, "%d , %d", end.x, end.y);
-	//		writer->WriteBuffer(data, 20);
-	//		return;
-	//	} else {
-	//		lcd->SetRegion(Lcd::Rect(0, 0, 160, 15));
-	//		writer->WriteString("No");
-	//	}
+	if (begin.x != 0 && end.x != 0) {
+		if (search_line_record()) {
+			process_line();
+			return;
+		}
+	}
+	if (find_boarder()) {
+		process_line();
+		return;
+	} else {
+		lcd->SetRegion(Lcd::Rect(0, 0, 160, 15));
+		writer->WriteString("No");
+	}
 	Beacon temp;
 	if ((low_timer && System::Time() - low_time > ir_timeout)
 			|| (high_timer && System::Time() - high_time > ir_timeout)) {

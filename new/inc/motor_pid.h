@@ -193,7 +193,7 @@ private:
 		{
 			if ((errorAcc + e) > errorSumBound) {
 				errorAcc = errorSumBound;
-			} else if ((errorSum + e) < -errorSumBound) {
+			} else if ((errorAcc + e) < -errorSumBound) {
 				errorAcc = -errorSumBound;
 			} else {
 				errorAcc += e;

@@ -154,6 +154,6 @@ int32_t firstForwardDis = 50;
 uint32_t finding_time = 0;
 int32_t rotForDis = 60;
 int32_t rotation_time = 1940;
-int32_t rotationCount = 1884;
+//int32_t rotationCount = 1884;
 
 #endif /* INC_VAR_H_ */

@@ -51,7 +51,7 @@ using libsc::System;
 using namespace libsc;
 using namespace libbase::k60;
 
-
+DebugConsole* car_menu = NULL;
 //pos
 const uint8_t COUNT_PER_CM = 200;
 const uint8_t Y_CENTER_OFFEST = 12;
@@ -69,6 +69,8 @@ const int16_t A_X_RIGHT = 110;
 const int16_t A_X_CENTER = 99;
 const int16_t A_Y = 70;
 
+//avoid
+const uint32_t backward_avoid_change_time = 300;
 
 //pid
 int32_t L_count = 0;
@@ -81,11 +83,11 @@ sstate_ pastAction = keeps;
 int32_t aCountL = 0;
 int32_t aCountR = 0;
 bool accCount = false;
-bool firstAcc = false;
+//bool firstAcc = false;
 int32_t accDis = 0;
 sstate_ accAction = keeps;
 sstate_ actionAfterMove = keeps;
-bool rotCount = false;
+//bool rotCount = false;
 
 
 inline float BeaconAvoidAngleCalculate(const uint16_t& bx, const uint16_t& by);
@@ -94,6 +96,7 @@ inline void setAnglePower(const float& radAngle, const uint32_t& tick, uint32_t&
 inline void pid(const uint32_t& tick, uint32_t& pid_time);
 inline void actionTarget(const sstate_& taction);
 inline void moveCount(const int32_t& cmDis, const sstate_& nowA, const sstate_& nextA);
+inline void image(Joystick& j);
 
 int main(void)
  {
@@ -159,12 +162,18 @@ int main(void)
 	menu.PushItem("roTime",&rotation_time,100);
 	menu.PushItem("FDist",&firstForwardDis, 10);
 
+	DebugConsole carMenu(&joyStick, lcd, writer);
+	carMenu.PushItem("den", &critical_density, 5);
+	carMenu.PushItem("f", &frame, 1);
+	carMenu.PushItem("dist", &near_dist, 10);
+	carMenu.PushItem("minF ", &min_frame, 1);
+	car_menu = &carMenu;
+
 //    Flash::Config flash_config;
 //    Flash flash0(flash_config);
 //	menu.SetFlash(&flash0);
 //
 	auto bFunction = [&menu,&aaction,&seen,&changeSpeedTime,&encoder1,&encoder2](const uint8_t id){
-
 		if(menu.GetFlag()==false && run==false)
 		{
 			run = true;
@@ -236,7 +245,7 @@ int main(void)
  //   run = false;
 //    chasing_speed = 370;
 //    finding_speed = 300;
-  //  rotate_speed = 100;
+    rotate_speed = 200;
 
 	encoder1->Update();
 	encoder2->Update();
@@ -273,16 +282,18 @@ int main(void)
 				L_count = encoder1->GetCount() * 50 / (int) time_diff;
 				R_count = encoder2->GetCount() * 50 / (int) time_diff;
 
-				if(rotCount==true)
-				{
-					aCountL += L_count;
-					aCountR += R_count;
-				}
-				else if(accCount ==true && firstAcc==true)
-				{
-					firstAcc=false;
-				}
-				else if(accCount ==true && firstAcc==false)
+//				if(rotCount==true)
+//				{
+//					aCountL += L_count;
+//					aCountR += R_count;
+//				}
+//				else
+//				if(accCount ==true && firstAcc==true)
+//				{
+//					firstAcc=false;
+//				}
+//				else if(accCount ==true && firstAcc==false)
+				if(accCount ==true && tick-changeSpeedTime>60)
 				{
 					aCountL += L_count;
 					aCountR += R_count;
@@ -300,8 +311,8 @@ int main(void)
 								if(aaction==chases)
 								{
 									Dir_pid->reset();
-									L_pid->reset();
-									R_pid->reset();
+//									L_pid->reset();
+//									R_pid->reset();
 								}
 								aaction = actionAfterMove;
 								actionTarget(actionAfterMove);
@@ -311,10 +322,13 @@ int main(void)
 								}
 								if(actionAfterMove==turnRights|| actionAfterMove==turnLefts)
 								{
-									L_pid->setIsAcc(true);
-									R_pid->setIsAcc(true);
-									L_pid->addErrorAcc(5000);
-									L_pid->addErrorAcc(5000);
+									if(L_pid->getIsAcc()==false)
+									{
+										L_pid->setIsAcc(true);
+										R_pid->setIsAcc(true);
+										L_pid->addErrorAcc(5000);
+										L_pid->addErrorAcc(5000);
+									}
 								}
 								ssend(accAction);
 								atom = false;
@@ -329,11 +343,27 @@ int main(void)
 								if(aaction==chases)
 								{
 									Dir_pid->reset();
-									L_pid->reset();
-									R_pid->reset();
+//									L_pid->reset();
+//									R_pid->reset();
 								}
 								aaction = actionAfterMove;
 								actionTarget(actionAfterMove);
+								if(actionAfterMove == rotations)
+								{
+									finding_time = System::Time();
+								}
+								if(actionAfterMove==turnRights|| actionAfterMove==turnLefts)
+								{
+//									L_pid->setIsAcc(true);
+//									R_pid->setIsAcc(true);
+									if(L_pid->getIsAcc()==false)
+									{
+										L_pid->setIsAcc(true);
+										R_pid->setIsAcc(true);
+										L_pid->addErrorAcc(5000);
+										L_pid->addErrorAcc(5000);
+									}
+								}
 								ssend(accAction);
 								atom = false;
 							}
@@ -419,22 +449,26 @@ int main(void)
 						{
 							if(Dir_pid->getTarget()>0)
 							{
-								moveCount(-30, sstate_::backwards, turnLefts);
+								//moveCount(-30, sstate_::backwards, turnLefts);
+								moveCount(-30, sstate_::backwards, rotations);
 							}
 							else
 							{
-								moveCount(-30, sstate_::backwards, turnRights);
+//								moveCount(-30, sstate_::backwards, turnLefts);
+								moveCount(-30, sstate_::backwards, rotations);
 							}
 						}
 						else
 						{
 							if(Dir_pid->getTarget()>0)
 							{
-								moveCount(-60, sstate_::backwards, turnLefts);
+								//moveCount(-60, sstate_::backwards, turnLefts);
+								moveCount(-60, sstate_::backwards, rotations);
 							}
 							else
 							{
-								moveCount(-60, sstate_::backwards, turnRights);
+								//moveCount(-60, sstate_::backwards, turnRights);
+								moveCount(-60, sstate_::backwards, rotations);
 							}
 						}
 
@@ -472,22 +506,26 @@ int main(void)
 					{
 						if(Dir_pid->getTarget()>0)
 						{
-							moveCount(-30, sstate_::backwards, turnLefts);
+//							moveCount(-30, sstate_::backwards, turnLefts);
+							moveCount(-30, sstate_::backwards, rotations);
 						}
 						else
 						{
-							moveCount(-30, sstate_::backwards, turnRights);
+							//moveCount(-30, sstate_::backwards, turnRights);
+							moveCount(-30, sstate_::backwards, rotations);
 						}
 					}
 					else
 					{
 						if(Dir_pid->getTarget()>0)
 						{
-							moveCount(-60, sstate_::backwards, turnLefts);
+							//moveCount(-60, sstate_::backwards, turnLefts);
+							moveCount(-60, sstate_::backwards, rotations);
 						}
 						else
 						{
-							moveCount(-60, sstate_::backwards, turnRights);
+							//moveCount(-60, sstate_::backwards, turnRights);
+							moveCount(-60, sstate_::backwards, rotations);
 						}
 					}
 					aaction = backwards;
@@ -513,18 +551,20 @@ int main(void)
 						|| (!(abs(R_pid->getTarget())<20) && (abs(R_count)<20))
 					)  && aaction!=rotations && aaction!= searchs && aaction!= chases)
 				{
-					if(aaction == sstate_::avoids || aaction == forwards || aaction == approachs)
-					{
+//					if(aaction == sstate_::avoids || aaction == forwards || aaction == approachs)
+//					{
 						if(tick - o_target.received_time < 200)
 						{
 							if(abs(L_count)>abs(R_count))
 							{
-								moveCount(-40, sstate_::backwards, sstate_::turnLefts);
+//								moveCount(-40, sstate_::backwards, sstate_::turnLefts);
+								moveCount(-40, sstate_::backwards, sstate_::rotations);
 								aaction = backwards;
 							}
 							else
 							{
-								moveCount(-40, sstate_::backwards, sstate_::turnRights);
+								//moveCount(-40, sstate_::backwards, sstate_::turnRights);
+								moveCount(-40, sstate_::backwards, sstate_::rotations);
 								aaction = backwards;
 							}
 						}
@@ -532,31 +572,33 @@ int main(void)
 						{
 							if(abs(L_count)>abs(R_count))
 							{
-								moveCount(-60, sstate_::backwards, sstate_::turnLefts);
+								//moveCount(-60, sstate_::backwards, sstate_::turnLefts);
+								moveCount(-60, sstate_::backwards, sstate_::rotations);
 								aaction = backwards;
 							}
 							else
 							{
-								moveCount(-60, sstate_::backwards, sstate_::turnRights);
+								//moveCount(-60, sstate_::backwards, sstate_::turnRights);
+								moveCount(-60, sstate_::backwards, sstate_::rotations);
 								aaction = backwards;
 							}
 						}
 
-					}
-					else
-					{
-						if(tick - o_target.received_time < 200)
-						{
-							moveCount(-30, sstate_::backwards, aaction);
-							aaction = backwards;
-						}
-						else
-						{
-							moveCount(-60, sstate_::backwards, aaction);
-							aaction = backwards;
-						}
-
-					}
+//					}
+//					else
+//					{
+//						if(tick - o_target.received_time < 200)
+//						{
+//							moveCount(-30, sstate_::backwards, aaction);
+//							aaction = backwards;
+//						}
+//						else
+//						{
+//							moveCount(-60, sstate_::backwards, aaction);
+//							aaction = backwards;
+//						}
+//
+//					}
 					actionTarget(aaction);
 					ssend(aaction);
 
@@ -569,7 +611,7 @@ int main(void)
 
 					continue;
 				}
-				else if(run==true && aaction==sstate_::backwards && tick-changeSpeedTime>200 && (
+				else if(run==true && aaction==sstate_::backwards && tick-changeSpeedTime>backward_avoid_change_time && (
 						(!(abs(L_pid->getTarget())<20) && (abs(L_count)<20))
 						|| (!(abs(R_pid->getTarget())<20) && (abs(R_count)<20))
 					))
@@ -613,12 +655,14 @@ int main(void)
 						{
 							if(abs(L_count)>abs(R_count))
 							{
-								moveCount(-40, sstate_::backwards, sstate_::turnLefts);
+								//moveCount(-40, sstate_::backwards, sstate_::turnLefts);
+								moveCount(-40, sstate_::backwards, sstate_::rotations);
 								aaction = backwards;
 							}
 							else
 							{
-								moveCount(-40, sstate_::backwards, sstate_::turnRights);
+//								moveCount(-40, sstate_::backwards, sstate_::turnRights);
+								moveCount(-40, sstate_::backwards, sstate_::rotations);
 								aaction = backwards;
 							}
 						}
@@ -626,12 +670,14 @@ int main(void)
 						{
 							if(abs(L_count)>abs(R_count))
 							{
-								moveCount(-60, sstate_::backwards, sstate_::turnLefts);
+//								moveCount(-60, sstate_::backwards, sstate_::turnLefts);
+								moveCount(-60, sstate_::backwards, sstate_::rotations);
 								aaction = backwards;
 							}
 							else
 							{
-								moveCount(-60, sstate_::backwards, sstate_::turnRights);
+//								moveCount(-60, sstate_::backwards, sstate_::turnRights);
+								moveCount(-60, sstate_::backwards, sstate_::rotations);
 								aaction = backwards;
 							}
 						}
@@ -658,18 +704,20 @@ int main(void)
 
 					else if(aaction!= sstate_::backwards && ((L_pid->getNumError()>crash_cycle && L_pid->getTarget()>0)|| (R_pid->getNumError()>crash_cycle && R_pid->getTarget()<0)))
 					{
-						if(aaction == forwards)
-						{
+//						if(aaction == forwards)
+//						{
 							if(tick - o_target.received_time < 200)
 							{
 								if(abs(L_count)>abs(R_count))
 								{
-									moveCount(-40, sstate_::backwards, sstate_::turnLefts);
+									//moveCount(-40, sstate_::backwards, sstate_::turnLefts);
+									moveCount(-40, sstate_::backwards, sstate_::rotations);
 									aaction = backwards;
 								}
 								else
 								{
-									moveCount(-40, sstate_::backwards, sstate_::turnRights);
+//									moveCount(-40, sstate_::backwards, sstate_::turnRights);
+									moveCount(-40, sstate_::backwards, sstate_::rotations);
 									aaction = backwards;
 								}
 							}
@@ -677,30 +725,32 @@ int main(void)
 							{
 								if(abs(L_count)>abs(R_count))
 								{
-									moveCount(-60, sstate_::backwards, sstate_::turnLefts);
+									//moveCount(-60, sstate_::backwards, sstate_::turnLefts);
+									moveCount(-60, sstate_::backwards, sstate_::rotations);
 									aaction = backwards;
 								}
 								else
 								{
-									moveCount(-60, sstate_::backwards, sstate_::turnRights);
+//									moveCount(-60, sstate_::backwards, sstate_::turnRights);
+									moveCount(-60, sstate_::backwards, sstate_::rotations);
 									aaction = backwards;
 								}
 							}
 
-						}
-						else
-						{
-							if(tick - o_target.received_time < 200)
-							{
-								moveCount(-30, sstate_::backwards, aaction);
-								aaction = backwards;
-							}
-							else
-							{
-								moveCount(-60, sstate_::backwards, aaction);
-								aaction = backwards;
-							}
-						}
+//						}
+//						else
+//						{
+//							if(tick - o_target.received_time < 200)
+//							{
+//								moveCount(-30, sstate_::backwards, aaction);
+//								aaction = backwards;
+//							}
+//							else
+//							{
+//								moveCount(-60, sstate_::backwards, aaction);
+//								aaction = backwards;
+//							}
+//						}
 						actionTarget(aaction);
 						ssend(aaction);
 					}
@@ -710,13 +760,19 @@ int main(void)
 						{
 							if(abs(L_count)>abs(R_count))
 							{
-								moveCount(30, sstate_::forwards,  sstate_::turnLefts);
-								aaction = forwards;
+								//moveCount(30, sstate_::forwards,  sstate_::turnLefts);
+								//aaction = forwards;
+								//moveCount(60, sstate_::turnLefts,  sstate_::rotations);
+								moveCount(60, sstate_::turnLefts,  sstate_::forwards);
+								aaction = turnLefts;
 							}
 							else
 							{
-								moveCount(30, sstate_::forwards,  sstate_::turnRights);
-								aaction = forwards;
+//								moveCount(30, sstate_::forwards,  sstate_::turnRights);
+//								aaction = forwards;
+								//moveCount(60, sstate_::turnRights,  sstate_::rotations);
+								moveCount(60, sstate_::turnRights,  sstate_::forwards);
+								aaction = turnRights;
 							}
 //							finding_time = 0; //trigger rotations in not seen condition check
 							actionTarget(aaction);
@@ -750,12 +806,14 @@ int main(void)
 					{
 						if(tick - o_target.received_time < 200)
 						{
-							moveCount(-30, sstate_::backwards, sstate_::turnLefts);
+//							moveCount(-30, sstate_::backwards, sstate_::turnLefts);
+							moveCount(-30, sstate_::backwards, sstate_::rotations);
 							aaction = backwards;
 						}
 						else
 						{
-							moveCount(-60, sstate_::backwards, sstate_::turnLefts);
+//							moveCount(-60, sstate_::backwards, sstate_::turnLefts);
+							moveCount(-60, sstate_::backwards, sstate_::rotations);
 							aaction = backwards;
 						}
 
@@ -778,6 +836,7 @@ int main(void)
 					continue;
 				}
 //rotation and searchs crash//////////////////
+
 
 
 
@@ -805,19 +864,21 @@ int main(void)
 						if (y> 70){
 							if(aaction!=backwards)
 							{
-								if(aaction==chases)
+
 								{
 									Dir_pid->reset();
 									L_pid->reset();
-									R_pid->reset();
+//									R_pid->reset();
 								}
 
 								if(x<CARX){
-									moveCount(-30, sstate_::backwards, sstate_::turnRights);
+//									moveCount(-30, sstate_::backwards, sstate_::turnRights);
+									moveCount(-30, sstate_::backwards, sstate_::rotations);
 								}
 								else
 								{
-									moveCount(-30, sstate_::backwards, sstate_::turnLefts);
+//									moveCount(-30, sstate_::backwards, sstate_::turnLefts);
+									moveCount(-30, sstate_::backwards, sstate_::rotations);
 								}
 								aaction = backwards;
 								actionTarget(aaction);
@@ -830,8 +891,8 @@ int main(void)
 							if(aaction==chases)
 							{
 								Dir_pid->reset();
-								L_pid->reset();
-								R_pid->reset();
+//								L_pid->reset();
+//								R_pid->reset();
 							}
 							setAnglePower(BeaconAvoidAngleCalculate(x, y), tick, pid_time);
 							//avoid_past_time = System::Time();
@@ -865,6 +926,7 @@ int main(void)
 					}
 				}
 //otarget end//////////////////////////////
+
 
 //irtarget2////////////////////////
 				process();
@@ -903,8 +965,8 @@ int main(void)
 						if(aaction==chases)
 						{
 							Dir_pid->reset();
-							L_pid->reset();
-							R_pid->reset();
+//							L_pid->reset();
+//							R_pid->reset();
 						}
 						setAnglePower(BeaconApproachAngleCalculate(x, y), tick, pid_time);
 						aaction = approachs;
@@ -1018,17 +1080,17 @@ int main(void)
 						actionTarget(aaction);
 						needRot = false;
 						finding_time = System::Time();
-						rotCount = true;
+						//rotCount = true;
 					}
-					//else if(needRot==false && aaction==rotations && tick-finding_time>rotation_time)
-					else if(needRot==false && rotCount == true && aaction==rotations && aCountL>rotationCount)
+					else if(needRot==false && aaction==rotations && tick-finding_time>rotation_time)
+					//else if(needRot==false && rotCount == true && aaction==rotations && aCountL>rotationCount)
 					{
-						rotCount = false;
+						//rotCount = false;
 						if(aaction==chases)
 						{
 							Dir_pid->reset();
-							L_pid->reset();
-							R_pid->reset();
+//							L_pid->reset();
+//							R_pid->reset();
 						}
 						moveCount(rotForDis, sstate_::forwards, sstate_::rotations);
 						aaction = forwards;
@@ -1037,7 +1099,7 @@ int main(void)
 					}
 					else if(needRot==false && aaction!=rotations && aaction!=forwards)
 					{
-						rotCount = false;
+						//rotCount = false;
 						aaction = rotations;
 						actionTarget(aaction);
 						finding_time = System::Time();
@@ -1100,6 +1162,7 @@ int main(void)
 				case Joystick::State::kDown:
 				{
 					writer->WriteString("down");
+					image(joyStick);
 					break;
 				}
 				case Joystick::State::kLeft:
@@ -1433,11 +1496,18 @@ void pid(const uint32_t& tick, uint32_t& pid_time)
 	L_count = encoder1->GetCount() * 50 / (int) time_diff;
 	R_count = encoder2->GetCount() * 50 / (int) time_diff;
 
-	if(accCount ==true && firstAcc==true)
-	{
-		firstAcc=false;
-	}
-	else if(accCount ==true && firstAcc==false)
+//				if(rotCount==true)
+//				{
+//					aCountL += L_count;
+//					aCountR += R_count;
+//				}
+//				else
+//				if(accCount ==true && firstAcc==true)
+//				{
+//					firstAcc=false;
+//				}
+//				else if(accCount ==true && firstAcc==false)
+	if(accCount ==true && tick-changeSpeedTime>60)
 	{
 		aCountL += L_count;
 		aCountR += R_count;
@@ -1455,8 +1525,8 @@ void pid(const uint32_t& tick, uint32_t& pid_time)
 					if(aaction==chases)
 					{
 						Dir_pid->reset();
-						L_pid->reset();
-						R_pid->reset();
+//									L_pid->reset();
+//									R_pid->reset();
 					}
 					aaction = actionAfterMove;
 					actionTarget(actionAfterMove);
@@ -1466,10 +1536,13 @@ void pid(const uint32_t& tick, uint32_t& pid_time)
 					}
 					if(actionAfterMove==turnRights|| actionAfterMove==turnLefts)
 					{
-						L_pid->setIsAcc(true);
-						R_pid->setIsAcc(true);
-						L_pid->addErrorAcc(5000);
-						L_pid->addErrorAcc(5000);
+						if(L_pid->getIsAcc()==false)
+						{
+							L_pid->setIsAcc(true);
+							R_pid->setIsAcc(true);
+							L_pid->addErrorAcc(5000);
+							L_pid->addErrorAcc(5000);
+						}
 					}
 					ssend(accAction);
 					atom = false;
@@ -1484,11 +1557,27 @@ void pid(const uint32_t& tick, uint32_t& pid_time)
 					if(aaction==chases)
 					{
 						Dir_pid->reset();
-						L_pid->reset();
-						R_pid->reset();
+//									L_pid->reset();
+//									R_pid->reset();
 					}
 					aaction = actionAfterMove;
 					actionTarget(actionAfterMove);
+					if(actionAfterMove == rotations)
+					{
+						finding_time = System::Time();
+					}
+					if(actionAfterMove==turnRights|| actionAfterMove==turnLefts)
+					{
+//									L_pid->setIsAcc(true);
+//									R_pid->setIsAcc(true);
+						if(L_pid->getIsAcc()==false)
+						{
+							L_pid->setIsAcc(true);
+							R_pid->setIsAcc(true);
+							L_pid->addErrorAcc(5000);
+							L_pid->addErrorAcc(5000);
+						}
+					}
 					ssend(accAction);
 					atom = false;
 				}
@@ -1525,19 +1614,19 @@ void pid(const uint32_t& tick, uint32_t& pid_time)
 
 	pid_time = System::Time();
 
-//	{
-//		char temp[20] = { };
-//		sprintf(temp,"time=%d",tick-changeSpeedTime);
-//		//sprintf(temp, "al=%d ar=%d", aCountL,aCountR);
-//		lcd->SetRegion(Lcd::Rect(0, 20, 128, 160));
-//		writer->WriteString(temp);
-//		sprintf(temp, "nl=%d", L_pid->getNumError());
-//		lcd->SetRegion(Lcd::Rect(0, 40, 128, 160));
-//		writer->WriteString(temp);
-//		sprintf(temp, "nr=%d", R_pid->getNumError());
-//		lcd->SetRegion(Lcd::Rect(0, 60, 128, 160));
-//		writer->WriteString(temp);
-//	}
+//								{
+//									char temp[20] = { };
+//									sprintf(temp,"time=%d",tick-changeSpeedTime);
+//									//sprintf(temp, "al=%d ar=%d", aCountL,aCountR);
+//									lcd->SetRegion(Lcd::Rect(0, 20, 128, 160));
+//									writer->WriteString(temp);
+//									sprintf(temp, "nl=%d", L_pid->getNumError());
+//									lcd->SetRegion(Lcd::Rect(0, 40, 128, 160));
+//									writer->WriteString(temp);
+//									sprintf(temp, "nr=%d", R_pid->getNumError());
+//									lcd->SetRegion(Lcd::Rect(0, 60, 128, 160));
+//									writer->WriteString(temp);
+//								}
 
 }
 
@@ -1621,19 +1710,21 @@ void actionTarget(const sstate_& taction)
 		}
 	}
 
-	if(L_pid->getIsAcc()==true && (pastAction!=taction))
+	//if(L_pid->getIsAcc()==true && (pastAction!=taction))
+	if(L_pid->getIsAcc()==true && (pastAction!=taction) && aaction!=rotations && aaction!=searchs)
 	{
 		L_pid->setIsAcc(false);
 		R_pid->setIsAcc(false);
 	}
 
-	if(L_pid->getIsAcc()==false && (pastAction!=taction) && (aaction == chases||aaction==rotations||aaction==searchs))
+	//if(L_pid->getIsAcc()==false && (pastAction!=taction) && (aaction == chases||aaction==rotations||aaction==searchs))
+	if(L_pid->getIsAcc()==false && (pastAction!=taction))
 	{
 		L_pid->setIsAcc(true);
 		R_pid->setIsAcc(true);
 		if(aaction==rotations || aaction==searchs)
 		{
-			L_pid->addErrorAcc(5000); //5000
+			L_pid->addErrorAcc(5000);
 			R_pid->addErrorAcc(5000);
 		}
 	}
@@ -1644,10 +1735,46 @@ void moveCount(const int32_t& cmDis, const sstate_& nowA, const sstate_& nextA)
 {
 	accDis = (cmDis*COUNT_PER_CM);
 	accCount=true;
-	firstAcc = true;
+	//firstAcc = true;
 	aCountL = 0;
 	aCountR = 0;
 	accAction = nowA;
 	actionAfterMove = nextA;
 }
 
+void image(Joystick& j) {
+	while (1) {
+		if (System::Time() != tick) {
+			tick = System::Time();
+			if (tick % 30 == 0) {
+				process();
+				lcd->SetRegion(Lcd::Rect(0, 0, 80, 60));
+				lcd->FillColor(Lcd::kBlack);
+				for (uint16_t y = 0; y < height; y += 4)
+					for (uint16_t x = 0; x < width; x += 4) {
+						uint16_t pos = (width * y) / 8 + x / 8;
+						uint16_t bit_pos = 8 - (x % 8 + 1);
+						if (!GET_BIT(buf[pos], bit_pos)) {
+							lcd->SetRegion(Lcd::Rect(x / 4, y / 4, 1, 1));
+							lcd->FillColor(Lcd::kWhite);
+						}
+					}
+				char data[20] = { };
+				if (beacon_count > 0)
+					for (int i = 0; i < beacon_count; i++) {
+						lcd->SetRegion(Lcd::Rect(100, 15 * i, 60, 15));
+						sprintf(data, "%d: %d", i, beacons[i].density);
+						writer->WriteBuffer(data, 20);
+					}
+				else {
+					lcd->SetRegion(Lcd::Rect(100, 0, 60, 120));
+					lcd->FillColor(Lcd::kBlack);
+				}
+				if (j.GetState() == Joystick::State::kSelect)
+					break;
+				else if (j.GetState() == Joystick::State::kUp)
+					car_menu->EnterDebug("leave");
+			}
+		}
+	}
+}
