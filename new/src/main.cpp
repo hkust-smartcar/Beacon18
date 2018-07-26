@@ -51,6 +51,19 @@ using libsc::System;
 using namespace libsc;
 using namespace libbase::k60;
 
+void bt_sendSum(const int32_t& ls, const int32_t& rs)
+{
+	BitConsts a;
+	bt->SendBuffer(&a.kSTART, 1);
+	Byte size[1] = { 4 };
+	bt->SendBuffer(size, 1);
+	Byte out[1] = {aaction & 0xFF};
+	bt->SendBuffer(out, 1);
+	sendInt(ls);
+	sendInt(rs);
+	bt->SendBuffer(&a.kEND, 1);
+}
+
 DebugConsole* car_menu = NULL;
 //pos
 const uint8_t COUNT_PER_CM = 200;
@@ -70,14 +83,13 @@ const int16_t A_X_CENTER = 99;
 const int16_t A_Y = 70;
 
 //avoid
-const uint32_t backward_avoid_change_time = 300;
+const uint32_t backward_avoid_change_time = 500;
 
 //pid
 int32_t L_count = 0;
 int32_t R_count = 0;
 const uint16_t crash_cycle=15;
 bool atom = false;
-sstate_ pastAction = keeps;
 
 //move
 int32_t aCountL = 0;
@@ -272,8 +284,8 @@ int main(void)
 					actionTarget(aaction);
 					L_pid->addErrorAcc(5000);
 					R_pid->addErrorAcc(5000);
-					L_pid->setIsAcc(true);
-					R_pid->setIsAcc(true);
+//					L_pid->setIsAcc(true);
+//					R_pid->setIsAcc(true);
 				}
 
 				uint32_t time_diff = tick - pid_time;
@@ -327,10 +339,10 @@ int main(void)
 										L_pid->setIsAcc(true);
 										R_pid->setIsAcc(true);
 										L_pid->addErrorAcc(5000);
-										L_pid->addErrorAcc(5000);
+										R_pid->addErrorAcc(5000);
 									}
 								}
-								ssend(accAction);
+								ssend(aaction);
 								atom = false;
 							}
 						}
@@ -361,10 +373,10 @@ int main(void)
 										L_pid->setIsAcc(true);
 										R_pid->setIsAcc(true);
 										L_pid->addErrorAcc(5000);
-										L_pid->addErrorAcc(5000);
+										R_pid->addErrorAcc(5000);
 									}
 								}
-								ssend(accAction);
+								ssend(aaction);
 								atom = false;
 							}
 						}
@@ -419,6 +431,8 @@ int main(void)
 
 //process///////////////////////////
 			if (tick - process_time >= 29 && atom == false && menu.GetFlag()==false) {
+				if(run)
+					bt_sendSum(L_pid->getErrorSum(), R_pid->getErrorSum());
 
 				process_time = tick;
 
@@ -762,16 +776,16 @@ int main(void)
 							{
 								//moveCount(30, sstate_::forwards,  sstate_::turnLefts);
 								//aaction = forwards;
-								//moveCount(60, sstate_::turnLefts,  sstate_::rotations);
-								moveCount(60, sstate_::turnLefts,  sstate_::forwards);
+								moveCount(60, sstate_::turnLefts,  sstate_::rotations);
+								//moveCount(60, sstate_::turnLefts,  sstate_::forwards);
 								aaction = turnLefts;
 							}
 							else
 							{
 //								moveCount(30, sstate_::forwards,  sstate_::turnRights);
 //								aaction = forwards;
-								//moveCount(60, sstate_::turnRights,  sstate_::rotations);
-								moveCount(60, sstate_::turnRights,  sstate_::forwards);
+								moveCount(60, sstate_::turnRights,  sstate_::rotations);
+								//moveCount(60, sstate_::turnRights,  sstate_::forwards);
 								aaction = turnRights;
 							}
 //							finding_time = 0; //trigger rotations in not seen condition check
@@ -1484,10 +1498,10 @@ void pid(const uint32_t& tick, uint32_t& pid_time)
 		firstRun=false;
 		aaction = forwards;
 		actionTarget(aaction);
-		L_pid->addErrorAcc(5000);
-		R_pid->addErrorAcc(5000);
-		L_pid->setIsAcc(true);
-		R_pid->setIsAcc(true);
+//		L_pid->addErrorAcc(5000);
+//		R_pid->addErrorAcc(5000);
+//		L_pid->setIsAcc(true);
+//		R_pid->setIsAcc(true);
 	}
 
 	uint32_t time_diff = tick - pid_time;
@@ -1541,10 +1555,10 @@ void pid(const uint32_t& tick, uint32_t& pid_time)
 							L_pid->setIsAcc(true);
 							R_pid->setIsAcc(true);
 							L_pid->addErrorAcc(5000);
-							L_pid->addErrorAcc(5000);
+							R_pid->addErrorAcc(5000);
 						}
 					}
-					ssend(accAction);
+					ssend(aaction);
 					atom = false;
 				}
 			}
@@ -1575,10 +1589,10 @@ void pid(const uint32_t& tick, uint32_t& pid_time)
 							L_pid->setIsAcc(true);
 							R_pid->setIsAcc(true);
 							L_pid->addErrorAcc(5000);
-							L_pid->addErrorAcc(5000);
+							R_pid->addErrorAcc(5000);
 						}
 					}
-					ssend(accAction);
+					ssend(aaction);
 					atom = false;
 				}
 			}

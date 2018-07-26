@@ -179,6 +179,7 @@ bool bt_listener(const Byte *data, const size_t size) {
 		L_motor->SetPower(0);
 		R_motor->SetPower(0);
 		aaction = stops;
+		pastAction = stops;
 		if(seen)
 		{
 			seen = false;

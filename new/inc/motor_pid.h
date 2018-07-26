@@ -120,6 +120,11 @@ public:
 
 
 //acc
+	int32_t getErrorSum()
+	{
+		return errorSum;
+	}
+
 	int32_t getIsAcc()
 	{
 		return isAcc;

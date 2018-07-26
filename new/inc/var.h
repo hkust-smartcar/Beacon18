@@ -148,6 +148,7 @@ uint32_t changeSpeedTime = 0;
 uint32_t first_chases_time = 0;
 uint32_t chases_crash_time = 0;
 sstate_ aaction = keeps;
+sstate_ pastAction = keeps;
 bool avoidCrashWhileChase = false;
 bool firstRun = true;
 int32_t firstForwardDis = 50;
